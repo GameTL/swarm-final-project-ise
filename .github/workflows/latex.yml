@@ -9,20 +9,27 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Install LaTeX
       run: |
         sudo apt-get update
-        sudo apt-get install -y texlive-latex-base texlive-fonts-recommended texlive-fonts-extra texlive-latex-extra texlive-lang-french
+        sudo apt-get install -y texlive-latex-base texlive-fonts-recommended texlive-fonts-extra texlive-latex-extra texlive-lang-french biber
 
     - name: Compile document
       run: |
         cd report
-        pdflatex report.tex
+        echo -e "\n===== Generating auxiliary files =====\n"
+        pdflatex -interaction=nonstopmode report.tex
+        echo -e "\n===== Updating references =====\n"
+        biber report
+        echo -e "\n===== Using bibliography =====\n"
+        pdflatex -interaction=nonstopmode report.tex
+        echo -e "\n===== Ensuring consistency =====\n"
+        pdflatex -interaction=nonstopmode report.tex
       
     - name: Upload PDF as an artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: report.pdf
         path: report/report.pdf
