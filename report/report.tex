@@ -1,0 +1,149 @@
+\documentclass[a4paper,12pt,oneside]{report}
+\usepackage{graphicx}
+\usepackage{subfigure}
+\usepackage{latexsym}
+\usepackage{pkg/cappar}
+\usepackage{amssymb}
+\usepackage[english, french]{babel}
+\usepackage{pdfpages}
+
+\usepackage{url}
+
+%\usepackage{arabtex}
+\usepackage{lettrine}
+\usepackage[T1]{fontenc}
+\usepackage{float}
+\usepackage[utf8]{inputenc}
+%\usepackage[latin1]{inputenc}
+\usepackage{palatino}
+%\usepackage{eufrack}
+%\usepackage{epsf}
+\usepackage{color}
+%\pagestyle{headings}
+%------------la profondeur du document
+   %% Visibles dans la table des matieres
+%-------------------------------------------
+\setlength{\doublerulesep}{\arrayrulewidth}
+\setlength{\textwidth}{16cm} \setlength{\textheight}{24cm}
+\setlength{\marginparwidth}{-4cm} \setlength{\evensidemargin}{-4cm}
+\setlength{\hoffset}{-1.7cm} \setlength{\voffset}{-1cm}
+\setlength{\topmargin}{-0.5cm} \setlength{\footskip}{27pt}
+%\addtolength{\footsep}{1cm}
+
+\renewcommand{\baselinestretch}{1.3}
+\linespread{1}
+
+\usepackage{titlesec}
+\titlespacing*{\chapter}{0pt}{-1\baselineskip}{1\baselineskip}
+\titlespacing*{\section}{0pt}{\baselineskip}{0pt} 
+
+\usepackage{pkg/fancyhdr}
+\usepackage{nccrules}
+\usepackage{titlesec}
+\usepackage{verbatim}
+%\usepackage{supertabular}
+%\usepackage{array}
+\usepackage{multirow}
+\usepackage{longtable}
+%\usepackage{algorithm}
+%\usepackage{algorithmic}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{pifont}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% DEfinition d'un nouveau style de page qui supprime l'entete et garde le numero de page
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\fancypagestyle{noheadrule}{
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0.5pt}
+ \fancyfoot[LE,LO]{\textit {FINAL PROJECT PROPOSAL}}
+ \fancyfoot[RE,RO]{\bfseries\thepage}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\input{chapters/cover}
+%\initfloatingfigs
+
+%----------------------------------------------------------------------------
+%   Page de garde
+%----------------------------------------------------------------------------
+\thispagestyle{empty}
+
+%----------------------------------------
+\pagenumbering{roman} \setcounter{page}{1}
+
+%----------------------------------------------------------------------------
+%   La tables des matieres, des figures et la liste des tableaux
+%----------------------------------------------------------------------------
+\setcounter{secnumdepth}{11}  %% Avec un numero.
+\setcounter{tocdepth}{3}
+%Ceci permet davoir les noms de chapitre et de section en minuscules
+\renewcommand{\chaptermark}[1]{\markboth{Chapter ~\thechapter~:~#1}{}}
+%\renewcommand{\sectionmark}[1]{\markright{\thesection\#1}}
+\fancyhf{}
+%supprime les entetes et pieds existant
+%\fancyhead[LE,LO]{\bfseries{Projet de fin d'études}}
+\fancyhead[RE,RO]{\bfseries\leftmark}
+\fancyfoot[LE,LO]{\textit {FINAL PROJECT PROPOSAL}} \fancyfoot[RE,RO]{\bfseries\thepage}
+%\renewcommand{\headrulewidth}{0.5pt}
+%\renewcommand{\footrulewidth}{0.5pt}
+
+%\addtolength{\headheight}{0.5pt}
+%\addtolength{\footheight}{0.5pt} %espace pour le filet
+\fancypagestyle{plain}{%pages de tetes de chapitre
+\fancyhead{}%supprime lentete
+\renewcommand{\headrulewidth}{0pt} %et le filet
+} \pagestyle{fancy}
+
+\selectlanguage{english}
+
+{\linespread{.8}\tableofcontents}
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\pagestyle{fancy} \fancyhf{} \fancypagestyle{plain} \lhead{}
+
+%\fancypagestyle{plain}
+ %\chead{\vspace{-1cm}
+  % \begin{center}
+  % \includegraphics[height=1cm]{./images/garde/oaca2.jpg}
+  % \hspace{6cm}
+  % \includegraphics[height=1cm]{./images/garde/ensi.jpg}
+  % \end{center}\vspace{-0.2cm}}
+%\rhead{} \lfoot{} \cfoot{- \thepage/\pageref{LastPage} -} \rfoot{}
+
+
+
+%---- General Introduction
+
+\pagenumbering{arabic}
+
+\titlespacing{\chapter}{0cm}{1cm}{2cm}
+
+\input{chapters/abstract}
+
+\input{chapters/research_background}
+
+\input{chapters/objectives}
+
+\input{chapters/literature_survey}
+
+\input{chapters/project_concept_development}
+
+\input{chapters/timeline}
+
+\input{chapters/theory_backup}
+
+\input{chapters/project_outcome}
+
+\input{chapters/industrial_benefit}
+
+\input{chapters/workload}
+
+\bibliographystyle{IEEEtran}
+\bibliography{biblio}
+
+\end{document} 
