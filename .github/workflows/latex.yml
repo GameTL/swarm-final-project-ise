@@ -22,7 +22,7 @@ jobs:
         echo -e "\n===== Generating auxiliary files =====\n"
         pdflatex -interaction=nonstopmode report.tex
         echo -e "\n===== Updating references =====\n"
-        bibtex report.tex
+        bibtex report
         echo -e "\n===== Using bibliography =====\n"
         pdflatex -interaction=nonstopmode report.tex
         echo -e "\n===== Ensuring consistency =====\n"
