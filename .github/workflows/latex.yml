@@ -12,7 +12,9 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Install LaTeX
-      run: sudo apt-get update && sudo apt-get install -y texlive-latex-base texlive-fonts-recommended texlive-fonts-extra texlive-latex-extra
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y texlive-latex-base texlive-fonts-recommended texlive-fonts-extra texlive-latex-extra texlive-lang-french
 
     - name: Compile document
       run: |
