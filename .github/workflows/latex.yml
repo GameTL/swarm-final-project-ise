@@ -1,0 +1,26 @@
+name: Build LaTeX
+
+on: 
+  workflow_dispatch:
+    
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install LaTeX
+      run: sudo apt-get update && sudo apt-get install -y texlive-latex-base texlive-fonts-recommended texlive-fonts-extra texlive-latex-extra
+
+    - name: Compile document
+      run: |
+        cd report
+        pdflatex-interaction=nonstopmode report.tex
+      
+    - name: Upload PDF as an artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: report.pdf
+        path: report/report.pdf
