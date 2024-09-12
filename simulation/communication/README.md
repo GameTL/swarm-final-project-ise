@@ -2,6 +2,8 @@
 
 We should start simulating these 2 prerequisites on a few robots (e.g. 5) as a starting point
 
+<img src="../assets/images/doc/communication_example_robot.png" alt="robot" width="20%"/>
+
 ## Requirements
 
 ### 1. Message Transmission
@@ -18,6 +20,8 @@ Members of the swarm fleet should be aware of others' coordinates, done via netw
 ### 2. P2P Collision Avoidance
 
 Evidence as to members' awareness of one another, random movement will be required but can be omitted as we can utilize existing frameworks 
+
+<img src="../assets/images/doc/communication_example_environment.png" alt="environment" width="30%"/>
 
 #### Constraints:
 - Random movement exists
