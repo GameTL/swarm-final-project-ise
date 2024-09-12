@@ -1,7 +1,5 @@
 # Using Webots
 
-<hr />
-
 ## Installing Webots
 
 You can install Webots from the [Cyberbotics](https://cyberbotics.com) website
