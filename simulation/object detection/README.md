@@ -1,6 +1,6 @@
 # Requirements
 
-This simulation utilises turtle
+This simulation utilises three turtlebot burger with 5 distinct targets in a room
 
 ## Target Constraints
 1. 5 distinct target objects (color, shape, size)
