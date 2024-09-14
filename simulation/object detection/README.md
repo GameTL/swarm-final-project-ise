@@ -1,6 +1,6 @@
 # Requirements
 
-This simulation utilises three turtlebot burger with 5 distinct targets in a room
+This simulation utilises three turtlebot burger with 5 distinct targets in a room. A camera is fixed to each turtlebot
 
 ## Target Constraints
 1. 5 distinct target objects (color, shape, size)
@@ -14,10 +14,14 @@ This simulation utilises three turtlebot burger with 5 distinct targets in a roo
 ### Detecting all objects available in the room
 
 ### Classifying objects
-#### Other Robots | Objects
-#### Other Robots | Objects | Targets
-#### Classify Targets based on
-1. based on color
-2. based on shape
-3. based on size
-4. based on type e.g. box, furniture, etc 
+  - Other Robots | Objects
+  - Other Robots | Objects | Targets
+  - Classify Targets based on
+    1. based on color
+    2. based on shape
+    3. based on size
+    4. based on type e.g. box, furniture, etc
+  - 6 DoF Pose Estimation
+
+##Goal
+  Detecting a red box in the room
