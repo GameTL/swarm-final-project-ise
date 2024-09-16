@@ -1,8 +1,8 @@
-# IBject detection and classification with RGB-D Camera
+# Object detection and classification with RGB-D Camera
 
 This simulation utilises three turtlebot burger with 5 distinct targets in a room. A camera is fixed to each turtlebot
 
-##Simulation version
+## Simulation version
 - object_detection_1  :  basic simulstion utilising ready-to-use object detection model embeded in the camera on webots
 
 ## Target Constraints
