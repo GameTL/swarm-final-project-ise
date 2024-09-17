@@ -1,13 +1,9 @@
-"""swarm_communication controller."""
-
-# You may need to import some classes of the controller module. Ex:
-#  from controller import Robot, Motor, DistanceSensor
-from controller import Robot, Emitter, Receiver
+from controller import Robot, Emitter, Receiver, GPS
 
 class SwarmCommunicator:
     def __init__(self):
+        # Instantiate the robot
         self.robot = Robot()
-        
         self.timestep = int(self.robot.getBasicTimeStep())
         
         # Get and enable GPS device
@@ -29,6 +25,7 @@ class SwarmCommunicator:
         self.time_tracker = 0
         
     def run(self):
+        """Main function to run the communication modules"""
         while self.robot.step(self.timestep) != -1:
             # Implement time intervals
             self.time_tracker += self.timestep
@@ -50,13 +47,12 @@ class SwarmCommunicator:
             self.handle_message()
                     
     def handle_message(self):
-        # Receive messages from other robots
+        """Receive messages from other robots"""
         while self.receiver.getQueueLength() > 0:
             self.received_message = self.receiver.getString()
             print(f"{self.name} received: {self.received_message}")
             self.receiver.nextPacket()
         
-
-        
-robot_communication_controller = SwarmCommunicator()
-robot_communication_controller.run()
+if __name__ == "__main__":
+    robot_communication_controller = SwarmCommunicator()
+    robot_communication_controller.run()
