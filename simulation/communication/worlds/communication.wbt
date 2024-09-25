@@ -1,0 +1,193 @@
+#VRML_SIM R2023b utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/floors/protos/RectangleArena.proto"
+
+WorldInfo {
+}
+Viewpoint {
+  orientation -0.2206038241198744 0.10519994833118357 0.9696736170767996 2.35171139514245
+  position 0.968988276579758 -0.9642483385833371 0.7345875295087152
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+}
+DEF Mobile1 Robot {
+  translation 0 0.25 0
+  rotation 0 0 1 3.14159
+  children [
+    Compass {
+    }
+    Receiver {
+    }
+    Emitter {
+    }
+    GPS {
+    }
+    HingeJoint {
+      jointParameters HingeJointParameters {
+        anchor -0.05 0 0.025
+      }
+      device [
+        RotationalMotor {
+          name "motor2"
+        }
+      ]
+      endPoint Solid {
+        translation -0.05 0 0.025
+        rotation -1.4937506701596141e-10 1 -1.4925616298455682e-10 1.57
+        children [
+          DEF Wheel2 Shape {
+            appearance PBRAppearance {
+              baseColor 1 0 0
+              roughness 1
+              metalness 0
+            }
+            geometry Cylinder {
+              height 0.01
+              radius 0.025
+            }
+          }
+        ]
+        name "wheel2"
+        boundingObject USE Wheel2
+        physics DEF WheelPhysics2 Physics {
+        }
+      }
+    }
+    DEF Body Pose {
+      translation 0 0 0.0415
+      children [
+        Shape {
+          appearance PBRAppearance {
+            baseColor 0 1 1
+            roughness 1
+            metalness 0
+          }
+          geometry Cylinder {
+            height 0.08
+            radius 0.05
+          }
+        }
+      ]
+    }
+    HingeJoint {
+      jointParameters HingeJointParameters {
+        anchor 0.05 0 0.025
+      }
+      device [
+        RotationalMotor {
+          name "motor1"
+        }
+      ]
+      endPoint Solid {
+        translation 0.05 0 0.025
+        rotation -1.491816096320019e-10 1 -1.4906285959458916e-10 1.57
+        children [
+          DEF Wheel1 Shape {
+            appearance PBRAppearance {
+              baseColor 1 0 0
+              roughness 1
+              metalness 0
+            }
+            geometry Cylinder {
+              height 0.01
+              radius 0.025
+            }
+          }
+        ]
+        name "wheel1"
+        boundingObject USE Wheel1
+        physics DEF WheelPhysics1 Physics {
+        }
+      }
+    }
+  ]
+  name "robot1"
+  boundingObject USE Body
+  physics Physics {
+  }
+  controller "advanced_communication"
+}
+DEF Mobile2 Robot {
+  translation 0 -0.25 0
+  children [
+    HingeJoint {
+      jointParameters HingeJointParameters {
+        anchor 0.05 0 0.025
+      }
+      device [
+        RotationalMotor {
+          name "motor1"
+        }
+      ]
+      endPoint Solid {
+        translation 0.05 0 0.025
+        rotation 0 1 0 1.57
+        children [
+          USE Wheel1
+        ]
+        name "wheel1"
+        boundingObject USE Wheel1
+        physics USE WheelPhysics1
+      }
+    }
+    HingeJoint {
+      jointParameters HingeJointParameters {
+        anchor -0.05 0 0.025
+      }
+      device [
+        RotationalMotor {
+          name "motor2"
+        }
+      ]
+      endPoint Solid {
+        translation -0.05 0 0.025
+        rotation 0 1 0 1.57
+        children [
+          USE Wheel1
+        ]
+        name "wheel2"
+        boundingObject USE Wheel1
+        physics USE WheelPhysics1
+      }
+    }
+    Compass {
+    }
+    GPS {
+    }
+    Emitter {
+    }
+    Receiver {
+    }
+    USE Body
+  ]
+  name "robot2"
+  boundingObject USE Body
+  physics Physics {
+  }
+  controller "advanced_communication"
+}
+DEF Supervisor Robot {
+  translation 0 0 0.5
+  children [
+    Emitter {
+    }
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1 1 0
+        roughness 1
+        metalness 0
+      }
+      geometry Box {
+        size 0.05 0.05 0.05
+      }
+    }
+  ]
+  controller "<none>"
+  supervisor TRUE
+}
