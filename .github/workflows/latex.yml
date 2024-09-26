@@ -2,6 +2,10 @@ name: Build LaTeX
 
 on: 
   workflow_dispatch:
+    inputs:
+      repository:
+        description: 'The directory name where the LaTeX report is located'
+        required: true
     
 jobs:
   build:
@@ -18,7 +22,7 @@ jobs:
 
     - name: Compile document
       run: |
-        cd report
+        cd reports/${{ inputs.repository }}
         echo -e "\n===== Generating auxiliary files =====\n"
         pdflatex -interaction=nonstopmode report.tex
         echo -e "\n===== Updating references =====\n"
@@ -32,4 +36,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: report.pdf
-        path: report/report.pdf
+        path: reports/${{ inputs.repository }}/report.pdf
