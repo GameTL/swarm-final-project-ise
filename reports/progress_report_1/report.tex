@@ -45,6 +45,7 @@
 \usepackage{longtable}
 \usepackage{enumitem}
 \usepackage{pifont}
+\usepackage{csquotes}
 
 \fancypagestyle{noheadrule}{
     \fancyhf{}
@@ -69,7 +70,7 @@
 \renewcommand{\chaptermark}[1]{\markboth{Chapter ~\thechapter~:~#1}{}}
 \fancyhf{}
 \fancyhead[R,RO]{\bfseries\leftmark}
-\fancyfoot[L,LO]{\textit {FINAL PROJECT PROPOSAL}} \fancyfoot[RE,RO]{\bfseries\thepage}
+\fancyfoot[L,LO]{\textit {FINAL PROJECT PROPOSAL}} \fancyfoot[R,RO]{\bfseries\thepage}
 \fancypagestyle{plain}{
     \fancyhead{}
     \renewcommand{\headrulewidth}{0pt}
@@ -86,6 +87,6 @@
 
 % Bibliography
 \nocite{*}
-\printbibliography
+% \printbibliography
 
 \end{document} 
