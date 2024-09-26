@@ -46,7 +46,7 @@ class SwarmMember:
                     self.send_position()
 
                     #! For testing - Assume detection
-                    if self.count >= 3 and self.name == "robot1":
+                    if self.count >= 3 and self.name == "TurtleBot2":
                         self.object_coordinates = (3.0, 4.0, 5.0)
                         self.count = 0
                     self.count += 1
