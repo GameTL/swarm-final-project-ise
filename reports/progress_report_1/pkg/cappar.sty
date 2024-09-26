@@ -1,0 +1,10 @@
+%%%% debut macro %%%%
+\font\capfont=cmbx12 at 24.87 pt % or yinit, or...?
+\newbox\capbox \newcount\capl \def\a{A}
+\def\docappar{\medbreak\noindent\setbox\capbox\hbox{%
+\capfont\a\hskip0.15em}\hangindent=\wd\capbox%
+\capl=\ht\capbox\divide\capl by\baselineskip\advance\capl by1%
+\hangafter=-\capl%
+\hbox{\vbox to8pt{\hbox to0pt{\hss\box\capbox}\vss}}}
+\def\cappar{\afterassignment\docappar\noexpand\let\a }
+%%%% fin macro %%%%
