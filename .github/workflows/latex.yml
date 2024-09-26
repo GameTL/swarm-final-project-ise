@@ -22,6 +22,7 @@ jobs:
 
     - name: Compile document
       run: |
+        echo -e "changing directory to ${{ inputs.repository }}"
         cd reports/${{ inputs.repository }}
         echo -e "\n===== Generating auxiliary files =====\n"
         pdflatex -interaction=nonstopmode report.tex
