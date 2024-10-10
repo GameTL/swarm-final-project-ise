@@ -23,14 +23,11 @@ CircleArena {
   wallHeight 0.4
 }
 TurtleBot3Burger {
-  hidden translation_11 0 -0.08 0.033
-  hidden translation_12 0 0.08 0.033
-  hidden translation_13 -0.081 0 0.004
   hidden rotation_13 0.28296717426547996 0.46438509645657 -0.8392115707479442 4.638111303837851
   translation -0.3277755882661842 0.6917958385998277 -0.0004935078562190998
   rotation -0.004993148304714276 -0.1870183210725561 -0.9823437362009336 0.05007615424692142
   name "TurtleBot1"
-  controller "swarm_communication"
+  controller "advanced_communication"
   extensionSlot [
     GPS {
     }
@@ -43,16 +40,13 @@ TurtleBot3Burger {
   ]
 }
 TurtleBot3Burger {
-  hidden translation_11 0 -0.08 0.033
   hidden rotation_11 0 1 0 2.1861441204297116
-  hidden translation_12 0 0.08 0.033
   hidden rotation_12 -0.6436798589050867 -2.0008570368063175e-07 -0.7652948707785046 3.1415880172376918
-  hidden translation_13 -0.081 0 0.004
   hidden rotation_13 0.28296717426547996 0.46438509645657 -0.8392115707479442 4.638111303837851
   translation -2.2980559790645323 -0.26184392625880404 -0.0004935078796560258
   rotation 0.004680022214733467 -0.0017836057484531408 0.999987457992651 2.4175592341875016
   name "TurtleBot2"
-  controller "swarm_communication"
+  controller "advanced_communication"
   extensionSlot [
     GPS {
     }
@@ -65,15 +59,12 @@ TurtleBot3Burger {
   ]
 }
 TurtleBot3Burger {
-  hidden translation_11 0 -0.08 0.033
   hidden rotation_11 0 1 0 2.1861441204565137
-  hidden translation_12 0 0.08 0.033
-  hidden translation_13 -0.081 0 0.004
   hidden rotation_13 0.2829671742654802 0.4643850964565698 -0.8392115707479442 4.638111303837851
   translation -0.3442776253079825 0.16362216950136574 -0.000493507856218614
   rotation 0.004686359296215177 0.00123762029250997 0.9999882530972842 -2.62101574272748
   name "TurtleBot3"
-  controller "swarm_communication"
+  controller "advanced_communication"
   extensionSlot [
     GPS {
     }
@@ -86,16 +77,13 @@ TurtleBot3Burger {
   ]
 }
 TurtleBot3Burger {
-  hidden translation_11 0 -0.08 0.033
   hidden rotation_11 0 1 0 2.186144120428798
-  hidden translation_12 0 0.08 0.033
   hidden rotation_12 -0.6436798588860834 -2.0008570373819558e-07 -0.765294870794488 3.1415880172376918
-  hidden translation_13 -0.081 0 0.004
-  hidden rotation_13 0.28296717426547985 0.4643850964565699 -0.8392115707479443 4.638111303837851
+  hidden rotation_13 0.28296717426547985 0.46438509645656995 -0.8392115707479443 4.638111303837851
   translation -0.8238714790318912 0.7348668678104662 -0.0003752311598676228
   rotation -0.009520754100246455 -0.116933075182557 0.9930941602736939 0.2133835913936774
   name "TurtleBot4"
-  controller "swarm_communication"
+  controller "advanced_communication"
   extensionSlot [
     GPS {
     }
@@ -111,14 +99,11 @@ TurtleBot3Burger {
   hidden position_0_2 -518.5117279603242
   hidden position2_0_2 87.33084461029651
   hidden position3_0_2 -2434.407930102521
-  hidden translation_11 0 -0.08 0.033
-  hidden translation_12 0 0.08 0.033
-  hidden translation_13 -0.081 0 0.004
   hidden rotation_13 0.18506670249282356 0.9746347830601567 -0.12584655449281815 3.740756492635983
   translation -0.09395938191636544 1.0640977663886146 -0.0004935078562192108
   rotation 0.004659355297962928 -0.011499022030091764 0.9999230284879728 0.7742011298110214
   name "TurtleBot5"
-  controller "swarm_communication"
+  controller "advanced_communication"
   extensionSlot [
     GPS {
     }
