@@ -1,10 +1,12 @@
 from controller import Robot, Emitter, Receiver, GPS
+import json
 
 # Declare constants
 GPS_DEVICE_NAME = "gps"
 EMITTER_DEVICE_NAME = "emitter"
 RECEIVER_DEVICE_NAME = "receiver"
 MESSAGE_INTERVAL = 2000 # ms
+PRIORITY_LIST = ["TurtleBot1", "TurtleBot2", "TurtleBot3", "TurtleBot4", "TurtleBot5"]
 
 
 class SwarmMember:
@@ -17,6 +19,7 @@ class SwarmMember:
         self.name = self.robot.getName()
         self.mode = mode
         self.robot_entries = {}
+        self.priority_list = PRIORITY_LIST
 
         # Enable sensory devices
         self.gps = self.robot.getDevice(GPS_DEVICE_NAME)
@@ -46,7 +49,7 @@ class SwarmMember:
                     self.send_position()
 
                     #! For testing - Assume detection
-                    if self.count >= 3 and self.name == "TurtleBot2":
+                    if self.count >= 3 and (self.name == "TurtleBot2" or self.name == "TurtleBot3"):
                         self.object_coordinates = (3.0, 4.0, 5.0)
                         self.count = 0
                     self.count += 1
@@ -58,11 +61,20 @@ class SwarmMember:
                 if entries_modified:
                     print(self.name)
                     print(self.robot_entries)
-
+                 
             elif self.mode == 1:
-                # Consensus mode
+                # checking concensus
+                if self.check_colliding_master():
+                    print("Task master conflict found, appointing new task master..")
+                    self.broadcast_message("[TaskConflict]", self.priority_list)
+                    self.task_master = self.priority_list[0]
+                self.broadcast_message("[TaskSucessful]", "")
+                self.mode = 2
+
+            elif self.mode == 2:
+                # Consensus confirm
                 if self.time_tracker >= self.message_interval:
-                    print(f"{self.name} finding consensus")
+                    print(f"{self.name} consensus found")
                     print(f"Taskmaster: {self.task_master}")
                     print(f"Coordinates: {self.object_coordinates}")
                     self.time_tracker = 0
@@ -71,19 +83,22 @@ class SwarmMember:
         if len(self.object_coordinates) != 0:
             # Object detected
             self.mode = 1
-            self.task_master = self.name
-            self.broadcast_message("[Task]", f"{self.object_coordinates}")
-
-    def broadcast_message(self, title: str, content: str):
+            # self.task_master = self.name
+            self.broadcast_message("[Task]", self.object_coordinates)
+            
+    def check_colliding_master(self):
+        return self.name != self.task_master
+            
+    def broadcast_message(self, title: str, content):
         # Send the message
-        message = f"{title};{self.name};{content}"
-        self.emitter.send(message.encode("utf-8"))
+        message = json.dumps([title, self.name, content])
+        self.emitter.send(message)
     
     def send_position(self):
         # Get current position
         current_x, current_y, current_z = self.gps.getValues()
         # Broadcast the message
-        self.broadcast_message("[Probe]", f"[{current_x}, {current_y}, {current_z}]")
+        self.broadcast_message("[Probe]", (current_x, current_y, current_z))
         # Reset the timer
         self.time_tracker = 0
 
@@ -93,16 +108,20 @@ class SwarmMember:
         # Receive messages from other robots and print
         while self.receiver.getQueueLength() > 0:
             received_message = self.receiver.getString()
-            message_components = received_message.split(";")
+            title, robot_id, content = json.loads(received_message)
             
             # Check for probing message
-            if message_components[0] == "[Probe]":
-                self.robot_entries[message_components[1]] = message_components[2]
+            if title == "[Probe]":
+                self.robot_entries[robot_id] = content
                 entries_modified = True
-            elif message_components[0] == "[Task]":
-                self.mode = 1
-                self.task_master = message_components[1]
-                self.object_coordinates = tuple([float(elem.replace("(", "").replace(")", "").replace(" ", "")) for elem in message_components[2].split(",")])
+            elif title == "[Task]":
+                self.task_master = robot_id
+                self.object_coordinates = content
+            elif title == "[TaskConflict]":
+                self.priority_list = content
+                self.task_master = self.priority_list[0]
+            elif title == "[TaskSucessful]":
+                self.mode = 2
             
             self.receiver.nextPacket()
 
