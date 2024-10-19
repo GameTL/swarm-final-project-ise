@@ -6,20 +6,20 @@ GPS_DEVICE_NAME = "gps"
 EMITTER_DEVICE_NAME = "emitter"
 RECEIVER_DEVICE_NAME = "receiver"
 MESSAGE_INTERVAL = 2000 # ms
-PRIORITY_LIST = ["TurtleBot1", "TurtleBot2", "TurtleBot3", "TurtleBot4", "TurtleBot5"]
+PRIORITY_LIST = ["robot1", "robot2", "robot3"]
 
 
 class SwarmMember:
-    def __init__(self, mode=0):
+    def __init__(self, robot, mode=0):
         # Instantiate the robot
-        self.robot = Robot()
+        self.robot = robot
 
         # Retrieve robot parameters
         self.timestep = 64
         self.name = self.robot.getName()
         self.mode = mode
         self.robot_entries = {}
-        self.priority_list = PRIORITY_LIST
+        self.priority_queue = PRIORITY_LIST
 
         # Enable sensory devices
         self.gps = self.robot.getDevice(GPS_DEVICE_NAME)
@@ -49,11 +49,12 @@ class SwarmMember:
                     self.send_position()
 
                     #! For testing - Assume detection
-                    if self.count >= 3 and (self.name == "TurtleBot2" or self.name == "TurtleBot3"):
+                    if self.count >= 3 and (self.name == "robot2" or self.name == "robot3"):
                         self.object_coordinates = (3.0, 4.0, 5.0)
                         self.count = 0
                     self.count += 1
 
+                # print(f"{self.name}: {self.object_coordinates}, {self.count}")
                 self.check_detection()
                 
                 # Check robot entries
@@ -63,12 +64,12 @@ class SwarmMember:
                     print(self.robot_entries)
                  
             elif self.mode == 1:
-                # checking concensus
+                # Check consensus
                 if self.check_colliding_master():
                     print("Task master conflict found, appointing new task master..")
-                    self.broadcast_message("[TaskConflict]", self.priority_list)
-                    self.task_master = self.priority_list[0]
-                self.broadcast_message("[TaskSucessful]", "")
+                    self.broadcast_message("[TaskConflict]", self.priority_queue)
+                    self.task_master = self.priority_queue[0]
+                self.broadcast_message("[TaskSuccessful]", "")
                 self.mode = 2
 
             elif self.mode == 2:
@@ -77,7 +78,19 @@ class SwarmMember:
                     print(f"{self.name} consensus found")
                     print(f"Taskmaster: {self.task_master}")
                     print(f"Coordinates: {self.object_coordinates}")
+                    
+                    # Rearrange priority queue
+                    self.priority_queue.remove(self.task_master)
+                    self.priority_queue.append(self.task_master)
+
+                    print(f"Rearranging priority queue: {self.priority_queue}")
                     self.time_tracker = 0
+
+                # Reset mode
+                # self.mode = 0
+                # self.object_coordinates = ()
+                # self.task_master = ""
+                # self.count = 0
 
     def check_detection(self):
         if len(self.object_coordinates) != 0:
@@ -118,9 +131,9 @@ class SwarmMember:
                 self.task_master = robot_id
                 self.object_coordinates = content
             elif title == "[TaskConflict]":
-                self.priority_list = content
-                self.task_master = self.priority_list[0]
-            elif title == "[TaskSucessful]":
+                self.priority_queue = content
+                self.task_master = self.priority_queue[0]
+            elif title == "[TaskSuccessful]":
                 self.mode = 2
             
             self.receiver.nextPacket()
@@ -129,5 +142,6 @@ class SwarmMember:
         return entries_modified
 
 if __name__ == "__main__":
-    robot = SwarmMember()
-    robot.run()
+    robot = Robot()
+    swarm_member = SwarmMember(robot=robot)
+    swarm_member.run()
