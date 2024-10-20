@@ -1,4 +1,5 @@
 import json
+import time
 
 EMITTER_DEVICE_NAME = "emitter"
 RECEIVER_DEVICE_NAME = "receiver"
@@ -27,19 +28,17 @@ class Communicator:
         self.task_master = ""
         self.count = 0 
 
-    def listen_message(self):
-        # listening incoming message.
-        entries_modified = False
-
+    def listen_to_message(self):
         # Receive messages from other robots and print
-        while self.receiver.getQueueLength() > 0:
+        if self.receiver.getQueueLength() > 0:
             received_message = self.receiver.getString()
             title, robot_id, content = json.loads(received_message)
             
             # Check for probing message
             if title == "[Probe]":
                 self.robot_entries[robot_id] = content
-                entries_modified = True
+            elif title == "[ObjectDetected]":
+                print(f"Object Detected from: {robot_id}")
             elif title == "[Task]":
                 self.task_master = robot_id
                 self.object_coordinates = content
@@ -48,11 +47,10 @@ class Communicator:
                 self.task_master = self.priority_list[0]
             elif title == "[TaskSucessful]":
                 self.mode = 2
+            else:
+                print("x")
             
             self.receiver.nextPacket()
-
-        # True if robot entries are modified
-        return entries_modified
     
     def broadcast_message(self, title: str, content):
         # Send the message

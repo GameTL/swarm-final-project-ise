@@ -3,14 +3,21 @@ import cv2
 import numpy as np
 from swamtools.vision.ObjectDetector import ObjectDetector
 from swamtools.communication.Communicator import Communicator
+import asyncio
 
 MAX_SPEED = 2
 
 robot = Robot()
+robot_position = {
+    "x": 0.0,
+    "y": 0.0,
+    "theta": 0.0
+}
 
 timestep = int(robot.getBasicTimeStep())
 
 object_detector = ObjectDetector(robot)
+communicator = Communicator(robot) 
 
 # motors
 leftMotor = robot.getDevice('left wheel motor')
@@ -41,10 +48,20 @@ def stop():
     leftMotor.setVelocity(0)
     rightMotor.setVelocity(0)
 
-# main loop
-while robot.step(timestep) != -1:
-    leftMotor.setVelocity(MAX_SPEED*0.5)
-    rightMotor.setVelocity(MAX_SPEED)
-    if object_detector.detect():
-        stop() 
-            
+def simple_movement():
+    communicator.send_position(robot_position)
+    while robot.step(timestep) != -1:
+        communicator.listen_to_message()
+        leftMotor.setVelocity(MAX_SPEED*0.5)
+        rightMotor.setVelocity(MAX_SPEED)
+        if object_detector.detect():
+            communicator.broadcast_message("[ObjectDetected]", (0, 0, 0))
+            stop() 
+            break
+
+
+async def main():
+    #task1 = asyncio.create_task(listening())
+    simple_movement()
+
+asyncio.run(main())
