@@ -1,16 +1,10 @@
 \chapter{Conclusion}
 
 \paragraph*{}
-For the communication sector, the progress has been satisfactory and in line with the project timeline. However, the communication approach can be further enhanced by adding an additional communication step for verification, as well as implementing mechanisms to handle potential race conditions. This challenge is addressed in the communication chapter and will be taken into consideration during subsequent development.
+In conclusion, most tasks are progressing according to the project timeline. Some completed tasks may require additional enhancements due to other modules' dependencies. The current progress is satisfactory from our perspective and we will continue moving towards the MVP in this pace.
 
 \paragraph*{}
-The current progress of the object detection component is behind schedule due to unforeseen challenges outlined in the object detection chapter. We anticipate completing this section within one week of the initial deadline, aiming to resolve the issue and finalize the simulation by the first week of October. To address the current setbacks, we plan to explore alternative methods that do not require color code conversion, such as directly working with the RGB color space. Another approach under consideration is color filtration, where only specific colors (e.g., yellow) are filtered to ensure accurate detection, minimizing reliance on color shifts. Once the issue is resolved, we will integrate the second simulation with the first one, achieving a fully functional object detection process.
+For communication, there were a few minor issues with the consensus algorithm at the time of the previous progress report, outlined in the \textit{Communication} chapter, hence why we are wrapping it up in this iteration. However, the communication module is one where the requirements will constantly change, so it is essential to implement it as a module to adapt to any future demands.
 
 \paragraph*{}
-The implementation of SLAM is progressing as planned. We have successfully integrated simple SLAM on a Turtlebot and can continuously update the map. This progress aligns with the project timeline as outlined in the Gantt Chart. Moving forward, we will continue refining the SLAM system by integrating it with ROS and testing it in various environments.
-
-\paragraph*{}
-We have also begun planning for the hardware requirements, as it will take time to place orders and wait for the components to be shipped. This proactive approach allows us to ensure that we receive the necessary hardware in advance, providing us with ample time to complete the project within the scheduled timeline.
-
-\paragraph*{}
-For the next phase of our project, we will combine SLAM, object detection, and communication components to develop a comprehensive simulation model. Additionally, we will proceed with other tasks as scheduled in the Gantt Chart to ensure all project milestones are met.
+Simple robot formation acceptance criteria is when robots are able to dynamically assign paths without any movement conflicts. It is currently able to perform accordingly, thoroughly discussed in the \textit{Simple Robot Formation} chapter, thus the satisfactory progress. Future enhancements will include inputs from other modules such as SLAM and Object Detection to identify any movement obstacles and plan paths that avoid them.
