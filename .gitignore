@@ -21,3 +21,6 @@ temp.txt
 
 # Ignore world image
 **/worlds/*.jpg
+
+# Ignore
+**/__pycache__

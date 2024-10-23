@@ -4,6 +4,7 @@
 from controller import Robot
 import numpy as np
 import math
+from utils import Communicator
 
 TIME_STEP = 64
 MAX_SPEED = 6.28
@@ -29,7 +30,13 @@ lidar.enable(TIME_STEP)
 
 map = np.zeros((MAP_HEIGHT, MAP_WIDTH))
 
-robot_x, robot_y, robot_theta = 0.0, 0.0, 0.0  # Initial position
+c = Communicator(robot)
+
+robot_position = {
+    "x": 0.0,
+    "y": 0.0,
+    "theta": 0.0
+}
 
 
 # SLAM functions
@@ -55,9 +62,7 @@ def update_odometry(left_encoder_value, right_encoder_value, prev_left_encoder, 
 
     return new_x, new_y, new_theta, left_encoder_value, right_encoder_value
 
-
-
-def update_map(lidar_data, robot_x, robot_y, robot_theta):
+def update_map(lidar_data):
     #print(f"LIDAR Data: {lidar_data}")
 
     map_center_x = MAP_WIDTH // 2
@@ -67,24 +72,22 @@ def update_map(lidar_data, robot_x, robot_y, robot_theta):
         if distance == float('inf') or distance < 0.0 or distance > 10.0:
             continue  
 
-        angle = robot_theta + i * (2 * math.pi / len(lidar_data))
+        angle = robot_position["theta"] + i * (2 * math.pi / len(lidar_data))
 
-        obstacle_x = robot_x + distance * math.cos(angle)
-        obstacle_y = robot_y + distance * math.sin(angle)
+        obstacle_x = robot_position["x"] + distance * math.cos(angle)
+        obstacle_y = robot_position["y"] + distance * math.sin(angle)
 
         grid_x = int(obstacle_x / RESOLUTION) + map_center_x
         grid_y = int(obstacle_y / RESOLUTION) + map_center_y
 
-        print(f"Obstacle Global Position: ({obstacle_x}, {obstacle_y}) -> Grid ({grid_x}, {grid_y})")
+        #print(f"Obstacle Global Position: ({obstacle_x}, {obstacle_y}) -> Grid ({grid_x}, {grid_y})")
 
         if 0 <= grid_x < MAP_WIDTH and 0 <= grid_y < MAP_HEIGHT:
             map[grid_x][grid_y] = 1  # Mark cell as occupied
-            print(f"Obstacle marked at ({grid_x}, {grid_y})")  
+            #print(f"Obstacle marked at ({grid_x}, {grid_y})")  
         else:
-            print(f"Obstacle out of bounds: ({grid_x}, {grid_y})")  
-
-
-
+            pass
+            #print(f"Obstacle out of bounds: ({grid_x}, {grid_y})")  
 
 def print_map():
     print("SLAM Map:")
@@ -94,9 +97,7 @@ def print_map():
                 print("#", end="")  # Obstacle
             else:
                 print(".", end="")  
-        print()  
-
-
+        print() 
 
 # Initialize previous encoder values
 prev_left_encoder = left_encoder.getValue()
@@ -119,14 +120,15 @@ while robot.step(TIME_STEP) != -1:
 
     #print(f"Current Left Encoder: {left_pos}, Current Right Encoder: {right_pos}")
 
-    robot_x, robot_y, robot_theta, prev_left_encoder, prev_right_encoder = update_odometry(
-        left_pos, right_pos, prev_left_encoder, prev_right_encoder, robot_x, robot_y, robot_theta)
+    robot_position["x"], robot_position["y"], robot_position["theta"], prev_left_encoder, prev_right_encoder = update_odometry(
+        left_pos, right_pos, prev_left_encoder, prev_right_encoder, robot_position["x"], robot_position["y"], robot_position["theta"])
 
-    print(f"Robot X position: {robot_x}")
+    print(f"Robot X position: {robot_position['x']}")
+    c.send_position(robot_position)
 
     lidar_data = lidar.getRangeImage()
 
-    update_map(lidar_data, robot_x, robot_y, robot_theta)
+    update_map(lidar_data)
 
     left_motor.setVelocity(0.5 * MAX_SPEED)
     right_motor.setVelocity(0.5 * MAX_SPEED)
@@ -135,8 +137,3 @@ while robot.step(TIME_STEP) != -1:
         print(f"Printing data at step {step_count}")
         print_map()  
         print("LIDAR Values:", lidar_data)  
-
-
-
-
-
