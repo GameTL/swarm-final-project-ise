@@ -1,0 +1,244 @@
+#VRML_SIM R2023b utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/robots/robotis/turtlebot/protos/TurtleBot3Burger.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/devices/robotis/protos/RobotisLds01.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/animals/protos/Dog.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/balls/protos/FifaSoccerBall.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/chairs/protos/WoodenChair.proto"
+IMPORTABLE EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/devices/microsoft/protos/Kinect.proto"
+
+WorldInfo {
+}
+Viewpoint {
+  orientation 0.1379317841639786 0.9638687185340596 -0.22788575284306672 0.6638467747714036
+  position -4.891261997403263 1.2889239141326212 4.212269719386288
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+  luminosity 1.5
+}
+RectangleArena {
+  floorSize 5 5
+  wallHeight 0.5
+}
+FifaSoccerBall {
+  hidden linearVelocity_0 -0.00013475203289089156 0.004726902091867293 1.3214900513701584e-16
+  hidden angularVelocity_0 -0.04201690748326483 -0.001197795847919036 -0.04202517235847073
+  translation 2.352598709703735 -0.6834108853246439 0.11182507199999998
+  rotation -0.34666600405770326 0.4495152179209198 -0.8232610463808988 2.4052739525964615
+}
+FifaSoccerBall {
+  translation -0.36 -0.38 0.11182507199999998
+  name "fifa soccer ball(1)"
+}
+Dog {
+  translation 1.37 -1.84 0
+  rotation 0 0 1 1.309
+}
+TurtleBot3Burger {
+  hidden position_0_0 57.45236064967581
+  hidden position_0_1 28.733546798713647
+  hidden position_0_2 366.8390408910554
+  hidden position2_0_2 -0.8653172255643398
+  hidden position3_0_2 1.6852798402743474
+  hidden rotation_13 0 1 0 5.6160821922391175
+  hidden rotation_14 -0.527618408279806 2.2657305803929082e-06 0.8494814978792362 3.1415937127204328
+  hidden rotation_15 0.5260972221065906 -0.850115143995276 -0.02293370536175487 2.077293366345764
+  translation 1.8521426564940093 -0.28234268328767276 -0.0002477392040894921
+  rotation 0.0023207320027541726 -0.00011624632955405575 0.9999973003412372 3.0457004135222556
+  name "TurtleBot3Burger_1"
+  controller "swarm"
+  extensionSlot [
+    Receiver {
+    }
+    Emitter {
+    }
+    Display {
+      translation 0.06 0 -0.05
+      width 70
+      height 70
+    }
+    RangeFinder {
+      translation 0.06 0 -0.05
+      fieldOfView 1
+      width 70
+      height 70
+      maxRange 5
+      noise 0.01
+      lens Lens {
+      }
+    }
+    Camera {
+      translation 0.06 0 -0.05
+      fieldOfView 1
+      width 70
+      height 70
+      lens Lens {
+      }
+      focus Focus {
+      }
+    }
+    RobotisLds01 {
+    }
+  ]
+}
+TurtleBot3Burger {
+  hidden position_0_0 26.103076080540056
+  hidden position_0_1 13.054884814432782
+  hidden position_0_2 -166.06028440691284
+  hidden position2_0_2 0.29206697122173353
+  hidden position3_0_2 -1.214174925661215
+  hidden rotation_13 0 -0.9999999999999999 0 0.6004611481782873
+  hidden rotation_14 -0.85712000440287 5.627017071648829e-07 -0.5151167809847664 3.1415881381313318
+  hidden rotation_15 -0.8148227181785797 -0.526759792426272 -0.24204970362118197 2.9453016431789965
+  translation 1.01497 0.990619 0.000448547
+  rotation -0.0023266866194212523 -0.0027055821098586636 -0.9999936331571426 1.416272592839115
+  name "TurtleBot3Burger_2"
+  controller "swarm"
+  extensionSlot [
+    Receiver {
+    }
+    Emitter {
+    }
+    Display {
+      translation 0.06 0 -0.05
+      width 70
+      height 70
+    }
+    RangeFinder {
+      translation 0.06 0 -0.05
+      fieldOfView 1
+      width 70
+      height 70
+      maxRange 5
+      noise 0.01
+      lens Lens {
+      }
+    }
+    Camera {
+      translation 0.06 0 -0.05
+      fieldOfView 1
+      width 70
+      height 70
+      lens Lens {
+      }
+      focus Focus {
+      }
+    }
+    RobotisLds01 {
+    }
+  ]
+}
+TurtleBot3Burger {
+  hidden position_0_0 8.76500180534618
+  hidden position_0_1 4.383624572325076
+  hidden position_0_2 55.90970410460978
+  hidden position2_0_2 -0.04185611068681954
+  hidden position3_0_2 0.008399608619039104
+  hidden rotation_13 0 -1 0 5.372164809012993
+  hidden rotation_14 -0.16364568469624582 1.8923537364915152e-06 0.9865191786664443 3.1415953613355914
+  hidden rotation_15 0.9976990923609903 0.058920053873344626 -0.033540249754857636 5.642670478074199
+  translation -0.012946042350535428 -1.6437671542384629 -0.0002477392041061177
+  rotation -0.002343388083368703 -0.010724149950537817 -0.9999397487549583 0.42608725065630443
+  name "TurtleBot3Burger_3"
+  controller "swarm"
+  extensionSlot [
+    Receiver {
+    }
+    Emitter {
+    }
+    Display {
+      translation 0.06 0 -0.05
+      width 70
+      height 70
+    }
+    RangeFinder {
+      translation 0.06 0 -0.05
+      fieldOfView 1
+      width 70
+      height 70
+      maxRange 5
+      noise 0.01
+      lens Lens {
+      }
+    }
+    Camera {
+      translation 0.06 0 -0.05
+      fieldOfView 1
+      width 70
+      height 70
+      lens Lens {
+      }
+      focus Focus {
+      }
+    }
+    RobotisLds01 {
+    }
+  ]
+}
+Solid {
+  translation 0.74 -0.19 0.15
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1 1 0
+        metalness 0
+      }
+      geometry Box {
+        size 0.3 0.3 0.3
+      }
+    }
+  ]
+  name "Yellow Cube"
+  model "box"
+  boundingObject Box {
+    size 0.3 0.3 0.3
+  }
+  recognitionColors [
+    1 1 0
+  ]
+}
+Solid {
+  translation -1.25 -1.29 0
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0 1 0
+        metalness 0
+      }
+      geometry Cylinder {
+        height 0.5
+        radius 0.1
+      }
+    }
+  ]
+  name "Green Cylinder"
+  recognitionColors [
+    0 1 0
+  ]
+}
+Solid {
+  translation -0.730799 0.619201 0
+  rotation 0 0 1 -2.3561953071795863
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1 0 1
+        metalness 0
+      }
+      geometry Box {
+        size 0.8 0.2 0.4
+      }
+    }
+  ]
+  recognitionColors [
+    1 0 1
+  ]
+}
+WoodenChair {
+  translation -1.53 1.66 0
+}
