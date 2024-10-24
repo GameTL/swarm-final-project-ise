@@ -143,4 +143,6 @@ if __name__ == "__main__":
     formation_master.calculate_target_coords()
     formation_master.plan_paths()
 
-    print("Final Paths:", formation_master.paths)
+    print("Final Paths:")
+    for name, path in formation_master.paths.items():
+        print(name, path)
