@@ -21,3 +21,4 @@ temp.txt
 **/__pycache__/
 *.pyc
 *.pyo
+temp.py
