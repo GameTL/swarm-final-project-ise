@@ -25,7 +25,7 @@ class Communicator:
         self.message_interval = MESSAGE_INTERVAL
         self.time_tracker = 0
 
-        self.object_coordinates = ()
+        self.object_coordinates = {}
         self.task_master = ""
         self.count = 0 
 
@@ -35,6 +35,7 @@ class Communicator:
         """
         # Receive messages from other robots and print
         if self.receiver.getQueueLength() > 0:
+            # print(f"{self.robot.getName()} got a msg")
             received_message = self.receiver.getString()
             title, robot_id, content = json.loads(received_message)
             
@@ -42,13 +43,13 @@ class Communicator:
             if title == "[Probe]":
                 self.robot_entries[robot_id] = content
             elif title == "[ObjectDetected]":
-                print()
                 print(f"Object Detected from: {robot_id}\n{self.robot.getName()} will try to stop")
-                print()
                 return "stop"
             elif title == "[Task]":
                 self.task_master = robot_id
                 self.object_coordinates = content
+                print(f"[Task]@{self.robot.getName()}: Object Detected from: {robot_id}@{content}; Stopping...")
+                return "task"
             elif title == "[TaskConflict]":
                 self.priority_list = content
                 self.task_master = self.priority_list[0]
@@ -58,6 +59,7 @@ class Communicator:
                 print("x")
             
             self.receiver.nextPacket()
+        return None 
     
     def broadcast_message(self, title: str, content):
         # Send the message
