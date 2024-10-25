@@ -29,6 +29,7 @@ class ObjectDetector:
         #[90,200,225]   [87,204,80]   [88,200,70]   [90,237,225]
         #x = [print(i) for i in img]
 
+        #* definition of range of yellow
         lower = np.array([70,100,0])
         upper= np.array([90,255,255])
         mask = cv2.inRange(img, lower, upper)

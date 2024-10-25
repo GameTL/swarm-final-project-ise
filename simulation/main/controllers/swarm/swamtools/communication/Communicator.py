@@ -1,3 +1,4 @@
+from controller import Robot, Camera, Motor, Display, Supervisor
 import json
 import time
 
@@ -7,9 +8,9 @@ MESSAGE_INTERVAL = 2000 # ms
 PRIORITY_LIST = ["TurtleBot1", "TurtleBot2"]
 
 class Communicator:
-    def __init__(self, robot, mode=0):
+    def __init__(self, robot: Robot, mode=0):
         # setting up
-        self.robot = robot
+        self.robot : Robot = robot
 
         self.timestep = 64
         self.name = self.robot.getName()
@@ -17,8 +18,8 @@ class Communicator:
         self.robot_entries = {}
         self.priority_list = PRIORITY_LIST
         
-        self.emitter = self.robot.getDevice(EMITTER_DEVICE_NAME)
-        self.receiver = self.robot.getDevice(RECEIVER_DEVICE_NAME)
+        self.emitter = self.robot.getDevice(EMITTER_DEVICE_NAME) # sending info using webots
+        self.receiver = self.robot.getDevice(RECEIVER_DEVICE_NAME) # receiving info using webots
         self.receiver.enable(self.timestep)
 
         self.message_interval = MESSAGE_INTERVAL
@@ -28,7 +29,10 @@ class Communicator:
         self.task_master = ""
         self.count = 0 
 
-    def listen_to_message(self):
+    def listen_to_message(self) -> None | str:
+        """ 
+        listen for ['[Probe]', '[Task]', '[TaskConflict]', '[TaskSucessful]']
+        """
         # Receive messages from other robots and print
         if self.receiver.getQueueLength() > 0:
             received_message = self.receiver.getString()
@@ -38,7 +42,10 @@ class Communicator:
             if title == "[Probe]":
                 self.robot_entries[robot_id] = content
             elif title == "[ObjectDetected]":
-                print(f"Object Detected from: {robot_id}")
+                print()
+                print(f"Object Detected from: {robot_id}\n{self.robot.getName()} will try to stop")
+                print()
+                return "stop"
             elif title == "[Task]":
                 self.task_master = robot_id
                 self.object_coordinates = content
@@ -62,3 +69,5 @@ class Communicator:
         self.broadcast_message("[Probe]", (robot_position["x"], robot_position["y"], robot_position["theta"]))
         # Reset the timer
         self.time_tracker = 0
+        
+        
