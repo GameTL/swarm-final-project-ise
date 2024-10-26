@@ -1,10 +1,11 @@
 from controller import Robot, Camera, Motor, Display, Supervisor
 import cv2
 import numpy as np
-from swarmtools.vision.object_detector import ObjectDetector
-from swarmtools.communication.communicator import Communicator
 from swarmtools.navigation.follower import RandomPolynomialFollower
 from swarmtools.navigation.formation_dict import FormationMaster
+from swarmtools import ObjectDetector
+from swarmtools import Communicator
+from swarmtools import Localisation
 
 import asyncio
 
@@ -23,12 +24,12 @@ class SwarmMember:
         self.robot = Robot()
         self.object_detector = ObjectDetector(self.robot)
         self.communicator = Communicator(self.robot)
+        # self.localisation = Localisation(self.robot)
+        
+        self.robot_position = {"x": 0.0, "y": 0.0, "theta": 0.0}
+        # self.robot_position = self.localisation.robot_position
         
 
-        # while self.robot.step(self.timestep) != -1:
-            
-
-        self.position = {"x": 0.0, "y": 0.0, "theta": 0.0}
         # Computer vision
         self.detected_flag = False
         # Retrieve robot parameters
@@ -82,7 +83,7 @@ class SwarmMember:
 
     def random_movement_find(self):
         while self.robot.step(self.timestep) != -1:
-            self.position["x"], self.position["y"], current_z = self.gps.getValues()
+            self.robot_position["x"], self.robot_position["y"], current_z = self.gps.getValues()
             status = (
                 self.communicator.listen_to_message()
             )  # check for incoming messages
@@ -91,7 +92,7 @@ class SwarmMember:
                 self.stop()
                 break
             elif status == "task":
-                print(self.position["x"], self.position["y"])
+                print(self.robot_position["x"], self.robot_position["y"])
                 self.stop()
                 break
             elif self.object_detector.detect() and not self.detected_flag:
@@ -104,7 +105,7 @@ class SwarmMember:
                 break
             else:
                 self.communicator.send_position(
-                robot_position={"x": self.position["x"], "y": self.position["y"], "theta": 0.0}
+                robot_position={"x": self.robot_position["x"], "y": self.robot_position["y"], "theta": 0.0}
             )
             self.follower.move_along_polynomial()
             # self.leftMotor.setVelocity(MAX_SPEED * 0.5)
@@ -117,7 +118,7 @@ class SwarmMember:
             # if self.communicator.task_master == self.robot.getName(): # if the task master
             # print(f'this is the shit I have to deal with {self.communicator.robot_entries=}')
             coords = self.communicator.robot_entries.copy()
-            coords[self.robot.getName()] = (self.position["x"],self.position["y"])
+            coords[self.robot.getName()] = (self.robot_position["x"],self.robot_position["y"])
             self.formationer = FormationMaster(
                 current_coords= coords,
                 object_coords=(cylinder_position["x"],cylinder_position["y"]),
@@ -137,8 +138,17 @@ async def main():
     # task1 = asyncio.create_task(listening())
     # while 1:
     member = SwarmMember()
-    member.random_movement_find()
-    member.formation_object()
+    # if member.localisation.check_encoder_not_null():
+    if 1:
+        # Create tasks for the asynchronous SLAM functions
+        # odometry_task = asyncio.create_task(member.update_odometry())  #$
+        # map_task = asyncio.create_task(member.update_map())  #$
+        
+        member.random_movement_find()
+        member.formation_object()
+        
+        # await asyncio.gather(odometry_task, map_task)  #$
+
 
 
 asyncio.run(main())
