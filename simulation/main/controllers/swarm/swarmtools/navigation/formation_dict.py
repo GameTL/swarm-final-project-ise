@@ -51,7 +51,7 @@ class FormationMaster:
 
         # self.target_coords = [x), round(y)) for (x, y) in self.target_coords]
         # print(self.target_coords)
-        print(f'{self.target_coords=}')
+        # print(f'{self.target_coords=}')
 
         # # Check margins of error 
         # self.check_margin_of_error() #! Broken

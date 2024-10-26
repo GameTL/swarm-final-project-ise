@@ -18,8 +18,8 @@ WHEEL_BASE = 0.160
 class Localisation:
     def __init__(self, robot):
         self.robot = robot
-        self.left_motor = self.robot.getDevice("left wheel motor")
-        self.right_motor = self.robot.getDevice("right wheel motor")
+        self.left_motor = self.robot.getDevice("left_wheel_motor")
+        self.right_motor = self.robot.getDevice("right_wheel_motor")
         self.left_motor.setPosition(float("inf"))
         self.right_motor.setPosition(float("inf"))
 
@@ -40,14 +40,14 @@ class Localisation:
 
     def check_encoder_not_null(self):
         # Wait until valid encoder values are available
+        print(f"[Localisation]({self.robot.getName()}) Waiting for encoder != nan")
         while math.isnan(self.prev_left_encoder) or math.isnan(self.prev_right_encoder):
-            print("Waiting for valid encoder values...")
             self.robot.step(TIME_STEP)  # Step the simulation until we get valid readings
             self.prev_left_encoder = self.left_encoder.getValue()
             self.prev_right_encoder = self.right_encoder.getValue()
 
         print(
-            f"Valid Initial Left Encoder: {self.prev_left_encoder}, Valid Initial Right Encoder: {self.prev_right_encoder}"
+            f"[Localisation]({self.robot.getName()}) Valid Initial Left Encoder: {self.prev_left_encoder}, Valid Initial Right Encoder: {self.prev_right_encoder}"
         )
         return True
     
