@@ -105,13 +105,13 @@ class SwarmMember:
                     print(f"{self.name} calculating formation")
                     paths = self.formation_object()
 
-                    self.communicator.broadcast_message("[Formation]", paths)
+                    self.communicator.broadcast_message("[Path]", paths)
             
                 if self.path == None:
                     self.path = self.communicator.path
                 
                 self.status = "task"
-                # print(f"[Path] {self.name}: {self.path}")
+                print(f"[Path] {self.name}: {self.path}")
             elif self.status == "task":
                 self.stop()
                 break

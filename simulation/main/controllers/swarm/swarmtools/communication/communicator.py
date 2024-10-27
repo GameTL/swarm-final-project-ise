@@ -42,9 +42,9 @@ class Communicator:
             print(received_message)
             
             # Check for probing message
-            if title == "[Formation]":
+            if title == "[Path]":
                 # TODO: Fix receiver dont get the message
-                print("Receiving [Formation]")
+                print("Receiving [Path]")
                 self.path = json.loads(content)[self.name]
                 return "path"
             elif title == "[Probe]":
