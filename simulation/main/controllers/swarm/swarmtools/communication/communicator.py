@@ -27,20 +27,27 @@ class Communicator:
 
         self.object_coordinates = {}
         self.task_master = ""
-        self.count = 0 
+        self.path = None
+        self.count = 0
 
     def listen_to_message(self) -> None | str:
         """ 
-        listen for ['[Probe]', '[Task]', '[TaskConflict]', '[TaskSucessful]']
+        listen for ['[Probe]', '[ObjectDetected]', '[Formation]', '[Task]', '[TaskConflict]', '[TaskSuccessful]']
         """
         # Receive messages from other robots and print
         if self.receiver.getQueueLength() > 0:
             # print(f"{self.robot.getName()} got a msg")
             received_message = self.receiver.getString()
             title, robot_id, content = json.loads(received_message)
+            print(received_message)
             
             # Check for probing message
-            if title == "[Probe]":
+            if title == "[Formation]":
+                # TODO: Fix receiver dont get the message
+                print("Receiving [Formation]")
+                self.path = json.loads(content)[self.name]
+                return "path"
+            elif title == "[Probe]":
                 self.robot_entries[robot_id] = content
             elif title == "[ObjectDetected]":
                 print(f"Object Detected from: {robot_id}\n{self.robot.getName()} will try to stop")
@@ -53,7 +60,7 @@ class Communicator:
             elif title == "[TaskConflict]":
                 self.priority_list = content
                 self.task_master = self.priority_list[0]
-            elif title == "[TaskSucessful]":
+            elif title == "[TaskSuccessful]":
                 self.mode = 2
             else:
                 print("x")
@@ -64,6 +71,7 @@ class Communicator:
     def broadcast_message(self, title: str, content):
         # Send the message
         message = json.dumps([title, self.name, content])
+        print(f"Sending message: {message}")
         self.emitter.send(message)
 
     def send_position(self, robot_position):

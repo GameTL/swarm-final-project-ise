@@ -1,13 +1,14 @@
-from controller import Robot, Camera, Motor, Display, Supervisor
 import cv2
+import json
+import asyncio
 import numpy as np
+from controller import Robot, Camera, Motor, Display, Supervisor
 from swarmtools.navigation.follower import RandomPolynomialFollower
-from swarmtools.navigation.formation_dict import FormationMaster
+from swarmtools.navigation.formation import FormationMaster
 from swarmtools import ObjectDetector
 from swarmtools import Communicator
 from swarmtools import Localisation
-from rich.pretty import pprint
-import asyncio
+
 
 # Declare constants
 MAX_SPEED = 2
@@ -26,26 +27,28 @@ class SwarmMember:
         self.robot = Robot()
         self.object_detector = ObjectDetector(self.robot)
         self.communicator = Communicator(self.robot)
+        
         if GPS:
             self.robot_position = {"x": 0.0, "y": 0.0, "theta": 0.0}
         else:
             self.localisation = Localisation(self.robot)
             self.robot_position = self.localisation.robot_position
 
-        
-
         # Computer vision
         self.detected_flag = False
+
         # Retrieve robot parameters
-        # self.timestep = 64
         self.timestep = int(self.robot.getBasicTimeStep())
         self.name = self.robot.getName()
         self.mode = mode
         self.priority_queue = PRIORITY_LIST
+        self.communicator.robot_entries[self.name] = (self.robot_position["x"], self.robot_position["y"], self.robot_position["theta"])
 
         # Detection parameters
         self.object_coordinates = ()
         self.task_master = ""
+        self.path = None
+        self.status = None
         
         # testing for sim 
         self.follower = RandomPolynomialFollower(self,degree=3, timestep=self.timestep)
@@ -61,8 +64,6 @@ class SwarmMember:
         # Enable sensory devices
         self.gps = self.robot.getDevice(GPS_DEVICE_NAME)
         self.gps.enable(self.timestep)
-
-        
 
     # motion
     def move_forward(self):
@@ -87,17 +88,31 @@ class SwarmMember:
 
     def random_movement_find(self):
         while self.robot.step(self.timestep) != -1:
-            
             # print(f"[Localisation]({self.robot.getName()}) Robot X position: {self.robot_position['x']:6.3f}    Robot Y position: {self.robot_position['y']:6.3f}    Robot Theta position: {self.robot_position['theta']:6.3f}")
-            status = (
-                self.communicator.listen_to_message()
-            )  # check for incoming messages
+            # Check for incoming messages
+            status = self.communicator.listen_to_message()
+            if status != None:
+                print(status)
+                self.status = status
+            print(f"{self.name=} {self.status=}")
+
             # print(self.robot.getName(),f'{status=}')
-            if status == "stop":
+            if self.status == "stop":
                 self.stop()
                 break
-            elif status == "task":
-                # print(self.robot_position["x"], self.robot_position["y"])
+            elif self.status == "path":
+                if self.detected_flag:
+                    print(f"{self.name} calculating formation")
+                    paths = self.formation_object()
+
+                    self.communicator.broadcast_message("[Formation]", paths)
+            
+                if self.path == None:
+                    self.path = self.communicator.path
+                
+                self.status = "task"
+                # print(f"[Path] {self.name}: {self.path}")
+            elif self.status == "task":
                 self.stop()
                 break
             elif self.object_detector.detect() and not self.detected_flag:
@@ -106,51 +121,47 @@ class SwarmMember:
                     f"[ObjectDetected]@{self.robot.getName()}:found cylinder @ {cylinder_position}"
                 )
                 self.detected_flag = True  # detect once and top
+                self.status = "path"
                 self.stop()
-                break
             else:
                 self.communicator.send_position(
                 robot_position={"x": self.robot_position["x"], "y": self.robot_position["y"], "theta": self.robot_position["theta"]}
             )
+            
             self.follower.move_along_polynomial()
+            
             if GPS:
                 self.robot_position["x"], self.robot_position["y"], current_z = self.gps.getValues()
             else:
                 self.localisation.update_odometry()
             # self.leftMotor.setVelocity(MAX_SPEED * 0.5)
             # self.rightMotor.setVelocity(MAX_SPEED)
+            
+            self.communicator.robot_entries[self.name] = (self.robot_position["x"], self.robot_position["y"], self.robot_position["theta"])
+
     def formation_object(self):
-        if self.detected_flag:  
+        if self.detected_flag:
             coords = self.communicator.robot_entries.copy()
-            coords[self.robot.getName()] = [self.robot_position["x"],self.robot_position["y"], self.robot_position["theta"]]
-            print(
-                        f"[Formation]@{self.robot.getName()}:"
-                    )
-            pprint(
-                coords
+            for robot_name in coords:
+                coords[robot_name] = list(map(lambda x: round(x, 1), coords[robot_name]))
+            print(f"[Formation]@{self.name}: {coords}")
+
+            self.formationer = FormationMaster(
+                current_coords=coords,
+                object_coords=(cylinder_position["x"], cylinder_position["y"]),
+                verbose=False
             )
+            self.formationer.calculate_target_coords()
+            self.formationer.plan_paths()
+
+            paths = json.dumps(self.formationer.paths)
+            self.path = json.loads(paths)[self.name]
+
+            return paths
         else:
-            print(
-                        f"[Formation]({self.robot.getName()}): LISTENING for {cylinder_position}"
-                    )
+            print(f"[Formation]({self.robot.getName()}): LISTENING for {cylinder_position}")
             
-            # if self.communicator.task_master == self.robot.getName(): # if the task master
-            # print(f'this is the shit I have to deal with {self.communicator.robot_entries=}')
-            # coords = self.communicator.robot_entries.copy()
-            # coords[self.robot.getName()] = (self.robot_position["x"],self.robot_position["y"])
-            # self.formationer = FormationMaster(
-            #     current_coords= coords,
-            #     object_coords=(cylinder_position["x"],cylinder_position["y"]),
-            #     verbose=True
-            # )
-            # self.formationer.calculate_target_coords()
-            # self.formationer.plan_paths()
-            # else:
-            #     self.stop()
-            # program stops here
-            
-            
-        
+            return None
 
 
 async def main():
@@ -166,10 +177,7 @@ async def main():
         # map_task = asyncio.create_task(member.update_map())  #$
         
         member.random_movement_find()
-        member.formation_object()
         
         # await asyncio.gather(odometry_task, map_task)  #$
-
-
 
 asyncio.run(main())
