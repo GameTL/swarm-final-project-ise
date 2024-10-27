@@ -1,17 +1,21 @@
 import math
+import json
 
 
 class FormationMaster:
-    def __init__(self, current_coords, object_coords, radius=2, verbose=False):
+    def __init__(self, current_coords: dict, object_coords: tuple, radius=0.3, fineness=2, verbose=False):
         """ 
-        current_coords: assumed that data are in this order [robot1,robot2,robot3] -> [(0, 1), (1, 2), (0, 3)]
+        current_coords: assumed that data are in this order [('TurtleBot3Burger_1', [1.3787268144635236, -0.38032573186548774, 0.0]), ('TurtleBot3Burger_2', [0.07806162991058642, 0.8007404816156147, 0.0])]
         current_coords: assumed that data are in this order [robot1,robot2,robot3] -> [5,6]
         """
         # Retrieve parameters
-        self.current_coords = current_coords
-        self.member_count = len(self.current_coords)
+        self.current_coords_dict = current_coords
+        self.current_coords_tuple = list(current_coords.items())
+        print(f'{self.current_coords_dict=}')
+        self.member_count = len(self.current_coords_tuple)
         self.object_coords = object_coords
         self.radius = radius
+        self.fineness = fineness
         self.verbose = verbose
 
         # Initialize calculation parameters
@@ -45,66 +49,58 @@ class FormationMaster:
             # y' = y + rsin(theta * i)
             y = self.object_coords[1] + (self.radius * math.sin(internal_angle * i))
 
-            self.target_coords.append((x, y))
+            self.target_coords.append((self.current_coords_tuple[i][0], (x, y)))
 
-        self.target_coords = [(round(x), round(y)) for (x, y) in self.target_coords]
-        # print(self.target_coords)
+        for i, target_coord in enumerate(self.target_coords):
+            self.target_coords[i] = (target_coord[0], (round(target_coord[1][0], self.fineness - 1), round(target_coord[1][1], self.fineness - 1)))
         print(f'{self.target_coords=}')
 
-        # Check margins of error
-        self.check_margin_of_error()
-
-    def check_margin_of_error(self):
-        print("# ===== Listing margins of error ===== #")
-        if len(self.target_coords) == 0:
-            print("Target coordinates not initialized")
-            return
-        
-        for i, coord in enumerate(self.target_coords):
-            distance_from_origin = math.sqrt((coord[0] - self.object_coords[0]) ** 2 + (coord[1] - self.object_coords[1]) ** 2)
-            print(i, distance_from_origin)
+    def calculate_distance(self, current, end):
+        return round(math.sqrt((current[0] - end[0]) ** 2 + (current[1] - end[1]) ** 2), self.fineness)
 
     def plan_paths(self):
         print("# ===== Calculating paths ===== #")
-        for i, target in enumerate(self.target_coords):
-            print(f"Assigning robot{i + 1}'s path: {self.current_coords[i]} -> {target}")
-            path = self.path_planning_algorithm(self.current_coords[i], target, verbose=self.verbose)
-            #! Replace with robot name
-            self.paths[f"robot{i + 1}"] = path
+        for (robot_id, target) in self.target_coords:
+            print(f"Assigning {robot_id}'s path: {self.current_coords_dict[robot_id][0:2]} -> {target}")
+            path = self.path_planning_algorithm(self.current_coords_dict[robot_id][0:2], target, verbose=self.verbose)
+            self.paths[robot_id] = path
 
     def path_planning_algorithm(self, start: tuple, end: tuple, verbose=False):
+        print(f'{start=} {end=}')
         current_coordinates = start
         step = 0
         path = {}
         correct_x = False
         correct_y = False
 
-        while current_coordinates != end:
+        while True:
             difference_x = end[0] - current_coordinates[0]
             difference_y = end[1] - current_coordinates[1]
+            if verbose: print(f"{difference_x=} {difference_y=}")
 
             movement_options = []
             # Get closer by x-axis
             if difference_x > 0:
-                # Append x + 1
-                movement_options.append((current_coordinates[0] + 0.25, current_coordinates[1]))
+                # Append x + 0.01
+                movement_options.append((round(current_coordinates[0] + 0.01, self.fineness), current_coordinates[1]))
             elif difference_x < 0:
-                # Append x - 1
-                movement_options.append((current_coordinates[0] - 0.25, current_coordinates[1]))
+                # Append x - 0.01
+                movement_options.append((round(current_coordinates[0] - 0.01, self.fineness), current_coordinates[1]))
             else:
                 # x already at correct position
                 correct_x = True
             
             # Get closer by y-axis
             if difference_y > 0:
-                # Append y + 1
-                movement_options.append((current_coordinates[0], current_coordinates[1] + 0.25))
+                # Append y + 0.01
+                movement_options.append((current_coordinates[0], round(current_coordinates[1] + 0.01, self.fineness)))
             elif difference_y < 0:
-                # Append y - 1
-                movement_options.append((current_coordinates[0], current_coordinates[1] - 0.25))
+                # Append y - 0.01
+                movement_options.append((current_coordinates[0], round(current_coordinates[1] - 0.01, self.fineness)))
             else:
                 # y already at correct position
                 correct_y = True
+
             if verbose: print(f"Movement options before pruning: {movement_options}")
 
             if not correct_x or not correct_y:
@@ -136,19 +132,25 @@ class FormationMaster:
                 if verbose: print(self.conflict_map)
 
                 step += 1
-        
-        return path
+            
+            if correct_x and correct_y:
+                return path
 
 
 if __name__ == "__main__":
     #! Example current positions (coordinates of the members)
-    current_positions = [(0, 1), (1, 2), (0, 3)]
+    current_positions = {'TurtleBot3Burger_1': [1.7, -1.0, 0.2], 'TurtleBot3Burger_2': [-2.0, -1.4, 0.2], 'TurtleBot3Burger_3': [-0.3, 1.6, 0.5]}
+    name = 'TurtleBot3Burger_2'
 
-    formation_master = FormationMaster(current_positions, (0.85, -0.25), radius=2, verbose=False)
+    formation_master = FormationMaster(current_positions, (0.75, -0.25), radius=0.3, verbose=False)
     formation_master.calculate_target_coords()
     formation_master.plan_paths()
 
-    print("Final Paths:")
-    for name, path in formation_master.paths.items():
-        print(name, path)
-    
+    # print("Final Paths:")
+    # for name, path in formation_master.paths.items():
+    #     print(name, path)
+
+    paths = json.dumps(formation_master.paths)
+    loading = json.loads(paths)
+    # print(loading)
+    print(name, loading[name])
