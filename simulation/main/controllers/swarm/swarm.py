@@ -1,33 +1,34 @@
 import cv2
+import ast
 import json
 import asyncio
 import numpy as np
+from rich.pretty import pprint
 from controller import Robot, Camera, Motor, Display, Supervisor
-from swarmtools.navigation.follower import RandomPolynomialFollower
-from swarmtools.navigation.formation import FormationMaster
+from swarmtools import FormationMaster
 from swarmtools import ObjectDetector
 from swarmtools import Communicator
 from swarmtools import Localisation
+from swarmtools import Driver
 
 
-# Declare constants
-MAX_SPEED = 2
-GPS_DEVICE_NAME = "gps"
 # GPS = True
 GPS = False
+
 PRIORITY_LIST = ["robot1", "robot2", "robot3"]
 
 cylinder_position = {"x": 0.75, "y": -0.25, "theta": 0.0}
 
 
 class SwarmMember:
-    def __init__(self, mode=0):
+    def __init__(self, mode=0, verbose=False):
         # Instantiate the robot & big objects
 
         self.robot = Robot()
+        self.verbose = verbose
         self.object_detector = ObjectDetector(self.robot)
         self.communicator = Communicator(self.robot)
-        
+
         if GPS:
             self.robot_position = {"x": 0.0, "y": 0.0, "theta": 0.0}
         else:
@@ -42,49 +43,23 @@ class SwarmMember:
         self.name = self.robot.getName()
         self.mode = mode
         self.priority_queue = PRIORITY_LIST
-        self.communicator.robot_entries[self.name] = (self.robot_position["x"], self.robot_position["y"], self.robot_position["theta"])
+        self.communicator.robot_entries[self.name] = (
+            self.robot_position["x"],
+            self.robot_position["y"],
+            self.robot_position["theta"],
+        )
 
         # Detection parameters
         self.object_coordinates = ()
         self.task_master = ""
         self.path = None
+        self.status_prev = None
         self.status = None
-        
-        # testing for sim 
-        self.follower = RandomPolynomialFollower(self,degree=3, timestep=self.timestep)
-        
-        # Init motors
-        self.leftMotor = self.robot.getDevice("left_wheel_motor")
-        self.rightMotor = self.robot.getDevice("right_wheel_motor")
-        self.leftMotor.setPosition(float("inf"))
-        self.rightMotor.setPosition(float("inf"))
-        self.leftMotor.setVelocity(0)
-        self.rightMotor.setVelocity(0)
 
-        # Enable sensory devices
-        self.gps = self.robot.getDevice(GPS_DEVICE_NAME)
-        self.gps.enable(self.timestep)
-
-    # motion
-    def move_forward(self):
-        self.leftMotor.setVelocity(MAX_SPEED)
-        self.rightMotor.setVelocity(MAX_SPEED)
-
-    def move_backward(self):
-        self.leftMotor.setVelocity(-MAX_SPEED)
-        self.rightMotor.setVelocity(-MAX_SPEED)
-
-    def left_spin(self):
-        self.leftMotor.setVelocity(-0.7 * MAX_SPEED)
-        self.rightMotor.setVelocity(0.7 * MAX_SPEED)
-
-    def right_spin(self):
-        self.leftMotor.setVelocity(0.7 * MAX_SPEED)
-        self.rightMotor.setVelocity(-0.7 * MAX_SPEED)
-
-    def stop(self):
-        self.leftMotor.setVelocity(0)
-        self.rightMotor.setVelocity(0)
+        # testing for sim
+        self.driver = Driver(
+            robot=self.robot, robot_position=self.robot_position, localisation=self.localisation,  timestep=self.timestep
+        )
 
     def random_movement_find(self):
         while self.robot.step(self.timestep) != -1:
@@ -92,64 +67,100 @@ class SwarmMember:
             # Check for incoming messages
             status = self.communicator.listen_to_message()
             if status != None:
-                print(status)
                 self.status = status
-            print(f"{self.name=} {self.status=}")
+            if self.status_prev != self.status or self.verbose:
+                print(f"[{self.status}]({self.robot.getName()})")
 
             # print(self.robot.getName(),f'{status=}')
-            if self.status == "stop":
-                self.stop()
+            if self.status == "idle":
+                self.driver.stop()
                 break
-            elif self.status == "path":
+            elif self.status == "path_finding":
+                # Used only by the TaskMaster
                 if self.detected_flag:
-                    print(f"{self.name} calculating formation")
-                    paths = self.formation_object()
+                    print(f"[path_finding]({self.robot.getName()}) calculating...")
+                    paths_json = self.formation_object()
 
-                    self.communicator.broadcast_message("[Path]", paths)
-            
+                    self.communicator.broadcast_message("[path_following]", paths_json)
+
                 if self.path == None:
                     self.path = self.communicator.path
+                if self.verbose:
+                    print(f"[{self.status}]{self.name}: {self.path}")  # big print
                 
-                self.status = "task"
-                print(f"[Path] {self.name}: {self.path}")
-            elif self.status == "task":
-                self.stop()
+                paths = ast.literal_eval(paths_json)
+                if self.name in paths.keys():
+                    self.path = paths.get(self.name, "")
+                self.communicator.path = paths # for themselves just in case
+                # self.status = "path_following" #TODO the taskmaster is fucked
+                self.status = "idle"
+            #
+            elif self.status == "path_following":
+                self.driver.stop()
+                self.status = "idle"
+                # path = self.communicator.path
+                # if path != "":
+                #     self.driver.simple_follow_path(path)
+                #     self.driver.stop()
+                #     # pprint(path)
+                #     print(
+                #         f"[path_following]({self.robot.getName()}) Making my way downtown, walking fast"
+                #     )
+                # else:
+                #     print(f"[path_following]({self.robot.getName()}) FUCK")
+
                 break
             elif self.object_detector.detect() and not self.detected_flag:
-                self.communicator.broadcast_message("[Task]", cylinder_position)
+                # * As a member that found the object becomes the master.
                 print(
-                    f"[ObjectDetected]@{self.robot.getName()}:found cylinder @ {cylinder_position}"
+                    f"[object_detected]({self.robot.getName()}) found cylinder @ {cylinder_position}"
                 )
                 self.detected_flag = True  # detect once and top
-                self.status = "path"
-                self.stop()
+                self.status = "path_finding"  #
+                self.driver.stop()
+            elif self.status == "task":
+                self.driver.stop()
+                break
             else:
                 self.communicator.send_position(
-                robot_position={"x": self.robot_position["x"], "y": self.robot_position["y"], "theta": self.robot_position["theta"]}
-            )
-            
-            self.follower.move_along_polynomial()
-            
+                    robot_position={
+                        "x": self.robot_position["x"],
+                        "y": self.robot_position["y"],
+                        "theta": self.robot_position["theta"],
+                    }
+                )
+
+            self.driver.move_along_polynomial()
+
             if GPS:
-                self.robot_position["x"], self.robot_position["y"], current_z = self.gps.getValues()
+                self.robot_position["x"], self.robot_position["y"], current_z = (
+                    self.driver.gps.getValues()
+                )
             else:
                 self.localisation.update_odometry()
             # self.leftMotor.setVelocity(MAX_SPEED * 0.5)
             # self.rightMotor.setVelocity(MAX_SPEED)
-            
-            self.communicator.robot_entries[self.name] = (self.robot_position["x"], self.robot_position["y"], self.robot_position["theta"])
+
+            self.communicator.robot_entries[self.name] = (
+                self.robot_position["x"],
+                self.robot_position["y"],
+                self.robot_position["theta"],
+            )
 
     def formation_object(self):
         if self.detected_flag:
             coords = self.communicator.robot_entries.copy()
             for robot_name in coords:
-                coords[robot_name] = list(map(lambda x: round(x, 1), coords[robot_name]))
-            print(f"[Formation]@{self.name}: {coords}")
+                coords[robot_name] = list(
+                    map(lambda x: round(x, 1), coords[robot_name])
+                )
+            # print(f"[path_finding]({self.name}): current coords={coords}")
 
             self.formationer = FormationMaster(
+                robot=self.robot,
                 current_coords=coords,
                 object_coords=(cylinder_position["x"], cylinder_position["y"]),
-                verbose=False
+                verbose=False,
             )
             self.formationer.calculate_target_coords()
             self.formationer.plan_paths()
@@ -159,8 +170,9 @@ class SwarmMember:
 
             return paths
         else:
-            print(f"[Formation]({self.robot.getName()}): LISTENING for {cylinder_position}")
-            
+            print(
+                f"[path_finding]({self.robot.getName()}) LISTENING for {cylinder_position}"
+            )
             return None
 
 
@@ -169,15 +181,19 @@ async def main():
     # while 1:
     member = SwarmMember()
     if member.localisation.check_encoder_not_null():
-        # when encoder is live then trigger the set 
-        member.robot_position["x"], member.robot_position["y"], current_z = member.gps.getValues() # init the coords even when using wheel odom
-    # if 1:
+        # when encoder is live then trigger the set
+        member.robot_position["x"], member.robot_position["y"], current_z = (
+            member.driver.gps.getValues()
+        )  # init the coords even when using wheel odom
+        pprint(member.robot_position)
+        # if 1:
         # Create tasks for the asynchronous SLAM functions
         # odometry_task = asyncio.create_task(member.update_odometry())  #$
         # map_task = asyncio.create_task(member.update_map())  #$
-        
+
         member.random_movement_find()
-        
+
         # await asyncio.gather(odometry_task, map_task)  #$
+
 
 asyncio.run(main())

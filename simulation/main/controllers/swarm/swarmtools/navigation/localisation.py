@@ -40,14 +40,14 @@ class Localisation:
 
     def check_encoder_not_null(self):
         # Wait until valid encoder values are available
-        print(f"[Localisation]({self.robot.getName()}) Waiting for encoder != nan")
+        print(f"[localisation]({self.robot.getName()}) Waiting for encoder != nan")
         while math.isnan(self.prev_left_encoder) or math.isnan(self.prev_right_encoder):
             self.robot.step(TIME_STEP)  # Step the simulation until we get valid readings
             self.prev_left_encoder = self.left_encoder.getValue()
             self.prev_right_encoder = self.right_encoder.getValue()
 
         print(
-            f"[Localisation]({self.robot.getName()}) Valid Initial Left Encoder: {self.prev_left_encoder}, Valid Initial Right Encoder: {self.prev_right_encoder}"
+            f"[localisation]({self.robot.getName()}) Valid Initial Left Encoder: {self.prev_left_encoder}, Valid Initial Right Encoder: {self.prev_right_encoder}"
         )
         return True
     

@@ -3,15 +3,15 @@ import json
 
 
 class FormationMaster:
-    def __init__(self, current_coords: dict, object_coords: tuple, radius=0.3, fineness=2, verbose=False):
+    def __init__(self, robot, current_coords: dict, object_coords: tuple, radius=0.3, fineness=2, verbose=False):
         """ 
         current_coords: assumed that data are in this order [('TurtleBot3Burger_1', [1.3787268144635236, -0.38032573186548774, 0.0]), ('TurtleBot3Burger_2', [0.07806162991058642, 0.8007404816156147, 0.0])]
         current_coords: assumed that data are in this order [robot1,robot2,robot3] -> [5,6]
         """
+        self.robot = robot
         # Retrieve parameters
         self.current_coords_dict = current_coords
         self.current_coords_tuple = list(current_coords.items())
-        print(f'{self.current_coords_dict=}')
         self.member_count = len(self.current_coords_tuple)
         self.object_coords = object_coords
         self.radius = radius
@@ -53,7 +53,7 @@ class FormationMaster:
 
         for i, target_coord in enumerate(self.target_coords):
             self.target_coords[i] = (target_coord[0], (round(target_coord[1][0], self.fineness - 1), round(target_coord[1][1], self.fineness - 1)))
-        print(f'{self.target_coords=}')
+        # print(f'{self.target_coords=}')
 
     def calculate_distance(self, current, end):
         return round(math.sqrt((current[0] - end[0]) ** 2 + (current[1] - end[1]) ** 2), self.fineness)
@@ -61,12 +61,13 @@ class FormationMaster:
     def plan_paths(self):
         print("# ===== Calculating paths ===== #")
         for (robot_id, target) in self.target_coords:
-            print(f"Assigning {robot_id}'s path: {self.current_coords_dict[robot_id][0:2]} -> {target}")
+            # print(f"Assigning {robot_id}'s path: {self.current_coords_dict[robot_id][0:2]} -> {target}") 
+            print(f"[path_planning]({self.robot.getName()}) Assigning {robot_id} {self.current_coords_dict[robot_id][0:2]} -> {target}")
             path = self.path_planning_algorithm(self.current_coords_dict[robot_id][0:2], target, verbose=self.verbose)
             self.paths[robot_id] = path
 
     def path_planning_algorithm(self, start: tuple, end: tuple, verbose=False):
-        print(f'{start=} {end=}')
+        # print(f'{start=} {end=}')
         current_coordinates = start
         step = 0
         path = {}

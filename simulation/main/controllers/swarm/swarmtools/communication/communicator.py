@@ -1,6 +1,8 @@
 from controller import Robot, Camera, Motor, Display, Supervisor
 import json
+from rich.pretty import pprint
 import time
+import ast
 
 EMITTER_DEVICE_NAME = "emitter"
 RECEIVER_DEVICE_NAME = "receiver"
@@ -8,7 +10,8 @@ MESSAGE_INTERVAL = 2000 # ms
 PRIORITY_LIST = ["TurtleBot1", "TurtleBot2"]
 
 class Communicator:
-    def __init__(self, robot: Robot, mode=0):
+    def __init__(self, robot: Robot, mode=0, verbose=False):
+        self.verbose = verbose
         # setting up
         self.robot : Robot = robot
 
@@ -32,35 +35,40 @@ class Communicator:
 
     def listen_to_message(self) -> None | str:
         """ 
-        listen for ['[Probe]', '[ObjectDetected]', '[Formation]', '[Task]', '[TaskConflict]', '[TaskSuccessful]']
+        listen for ['[probe]', '[object_detected]', '[task]', '[task_conflict]', '[task_successful]']
         """
         # Receive messages from other robots and print
         if self.receiver.getQueueLength() > 0:
             # print(f"{self.robot.getName()} got a msg")
             received_message = self.receiver.getString()
             title, robot_id, content = json.loads(received_message)
-            print(received_message)
+            # print(received_message)
             
             # Check for probing message
-            if title == "[Path]":
-                # TODO: Fix receiver dont get the message
-                print("Receiving [Path]")
-                self.path = json.loads(content)[self.name]
-                return "path"
-            elif title == "[Probe]":
+            if title == "[path_receiving]":
+                return "path_receiving"
+            elif title == "[probe]":
                 self.robot_entries[robot_id] = content
-            elif title == "[ObjectDetected]":
-                print(f"Object Detected from: {robot_id}\n{self.robot.getName()} will try to stop")
-                return "stop"
-            elif title == "[Task]":
+            elif title == "[object_detected]":
+                print(f"[object_detected]({self.robot.getName()}) Object Detected from: {robot_id}@{content}; Stopping...")
+                return "idle" 
+            elif title == "[task]":
                 self.task_master = robot_id
                 self.object_coordinates = content
-                print(f"[Task]@{self.robot.getName()}: Object Detected from: {robot_id}@{content}; Stopping...")
+                print(f"[task]({self.robot.getName()}) Object Detected from: {robot_id}@{content}; Stopping...")
                 return "task"
-            elif title == "[TaskConflict]":
+            elif title == "[task_conflict]":
                 self.priority_list = content
                 self.task_master = self.priority_list[0]
-            elif title == "[TaskSuccessful]":
+            elif title == "[path_following]":
+                paths = ast.literal_eval(content)
+                if self.name in paths.keys():
+                    self.path = paths.get(self.name, "")
+                    return "path_following"
+                else:
+                    self.mode = 2
+                    return "idle"
+            elif title == "[task_successful]":
                 self.mode = 2
             else:
                 print("x")
@@ -71,12 +79,13 @@ class Communicator:
     def broadcast_message(self, title: str, content):
         # Send the message
         message = json.dumps([title, self.name, content])
-        print(f"Sending message: {message}")
+        if self.verbose:
+            print(f"[broadcast_message]({self.robot.getName()}) {message}")
         self.emitter.send(message)
 
     def send_position(self, robot_position):
         # Broadcast the message
-        self.broadcast_message("[Probe]", (robot_position["x"], robot_position["y"], robot_position["theta"]))
+        self.broadcast_message("[probe]", (robot_position["x"], robot_position["y"], robot_position["theta"]))
         # Reset the timer
         self.time_tracker = 0
         
