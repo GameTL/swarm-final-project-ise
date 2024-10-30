@@ -16,3 +16,17 @@ Spilt the runablefile
 1. Consenses: 
 1. Comms:
 1. Object Detection:
+
+
+# Creating the right environment (faster)
+1. Using the following to the commands
+```
+conda create --name "swarm" python==3.12.7
+conda activate swarm
+pip install uv 
+uv pip install -r requirements.txt
+```
+2. run `conda env create -f environment.yml` (simpler)
+
+# Adding python path to webots
+```where python``` to get the path then paste the `envs/swarm/bin/python` into the webots settings
