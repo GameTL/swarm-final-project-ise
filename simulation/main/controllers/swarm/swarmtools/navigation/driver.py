@@ -1,3 +1,4 @@
+import time 
 import random
 import numpy as np
 from rich.pretty import pprint
@@ -7,6 +8,8 @@ GPS_DEVICE_NAME = "gps"
 class Driver:
     def __init__(self, robot, robot_position, localisation):
         self.timestep = int(robot.getBasicTimeStep())
+        self.robot = robot
+        self.robot_name = robot.getName()
         self.robot_position = robot_position
         self.current_x = 0  # Start at x = 0
 
@@ -34,126 +37,95 @@ class Driver:
 
     # Positive Theta
     def anti_clockwise_spin(self):
-        self.leftMotor.setVelocity(-0.7 * MAX_SPEED)
-        self.rightMotor.setVelocity(0.7 * MAX_SPEED)
+        self.leftMotor.setVelocity(-0.1 * MAX_SPEED)
+        self.rightMotor.setVelocity(0.1 * MAX_SPEED)
 
     # Negetive Theta
     def clockwise_spin(self):
-        self.leftMotor.setVelocity(0.7 * MAX_SPEED)
-        self.rightMotor.setVelocity(-0.7 * MAX_SPEED)
+        self.leftMotor.setVelocity(0.1 * MAX_SPEED)
+        self.rightMotor.setVelocity(-0.1 * MAX_SPEED)
 
     def stop(self):
         self.leftMotor.setVelocity(0)
         self.rightMotor.setVelocity(0)
     
-    # def simple_follow_path(self, path):
-        # # TODO NOT DONE
-        # THETA_FACING_X = 0.0
-        # THETA_FACING_Y = 90.0
-        
-        # self.localisation.update_odometry()
-        # work_path = list(path.values())
-        # pprint(work_path)
-        # x, y  = self.robot_position["x"], self.robot_position["y"]
-        # [step_x, step_y] = work_path.pop(0)
-        # # print([step_x, step_y])
-        # [err_x, err_y] = [step_x - x , step_y - y]
-        # print([err_x, err_y])
-        # x_prev, y_prev = self.robot_position["x"], self.robot_position["y"]
-        
-        # while True:
-            
-        #     # rotate untill theta is 0 facing x 
-        #     err_theta_from_x = THETA_FACING_X - self.robot_position["theta"]
-        #     if err_theta_from_x < -0.1:
-        #         self.anti_clockwise_spin()
-        #     elif err_theta_from_x > 0.1:
-        #         self.clock_spin()
-        #     else:
-        #         self.move_forward()
-            
-        #     # elif err_theta_from_x > 0.1:
-                
-                
-        #     # driving until the current x doesnt change
     def simple_follow_path(self, path):
-        # Constants for desired orientations (in radians)
-        THETA_FACING_X = 0.0  # Facing along positive x-axis
-        THETA_FACING_Y = np.pi / 2  # Facing along positive y-axis # ***
-        ANGLE_THRESHOLD = 0.05  # Threshold for angle comparison (radians)
-        DISTANCE_THRESHOLD = 0.01  # Threshold for position comparison (meters)
-        
+        # Constants
+        ANGLE_THRESHOLD = 0.01  # radians
+        DISTANCE_THRESHOLD = 0.01  # meters
+
+        # Get the list of waypoints from the path
         work_path = list(path.values())
-        print("Path to follow:", work_path)
-        
-        while work_path:
-            # Get the next waypoint from the path
-            target_x, target_y = work_path.pop(0)
-            print(f"Next waypoint: ({target_x}, {target_y})")
-            
-            # Move along the x-axis to target_x
-            # First, orient the robot to face along the x-axis
-            while True:
-                self.localisation.update_odometry()
-                current_theta = self.localisation.robot_position["theta"]
-                err_theta = THETA_FACING_X - current_theta
-                err_theta = (err_theta + np.pi) % (2 * np.pi) - np.pi  # Normalize to [-pi, pi]
-                
-                if abs(err_theta) > ANGLE_THRESHOLD:
-                    if err_theta < 0:
-                        self.anti_clockwise_spin()
+        print("Original path:", work_path)
+
+        # Function to sample waypoints
+        def sample_waypoints(waypoints, sample_rate):
+            if len(waypoints) <= 2:
+                return waypoints  # Not enough waypoints to sample
+            # Keep the first point
+            sampled_waypoints = [waypoints[0]]
+            # Sample the in-between points
+            sampled_waypoints += waypoints[1:-1:sample_rate]
+            # Keep the last point
+            sampled_waypoints.append(waypoints[-1])
+            return sampled_waypoints
+
+        # Adjust the sample rate as needed
+        sample_rate =10  # Keep every 5th waypoint
+        work_path = sample_waypoints(work_path, sample_rate)
+        print("Sampled path:", work_path)
+
+        # Initialize state variables
+        state = "ROTATING_TO_WAYPOINT"
+        target_x, target_y = work_path.pop(0)  # Start with the first waypoint
+        self.localisation.update_odometry()
+
+        while self.robot.step(self.timestep) != -1:
+            # Update odometry
+            self.localisation.update_odometry()
+            current_x = self.robot_position["x"]
+            current_y = self.robot_position["y"]
+            current_theta = self.robot_position["theta"]
+
+            # Calculate distance and angle to target
+            dx = target_x - current_x
+            dy = target_y - current_y
+            distance_to_target = np.hypot(dx, dy)
+            angle_to_target = np.arctan2(dy, dx)
+            angle_error = angle_to_target - current_theta
+            angle_error = (angle_error + np.pi) % (2 * np.pi) - np.pi  # Normalize to [-π, π]
+
+            if state == "ROTATING_TO_WAYPOINT":
+                if abs(angle_error) > ANGLE_THRESHOLD:
+                    # Set motor speeds to rotate
+                    if angle_error < 0:
+                        self.clockwise_spin()
                     else:
-                        self.clock_spin()
+                        self.anti_clockwise_spin()
                 else:
-                    self.stop_motors()  # Stop rotation when aligned
-                    break  # Exit the rotation loop
-            
-            # Move forward along x-axis until x-coordinate matches target_x
-            while True:
-                self.localisation.update_odometry()
-                current_x = self.localisation.robot_position["x"]
-                err_x = target_x - current_x
-                
-                if abs(err_x) > DISTANCE_THRESHOLD:
+                    self.stop()
+                    state = "MOVING_TO_WAYPOINT"  # Transition to next state
+
+            elif state == "MOVING_TO_WAYPOINT":
+                if distance_to_target > DISTANCE_THRESHOLD:
+                    # Move forward
                     self.move_forward()
                 else:
-                    self.stop_motors()
-                    break  # Reached target_x
-            
-            # Now orient the robot to face along the y-axis
-            while True:
-                self.localisation.update_odometry()
-                current_theta = self.localisation.robot_position["theta"]
-                err_theta = THETA_FACING_Y - current_theta
-                err_theta = (err_theta + np.pi) % (2 * np.pi) - np.pi  # Normalize to [-pi, pi]
-                
-                if abs(err_theta) > ANGLE_THRESHOLD:
-                    if err_theta < 0:
-                        self.anti_clockwise_spin()
+                    self.stop()
+                    print(f"[path_following]({self.robot.getName()}) Reached waypoint: ({target_x}, {target_y})")
+                    # Check if there are more waypoints
+                    if work_path:
+                        target_x, target_y = work_path.pop(0)
+                        state = "ROTATING_TO_WAYPOINT"  # Start over for next waypoint
                     else:
-                        self.clock_spin()
-                else:
-                    self.stop_motors()
-                    break  # Exit the rotation loop
-            
-            # Move forward along y-axis until y-coordinate matches target_y
-            while True:
-                self.localisation.update_odometry()
-                current_y = self.localisation.robot_position["y"]
-                err_y = target_y - current_y
-                
-                if abs(err_y) > DISTANCE_THRESHOLD:
-                    self.move_forward()
-                else:
-                    self.stop_motors()
-                    break  # Reached target_y
-            
-            # Proceed to the next waypoint in the path
-            print(f"Reached waypoint: ({target_x}, {target_y})")
-        
-        # Stop the robot after reaching the final waypoint
-        self.stop_motors()
-        print("Path following complete.")
+                        print(f"[path_following]({self.robot.getName()}) Robot X position:{self.robot_position['x']:6.3f}    Robot Y position: {self.robot_position['y']:6.3f}    Robot Theta position: {self.robot_position['theta']:6.3f}")
+                        print("Path following complete.")
+                        break  # Exit the loop when done
+
+            # Include any additional behaviors or idle actions here
+
+        # Stop the robot after exiting the loop
+        self.stop()
 
         
         

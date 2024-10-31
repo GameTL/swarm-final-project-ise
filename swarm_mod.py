@@ -28,7 +28,7 @@ class SwarmMember:
         self.verbose = verbose
         self.object_detector = ObjectDetector(self.robot)
         self.communicator = Communicator(self.robot)
-
+        self.tick = 0 
         if GPS:
             self.robot_position = {"x": 0.0, "y": 0.0, "theta": 0.0}
         else:
@@ -51,8 +51,8 @@ class SwarmMember:
         self.object_coordinates = ()
         self.task_master = ""
         self.path = None
-        self.status_prev = None
-        self.status = None
+        self.status_prev = "idle"
+        self.status = "idle"
 
         # testing for sim
         self.driver = Driver(
@@ -67,21 +67,52 @@ class SwarmMember:
             
             # Check for incoming messages
             status = self.communicator.listen_to_message()
-            if status != None:
+            if status:
                 self.status = status
-            if self.status_prev != self.status or self.verbose:
+            if self.status_prev != self.status :
+                self.status_prev = self.status
                 print(f"[{self.status}]({self.robot.getName()}) CHANGED")
 
+            # UPDATES
+            if self.tick % self.timestep == 0:
+                if GPS:
+                    self.robot_position["x"], self.robot_position["y"], current_z = (
+                        self.driver.gps.getValues()
+                    )
+                else:
+                    self.localisation.update_odometry_o1()
+                self.communicator.send_position(
+                    robot_position={
+                        "x": self.robot_position["x"],
+                        "y": self.robot_position["y"],
+                        "theta": self.robot_position["theta"],
+                    }
+                )
+                self.tick = 0
+            self.tick += 1
+            # UPDATES
             # print(self.robot.getName(),f'{status=}')
             if self.status == "idle":
                 self.driver.stop()
-                break
+                self.status = "finding_object"
+                # break
+            elif self.status == "finding_object":
+                self.driver.move_along_polynomial()
+                if self.object_detector.detect() and not self.detected_flag:
+                    # * As a member that found the object becomes the master.
+                    self.communicator.broadcast_message("[object_detected]", "")
+                    print(
+                        f"[object_detected]({self.robot.getName()}) found cylinder @ {cylinder_position}"
+                    )
+                    self.detected_flag = True  # detect once and top
+                    self.driver.stop()
+                    self.status = "path_finding"
+                
             elif self.status == "path_finding":
                 # Used only by the TaskMaster
                 if self.detected_flag:
                     print(f"[path_finding]({self.robot.getName()}) calculating...")
                     paths_json = self.formation_object()
-
                     self.communicator.broadcast_message("[path_following]", paths_json)
 
                 if self.path == None:
@@ -98,16 +129,15 @@ class SwarmMember:
 
             elif self.status == "path_following":
                 self.path = self.communicator.path
-                # print(f"[path_printing]({self.name}) {self.path}")
+                print(f"[path_printing]({self.name}) {self.path}")
 
                 # self.driver.stop()
-                if self.path != "":
-                    # self.driver.move_forward()
-                    self.driver.simple_follow_path(self.path)
-                    # self.driver.anti_clockwise_spin()
-                    quit()
-                    # self.driver.stop()
                 self.status = "idle"
+                # path = self.communicator.path
+                # if path != "":
+                #     self.driver.simple_follow_path(path)
+                #     self.driver.stop()
+                #     # pprint(path)
                 #     print(
                 #         f"[path_following]({self.robot.getName()}) Making my way downtown, walking fast"
                 #     )
@@ -115,41 +145,10 @@ class SwarmMember:
                 #     print(f"[path_following]({self.robot.getName()}) FUCK")
 
                 # break
-            elif self.object_detector.detect() and not self.detected_flag:
-                # * As a member that found the object becomes the master.
-                print(
-                    f"[object_detected]({self.robot.getName()}) found cylinder @ {cylinder_position}"
-                )
-                self.detected_flag = True  # detect once and top
-                self.status = "path_finding"  #
-                self.driver.stop()
+
             elif self.status == "task":
                 self.driver.stop()
                 break
-            else:
-                self.driver.move_along_polynomial()
-                self.communicator.send_position(
-                    robot_position={
-                        "x": self.robot_position["x"],
-                        "y": self.robot_position["y"],
-                        "theta": self.robot_position["theta"],
-                    }
-                )
-            if GPS:
-                self.robot_position["x"], self.robot_position["y"], current_z = (
-                    self.driver.gps.getValues()
-                )
-            else:
-                # self.localisation.update_odometry()
-                self.localisation.update_odometry_o1()
-            # self.leftMotor.setVelocity(MAX_SPEED * 0.5)
-            # self.rightMotor.setVelocity(MAX_SPEED)
-
-            self.communicator.robot_entries[self.name] = (
-                self.robot_position["x"],
-                self.robot_position["y"],
-                self.robot_position["theta"],
-            )
 
     def formation_object(self):
         if self.detected_flag:
@@ -174,17 +173,17 @@ class SwarmMember:
 
             return paths
         else:
-            # print(
-            #     f"[path_finding]({self.robot.getName()}) LISTENING for {cylinder_position}"
-            # )
-            return None
+            print(
+                f"[path_finding]({self.robot.getName()}) LISTENING for {cylinder_position}"
+            )
+            return "path_following"
 
 
 def main():
     import threading
     # task1 = asyncio.create_task(listening())
     # while 1:
-    member = SwarmMember()
+    member = SwarmMember(verbose=True)
     if member.localisation.check_encoder_not_null_and_init():
         
         # if 1:

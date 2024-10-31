@@ -11,8 +11,8 @@ IMPORTABLE EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R20
 WorldInfo {
 }
 Viewpoint {
-  orientation 0.015158448592073166 0.9998814207233397 -0.002714024420850042 1.511862659682737
-  position -0.6400539823468023 -0.8877435313155553 8.00273025412685
+  orientation -0.008425270476938028 0.9987625041552963 0.04901504984014709 1.6416735111840999
+  position 1.1332192481731163 -1.0102547728687166 10.855236861197836
 }
 TexturedBackground {
 }
@@ -28,15 +28,15 @@ FifaSoccerBall {
   rotation 0.009195555612055827 0.01867038359553979 0.999783405810169 -2.1900849893483185
 }
 FifaSoccerBall {
-  translation -0.36 -0.38 0.1118250720000971
+  translation -1.67 -1.76 0.111825
   name "fifa soccer ball(1)"
 }
 Dog {
-  translation 1.37 -1.84 0
+  translation 1.87727 0.0532284 0
   rotation 0 0 1 1.309
 }
 Robot {
-  translation -0.665023 -1.6584 -0.000247666
+  translation -1.31502 -0.9684 -0.000247666
   children [
     Lidar {
       name "lidar_sensor"
@@ -731,7 +731,7 @@ Robot {
       ]
       endPoint Solid {
         translation 0 -0.08 0.033
-        rotation -1.512975529273012e-17 -1 -1.68622596377581e-16 2.992622529731531
+        rotation -1.512975529273017e-17 -1 -1.6862259637758094e-16 2.992622529731531
         children [
           DEF RIGHT_WHEEL Pose {
             rotation 1 0 0 -1.5708003061004252
@@ -850,7 +850,7 @@ Robot {
       ]
       endPoint Solid {
         translation 0 0.08 0.033
-        rotation 0.8935497512508254 -2.208830142942932e-06 -0.4489641879200492 3.1415941165238723
+        rotation 0.8935497512508253 -2.2088301431718906e-06 -0.4489641879200491 3.1415941165238723
         children [
           DEF RIGHT_WHEEL Pose {
             rotation 1 0 0 -1.5708003061004252
@@ -884,8 +884,8 @@ Robot {
         anchor -0.081 0 0.004
       }
       endPoint Solid {
-        translation -0.08098071610553215 -8.769503259786446e-06 0.004003810968393875
-        rotation -0.8315988169601364 0.48372972056276187 0.27285337651342 2.4532977929680393
+        translation -0.08098071610553215 -8.769503259791466e-06 0.004003810968393872
+        rotation -0.8315988169601365 0.4837297205627615 0.2728533765134201 2.453297792968039
         children [
           Shape {
             appearance PBRAppearance {
@@ -1115,7 +1115,7 @@ Robot {
   controller "swarm"
 }
 Robot {
-  translation -1.01449 -1.36906 -0.000247745
+  translation -1.01449 -1.86906 -0.000247745
   children [
     Lidar {
       name "lidar_sensor"
@@ -1929,7 +1929,7 @@ Robot {
       ]
       endPoint Solid {
         translation 0 0.08 0.033
-        rotation 0.46096505721490255 7.016340059859945e-07 0.8874182869573793 3.141597090563658
+        rotation 0.46096505721490255 7.016340060398575e-07 0.8874182869573793 3.141597090563658
         children [
           DEF RIGHT_WHEEL Pose {
             rotation 1 0 0 -1.5708003061004252
@@ -1963,8 +1963,8 @@ Robot {
         anchor -0.081 0 0.004
       }
       endPoint Solid {
-        translation -0.08099140217545941 9.516227677642163e-06 0.003986768687695785
-        rotation 0.19790882356976439 -0.8990051720220431 0.39066839932460423 2.571944471761004
+        translation -0.08099140217545941 9.51622767764137e-06 0.003986768687695785
+        rotation 0.19790882356976464 -0.899005172022043 0.3906683993246042 2.5719444717610034
         children [
           Shape {
             appearance PBRAppearance {
@@ -2194,7 +2194,7 @@ Robot {
   controller "swarm"
 }
 Robot {
-  translation -0.349674 1.58546 -0.00024768
+  translation 1.32033 -0.26454 -0.00024768
   children [
     Lidar {
       name "lidar_sensor"
@@ -3008,7 +3008,7 @@ Robot {
       ]
       endPoint Solid {
         translation 0 0.08 0.033
-        rotation -0.9017785161931509 2.194784446465437e-06 0.4321984587289295 3.1415911084091515
+        rotation -0.9017785161931509 2.1947844466883606e-06 0.4321984587289295 3.1415911084091515
         children [
           DEF RIGHT_WHEEL Pose {
             rotation 1 0 0 -1.5708003061004252
@@ -3042,8 +3042,8 @@ Robot {
         anchor -0.081 0 0.004
       }
       endPoint Solid {
-        translation -0.0809839846616906 -1.8091203710657667e-06 0.004003986756412596
-        rotation -0.2853054768089519 0.8947452946256272 0.34355733531408733 2.7331327548888185
+        translation -0.0809839846616906 -1.8091203710667607e-06 0.004003986756412596
+        rotation -0.2853054768089519 0.8947452946256272 0.3435573353140873 2.7331327548888176
         children [
           Shape {
             appearance PBRAppearance {

@@ -11,7 +11,7 @@ PRIORITY_LIST = ["TurtleBot1", "TurtleBot2"]
 
 class Communicator:
     def __init__(self, robot: Robot, mode=0, verbose=False):
-        self.verbose = verbose
+        self.verbose = True
         # setting up
         self.robot : Robot = robot
 
@@ -50,15 +50,16 @@ class Communicator:
             elif title == "[probe]":
                 self.robot_entries[robot_id] = content
             elif title == "[object_detected]":
-                return "idle" 
+                return "object_detected" 
             elif title == "[task]":
                 self.task_master = robot_id
                 self.object_coordinates = content
                 print(f"[task]({self.robot.getName()}) Object Detected from: {robot_id}@{content}; Stopping...")
-                return "task"
+                return None
             elif title == "[task_conflict]":
                 self.priority_list = content
                 self.task_master = self.priority_list[0]
+                
             elif title == "[path_following]":
                 paths = ast.literal_eval(content)
                 if self.name in paths.keys():
@@ -67,6 +68,7 @@ class Communicator:
                 else:
                     self.mode = 2
                     return "idle"
+                
             elif title == "[task_successful]":
                 self.mode = 2
             else:
