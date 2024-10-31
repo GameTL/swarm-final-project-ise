@@ -11,8 +11,8 @@ IMPORTABLE EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R20
 WorldInfo {
 }
 Viewpoint {
-  orientation 0.009770175845311499 0.9999483357565574 0.0028052596391523695 1.5718588414162717
-  position -0.16140742527721663 -0.8868076107655454 7.965523813523078
+  orientation 0.015158448592073166 0.9998814207233397 -0.002714024420850042 1.511862659682737
+  position -0.6400539823468023 -0.8877435313155553 8.00273025412685
 }
 TexturedBackground {
 }
@@ -24,11 +24,11 @@ RectangleArena {
   wallHeight 0.5
 }
 FifaSoccerBall {
-  translation -2.2405081472148143 -2.387386028298871 0.11182507210024116
+  translation -2.2405081472148143 -2.387386028298871 0.1118250720000971
   rotation 0.009195555612055827 0.01867038359553979 0.999783405810169 -2.1900849893483185
 }
 FifaSoccerBall {
-  translation -0.36 -0.38 0.11182507210024116
+  translation -0.36 -0.38 0.1118250720000971
   name "fifa soccer ball(1)"
 }
 Dog {
@@ -36,7 +36,7 @@ Dog {
   rotation 0 0 1 1.309
 }
 Robot {
-  translation -0.66621 -1.27237 -0.000247756
+  translation -0.665023 -1.6584 -0.000247666
   children [
     Lidar {
       name "lidar_sensor"
@@ -714,7 +714,7 @@ Robot {
     }
     DEF RIGHT_JOINT HingeJoint {
       jointParameters HingeJointParameters {
-        position 768.7362066951656
+        position 777.6931515605372
         axis 0 1 0
         anchor 0 -0.08 0.033
       }
@@ -726,12 +726,12 @@ Robot {
         }
         PositionSensor {
           name "right_wheel_sensor"
-          resolution 0.00628
+          resolution 0.00390625
         }
       ]
       endPoint Solid {
         translation 0 -0.08 0.033
-        rotation -5.273783338619677e-16 1 1.767612954649004e-16 0.6168032192560309
+        rotation -1.512975529273012e-17 -1 -1.68622596377581e-16 2.992622529731531
         children [
           DEF RIGHT_WHEEL Pose {
             rotation 1 0 0 -1.5708003061004252
@@ -833,7 +833,7 @@ Robot {
     }
     DEF LEFT_JOINT HingeJoint {
       jointParameters HingeJointParameters {
-        position 428.87536325106754
+        position 436.0417997604352
         axis 0 1 0
         anchor 0 0.08 0.033
       }
@@ -845,12 +845,12 @@ Robot {
         }
         PositionSensor {
           name "left_wheel_sensor"
-          resolution 0.00628
+          resolution 0.00390625
         }
       ]
       endPoint Solid {
         translation 0 0.08 0.033
-        rotation -0.9997124890300065 1.6842746109898524e-06 0.023977891370855247 3.141589442861736
+        rotation 0.8935497512508254 -2.208830142942932e-06 -0.4489641879200492 3.1415941165238723
         children [
           DEF RIGHT_WHEEL Pose {
             rotation 1 0 0 -1.5708003061004252
@@ -880,12 +880,12 @@ Robot {
     }
     DEF CASTER_JOINT BallJoint {
       jointParameters BallJointParameters {
-        position 1655.0960827476824
+        position 1721.0095917942556
         anchor -0.081 0 0.004
       }
       endPoint Solid {
-        translation -0.08101549599558178 -4.951799225896836e-06 0.0040112027335389025
-        rotation -0.4612623310105517 -0.2651721395437091 -0.8467117563849719 2.2768610178880517
+        translation -0.08098071610553215 -8.769503259786446e-06 0.004003810968393875
+        rotation -0.8315988169601364 0.48372972056276187 0.27285337651342 2.4532977929680393
         children [
           Shape {
             appearance PBRAppearance {
@@ -1115,7 +1115,7 @@ Robot {
   controller "swarm"
 }
 Robot {
-  translation -1.44568 -0.95304 -0.000247695
+  translation -1.01449 -1.36906 -0.000247745
   children [
     Lidar {
       name "lidar_sensor"
@@ -1793,7 +1793,7 @@ Robot {
     }
     DEF RIGHT_JOINT HingeJoint {
       jointParameters HingeJointParameters {
-        position 596.0332243318917
+        position 604.9901689510416
         axis 0 1 0
         anchor 0 -0.08 0.033
       }
@@ -1805,12 +1805,12 @@ Robot {
         }
         PositionSensor {
           name "right_wheel_sensor"
-          resolution 0.00628
+          resolution 0.00390625
         }
       ]
       endPoint Solid {
         translation 0 -0.08 0.033
-        rotation 0 1 0 3.843009457010613
+        rotation 0 1 0 0.23358346180134842
         children [
           DEF RIGHT_WHEEL Pose {
             rotation 1 0 0 -1.5708003061004252
@@ -1912,7 +1912,7 @@ Robot {
     }
     DEF LEFT_JOINT HingeJoint {
       jointParameters HingeJointParameters {
-        position 325.2297590299675
+        position 332.39619537115146
         axis 0 1 0
         anchor 0 0.08 0.033
       }
@@ -1924,12 +1924,12 @@ Robot {
         }
         PositionSensor {
           name "left_wheel_sensor"
-          resolution 0.00628
+          resolution 0.00390625
         }
       ]
       endPoint Solid {
         translation 0 0.08 0.033
-        rotation -0.037448105133200266 -1.5825204958024386e-06 -0.9992985737102944 3.1415892420778544
+        rotation 0.46096505721490255 7.016340059859945e-07 0.8874182869573793 3.141597090563658
         children [
           DEF RIGHT_WHEEL Pose {
             rotation 1 0 0 -1.5708003061004252
@@ -1959,12 +1959,12 @@ Robot {
     }
     DEF CASTER_JOINT BallJoint {
       jointParameters BallJointParameters {
-        position 3303.9535074873666
+        position 3369.8922582304217
         anchor -0.081 0 0.004
       }
       endPoint Solid {
-        translation -0.08099646935892668 1.00734979670003e-05 0.004018622902683747
-        rotation -0.5821787906553242 -0.610358962944786 0.5371496924173648 -1.3546674168555821
+        translation -0.08099140217545941 9.516227677642163e-06 0.003986768687695785
+        rotation 0.19790882356976439 -0.8990051720220431 0.39066839932460423 2.571944471761004
         children [
           Shape {
             appearance PBRAppearance {
@@ -2194,7 +2194,7 @@ Robot {
   controller "swarm"
 }
 Robot {
-  translation -0.43086139779827337 1.181485906958078 -0.00024775605413736995
+  translation -0.349674 1.58546 -0.00024768
   children [
     Lidar {
       name "lidar_sensor"
@@ -2872,7 +2872,7 @@ Robot {
     }
     DEF RIGHT_JOINT HingeJoint {
       jointParameters HingeJointParameters {
-        position 591.2346947755681
+        position 600.1916396679214
         axis 0 1 0
         anchor 0 -0.08 0.033
       }
@@ -2884,12 +2884,12 @@ Robot {
         }
         PositionSensor {
           name "right_wheel_sensor"
-          resolution 0.00628
+          resolution 0.00390625
         }
       ]
       endPoint Solid {
         translation 0 -0.08 0.033
-        rotation 0 -1 0 0.9555200993127373
+        rotation 0 -1 0 4.564945821318548
         children [
           DEF RIGHT_WHEEL Pose {
             rotation 1 0 0 -1.5708003061004252
@@ -2991,7 +2991,7 @@ Robot {
     }
     DEF LEFT_JOINT HingeJoint {
       jointParameters HingeJointParameters {
-        position 322.02385999103683
+        position 329.19029649904974
         axis 0 1 0
         anchor 0 0.08 0.033
       }
@@ -3003,12 +3003,12 @@ Robot {
         }
         PositionSensor {
           name "left_wheel_sensor"
-          resolution 0.00628
+          resolution 0.00390625
         }
       ]
       endPoint Solid {
         translation 0 0.08 0.033
-        rotation 0.9999859355706029 -1.6539999991181874e-06 -0.00530364575086761 3.1415959266669833
+        rotation -0.9017785161931509 2.194784446465437e-06 0.4321984587289295 3.1415911084091515
         children [
           DEF RIGHT_WHEEL Pose {
             rotation 1 0 0 -1.5708003061004252
@@ -3038,12 +3038,12 @@ Robot {
     }
     DEF CASTER_JOINT BallJoint {
       jointParameters BallJointParameters {
-        position -106.79822357465734
+        position -40.87500722853703
         anchor -0.081 0 0.004
       }
       endPoint Solid {
-        translation -0.08101185525622401 1.2159947971879248e-06 0.0040092025817117455
-        rotation -0.7956033608740843 -0.044710271817088344 -0.6041657750650095 1.0621503965327266
+        translation -0.0809839846616906 -1.8091203710657667e-06 0.004003986756412596
+        rotation -0.2853054768089519 0.8947452946256272 0.34355733531408733 2.7331327548888185
         children [
           Shape {
             appearance PBRAppearance {

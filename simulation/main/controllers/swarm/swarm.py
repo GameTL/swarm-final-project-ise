@@ -25,21 +25,21 @@ class SwarmMember:
         # Instantiate the robot & big objects
 
         self.robot = Robot()
+        self.timestep = int(self.robot.getBasicTimeStep())
         self.verbose = verbose
         self.object_detector = ObjectDetector(self.robot)
         self.communicator = Communicator(self.robot)
+
 
         if GPS:
             self.robot_position = {"x": 0.0, "y": 0.0, "theta": 0.0}
         else:
             self.localisation = Localisation(self.robot)
             self.robot_position = self.localisation.robot_position
-
         # Computer vision
         self.detected_flag = False
 
         # Retrieve robot parameters
-        self.timestep = int(self.robot.getBasicTimeStep())
         self.name = self.robot.getName()
         self.mode = mode
         self.priority_queue = PRIORITY_LIST
@@ -58,12 +58,14 @@ class SwarmMember:
 
         # testing for sim
         self.driver = Driver(
-            robot=self.robot, robot_position=self.robot_position, localisation=self.localisation,  timestep=self.timestep
+            robot=self.robot, robot_position=self.robot_position, localisation=self.localisation
         )
-
+    def print_position(self):
+        print(f"[helper]({self.robot.getName()}) Robot X position: {self.robot_position['x']:6.3f}    Robot Y position: {self.robot_position['y']:6.3f}    Robot Theta position: {self.robot_position['theta']:6.3f}")
+        
     def random_movement_find(self):
         while self.robot.step(self.timestep) != -1:
-            # print(f"[Localisation]({self.robot.getName()}) Robot X position: {self.robot_position['x']:6.3f}    Robot Y position: {self.robot_position['y']:6.3f}    Robot Theta position: {self.robot_position['theta']:6.3f}")
+            
             # Check for incoming messages
             status = self.communicator.listen_to_message()
             if status != None:
@@ -130,14 +132,16 @@ class SwarmMember:
                     }
                 )
 
+            # self.driver.move_forward()
             self.driver.move_along_polynomial()
-
+            self.print_position() # for Debu
             if GPS:
                 self.robot_position["x"], self.robot_position["y"], current_z = (
                     self.driver.gps.getValues()
                 )
             else:
-                self.localisation.update_odometry()
+                # self.localisation.update_odometry()
+                self.localisation.update_odometry_o1()
             # self.leftMotor.setVelocity(MAX_SPEED * 0.5)
             # self.rightMotor.setVelocity(MAX_SPEED)
 
@@ -176,16 +180,15 @@ class SwarmMember:
             return None
 
 
-async def main():
+def main():
+    import threading
     # task1 = asyncio.create_task(listening())
     # while 1:
     member = SwarmMember()
+    localisation_service = threading.Thread(target=member.localisation.update_odometry_service)
     if member.localisation.check_encoder_not_null():
-        # when encoder is live then trigger the set
-        member.robot_position["x"], member.robot_position["y"], current_z = (
-            member.driver.gps.getValues()
-        )  # init the coords even when using wheel odom
-        pprint(member.robot_position)
+        localisation_service.start()
+        
         # if 1:
         # Create tasks for the asynchronous SLAM functions
         # odometry_task = asyncio.create_task(member.update_odometry())  #$
@@ -196,4 +199,4 @@ async def main():
         # await asyncio.gather(odometry_task, map_task)  #$
 
 
-asyncio.run(main())
+main()

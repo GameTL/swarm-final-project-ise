@@ -5,8 +5,8 @@ from rich.pretty import pprint
 MAX_SPEED = 2
 GPS_DEVICE_NAME = "gps"
 class Driver:
-    def __init__(self, robot, robot_position, localisation, timestep=64):
-        self.timestep = timestep
+    def __init__(self, robot, robot_position, localisation):
+        self.timestep = int(robot.getBasicTimeStep())
         self.robot_position = robot_position
         self.current_x = 0  # Start at x = 0
 
@@ -24,9 +24,9 @@ class Driver:
         self.localisation = localisation
 
     # motion
-    def move_forward(self):
-        self.leftMotor.setVelocity(MAX_SPEED)
-        self.rightMotor.setVelocity(MAX_SPEED)
+    def move_forward(self, coeff=1):
+        self.leftMotor.setVelocity(coeff*MAX_SPEED)
+        self.rightMotor.setVelocity(coeff*MAX_SPEED)
 
     def move_backward(self):
         self.leftMotor.setVelocity(-MAX_SPEED)
