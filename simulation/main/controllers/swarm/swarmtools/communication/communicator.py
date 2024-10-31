@@ -24,6 +24,11 @@ class Communicator:
         self.emitter = self.robot.getDevice(EMITTER_DEVICE_NAME) # sending info using webots
         self.receiver = self.robot.getDevice(RECEIVER_DEVICE_NAME) # receiving info using webots
         self.receiver.enable(self.timestep)
+        self.emitter.setChannel(-1)  # Broadcast to all robots
+        # In your Communicator class __init__ method
+        self.emitter.setRange(-1)  # Set infinite range
+        self.emitter.setChannel(1)  # Set to a specific channel
+        self.receiver.setChannel(1)  # Ensure receiver is on the same channel
 
         self.message_interval = MESSAGE_INTERVAL
         self.time_tracker = 0
@@ -33,7 +38,7 @@ class Communicator:
         self.path = None
         self.count = 0
 
-    def listen_to_message(self) -> None | str:
+    def listen_to_message(self) -> str:
         """ 
         listen for ['[probe]', '[object_detected]', '[task]', '[task_conflict]', '[task_successful]']
         """
@@ -41,17 +46,22 @@ class Communicator:
         if self.receiver.getQueueLength() > 0:
             # print(f"{self.robot.getName()} got a msg")
             received_message = self.receiver.getString()
+            print(f"[{self.robot.getName()}] Received message: {received_message}")
             title, robot_id, content = json.loads(received_message)
             # print(received_message)
             
             # Check for probing message
             if title == "[path_receiving]":
                 return "path_receiving"
+            elif title == "[dick]":
+                print("GOT DICKED....")
+                return "idle"
             elif title == "[probe]":
                 self.robot_entries[robot_id] = content
             elif title == "[object_detected]":
-                print(f"[object_detected]({self.robot.getName()}) Object Detected from: {robot_id}@{content}; Stopping...")
-                return "idle" 
+                print("GOT OBJ DETECT WAITING>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+                print(f"[waiting_for_path]({self.robot.getName()}) Object Detected from: {robot_id}; waiting for path")
+                return "waiting_for_path" 
             elif title == "[task]":
                 self.task_master = robot_id
                 self.object_coordinates = content
@@ -61,6 +71,7 @@ class Communicator:
                 self.priority_list = content
                 self.task_master = self.priority_list[0]
             elif title == "[path_following]":
+                print("HEHE")
                 paths = ast.literal_eval(content)
                 if self.name in paths.keys():
                     self.path = paths.get(self.name, "")
@@ -74,9 +85,9 @@ class Communicator:
                 print("x")
             
             self.receiver.nextPacket()
-        return None 
+        return None
     
-    def broadcast_message(self, title: str, content):
+    def broadcast_message(self, title: str, content=""):
         # Send the message
         message = json.dumps([title, self.name, content])
         if self.verbose:

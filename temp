@@ -95,18 +95,11 @@ class SwarmMember:
             )
             return "path_following"
     def random_movement_find(self):
-        robot_position={
-            "x": self.robot_position["x"],
-            "y": self.robot_position["y"],
-            "theta": self.robot_position["theta"],
-        }
         while self.robot.step(self.timestep) != -1:
-            self.localisation.update_odometry_o1()
-
             
             # Check for incoming messages
             status = self.communicator.listen_to_message()
-            # print(f"[{status}]({self.robot.getName()}) .............")
+            print(f"[{status}]({self.robot.getName()}) .............")
             if status:
                 self.status = status
             if self.status_prev != self.status or self.verbose:
@@ -120,22 +113,21 @@ class SwarmMember:
                 self.status = "finding_object"
             elif self.status == "waiting_for_path":
                 self.driver.stop()
-                break
             elif self.status == "finding_object":
                 self.driver.move_along_polynomial()
                 if self.object_detector.detect() and not self.detected_flag:
                     # * As a member that found the object becomes the master.
-                    self.communicator.broadcast_message("[object_detected]")
-                    # break
-                    self.communicator.broadcast_message("[object_detected]")
+                    self.communicator.broadcast_message("[object_detected]", "")
                     print(
                         f"[object_detected]({self.robot.getName()}) found cylinder @ {cylinder_position}"
                     )
                     self.detected_flag = True  # detect once and top
                     self.driver.stop()
                     self.status = "path_finding"
+                    # break
                 
             elif self.status == "path_finding":
+                print("I'HERE")
                 time.sleep(3)
                 # Used only by the TaskMaster
                 if self.detected_flag:
@@ -172,15 +164,13 @@ class SwarmMember:
                 #     print(f"[path_following]({self.robot.getName()}) FUCK")
                 return None
             
-            # self.communicator.send_position(
-            #     robot_position={
-            #         "x": self.robot_position["x"],
-            #         "y": self.robot_position["y"],
-            #         "theta": self.robot_position["theta"],
-            #     }
-            # )
-
-            # self.communicator.broadcast_message("[probe]", (robot_position["x"], robot_position["y"], robot_position["theta"]))
+            self.communicator.send_position(
+                robot_position={
+                    "x": self.robot_position["x"],
+                    "y": self.robot_position["y"],
+                    "theta": self.robot_position["theta"],
+                }
+            )
 
             # # self.driver.move_forward()
 
@@ -205,10 +195,13 @@ class SwarmMember:
 
 
 async def main():
+    import threading
     # task1 = asyncio.create_task(listening())
     # while 1:
     member = SwarmMember()
-    if member.localisation.check_encoder_not_null_and_init():
+    localisation_service = threading.Thread(target=member.localisation.update_odometry_service)
+    if member.localisation.check_encoder_not_null():
+        # localisation_service.start()
         
         # if 1:
         # Create tasks for the asynchronous SLAM functions
@@ -216,7 +209,9 @@ async def main():
         # map_task = asyncio.create_task(member.update_map())  #$
 
         member.random_movement_find()
-        print("END --> QUIT")
+        print("WHY EHRER")
+        # member.localisation.alive = False
+        # localisation_service.join()
 
         # await asyncio.gather(odometry_task, map_task)  #$
 

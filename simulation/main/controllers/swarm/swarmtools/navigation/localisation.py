@@ -13,12 +13,12 @@ MAP_HEIGHT = 220
 RESOLUTION = 0.1  # 10 cm per grid cell
 WHEEL_RADIUS = 0.033
 WHEEL_BASE = 0.160
-ENCODER_RESOLUTION = 2048  # Example value; replace with your actual encoder resolution
 
 GPS_DEVICE_NAME = "gps"
 class Localisation:
     def __init__(self, robot):
         self.robot = robot
+        self.alive = True
         self.timestep = int(robot.getBasicTimeStep())  # Ensure timestep is an integer
 
         # Initialize robot position using float64 for higher precision
@@ -47,7 +47,7 @@ class Localisation:
         self.gps.enable(self.timestep)
 
 
-    def check_encoder_not_null(self):
+    def check_encoder_not_null_and_init(self):
         # Wait until valid encoder values are available
         print(f"[localisation]({self.robot.getName()}) Waiting for encoder != nan")
         while math.isnan(self.prev_left_encoder) or math.isnan(self.prev_right_encoder):
@@ -58,6 +58,12 @@ class Localisation:
         print(
             f"[localisation]({self.robot.getName()}) Valid Initial Left Encoder: {self.prev_left_encoder}, Valid Initial Right Encoder: {self.prev_right_encoder}"
         )
+        # when encoder is live then trigger the set
+        self.robot_position["x"], self.robot_position["y"], current_z = (
+            self.gps.getValues()
+        )  # init the coords even when using wheel odom
+        print(f"[localisaton]({self.robot.getName()}) INIT WITH GPS AT: Robot X position: {self.robot_position['x']:6.3f}    Robot Y position: {self.robot_position['y']:6.3f}    Robot Theta position: {self.robot_position['theta']:6.3f}")
+        # pprint(_object=self.robot_position)
         return True
     
     # SLAM functions
@@ -115,17 +121,7 @@ class Localisation:
         # Update position using the average orientation
         self.robot_position["x"] += delta_center * np.cos(avg_theta)
         self.robot_position["y"] += delta_center * np.sin(avg_theta)
-    
-    def update_odometry_service(self):
-        # when encoder is live then trigger the set
-        self.robot_position["x"], self.robot_position["y"], current_z = (
-            self.gps.getValues()
-        )  # init the coords even when using wheel odom
-        print(f"[localisaton]({self.robot.getName()}) INIT WITH GPS AT: Robot X position: {self.robot_position['x']:6.3f}    Robot Y position: {self.robot_position['y']:6.3f}    Robot Theta position: {self.robot_position['theta']:6.3f}")
-        pprint(self.robot_position)
-        while True:
-            self.update_odometry_o1()
-        
+
     
 
 

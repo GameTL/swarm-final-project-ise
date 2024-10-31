@@ -46,36 +46,114 @@ class Driver:
         self.leftMotor.setVelocity(0)
         self.rightMotor.setVelocity(0)
     
+    # def simple_follow_path(self, path):
+        # # TODO NOT DONE
+        # THETA_FACING_X = 0.0
+        # THETA_FACING_Y = 90.0
+        
+        # self.localisation.update_odometry()
+        # work_path = list(path.values())
+        # pprint(work_path)
+        # x, y  = self.robot_position["x"], self.robot_position["y"]
+        # [step_x, step_y] = work_path.pop(0)
+        # # print([step_x, step_y])
+        # [err_x, err_y] = [step_x - x , step_y - y]
+        # print([err_x, err_y])
+        # x_prev, y_prev = self.robot_position["x"], self.robot_position["y"]
+        
+        # while True:
+            
+        #     # rotate untill theta is 0 facing x 
+        #     err_theta_from_x = THETA_FACING_X - self.robot_position["theta"]
+        #     if err_theta_from_x < -0.1:
+        #         self.anti_clockwise_spin()
+        #     elif err_theta_from_x > 0.1:
+        #         self.clock_spin()
+        #     else:
+        #         self.move_forward()
+            
+        #     # elif err_theta_from_x > 0.1:
+                
+                
+        #     # driving until the current x doesnt change
     def simple_follow_path(self, path):
-        # TODO NOT DONE
-        THETA_FACING_X = 0.0
-        THETA_FACING_Y = 90.0
+        # Constants for desired orientations (in radians)
+        THETA_FACING_X = 0.0  # Facing along positive x-axis
+        THETA_FACING_Y = np.pi / 2  # Facing along positive y-axis # ***
+        ANGLE_THRESHOLD = 0.05  # Threshold for angle comparison (radians)
+        DISTANCE_THRESHOLD = 0.01  # Threshold for position comparison (meters)
         
-        self.localisation.update_odometry()
         work_path = list(path.values())
-        pprint(work_path)
-        x, y  = self.robot_position["x"], self.robot_position["y"]
-        [step_x, step_y] = work_path.pop(0)
-        # print([step_x, step_y])
-        [err_x, err_y] = [step_x - x , step_y - y]
-        print([err_x, err_y])
-        x_prev, y_prev = self.robot_position["x"], self.robot_position["y"]
+        print("Path to follow:", work_path)
         
-        while True:
+        while work_path:
+            # Get the next waypoint from the path
+            target_x, target_y = work_path.pop(0)
+            print(f"Next waypoint: ({target_x}, {target_y})")
             
-            # rotate untill theta is 0 facing x 
-            err_theta_from_x = THETA_FACING_X - self.robot_position["theta"]
-            if err_theta_from_x < -0.1:
-                self.anti_clockwise_spin()
-            elif err_theta_from_x > 0.1:
-                self.clock_spin()
-            else:
-                self.move_forward()
+            # Move along the x-axis to target_x
+            # First, orient the robot to face along the x-axis
+            while True:
+                self.localisation.update_odometry()
+                current_theta = self.localisation.robot_position["theta"]
+                err_theta = THETA_FACING_X - current_theta
+                err_theta = (err_theta + np.pi) % (2 * np.pi) - np.pi  # Normalize to [-pi, pi]
+                
+                if abs(err_theta) > ANGLE_THRESHOLD:
+                    if err_theta < 0:
+                        self.anti_clockwise_spin()
+                    else:
+                        self.clock_spin()
+                else:
+                    self.stop_motors()  # Stop rotation when aligned
+                    break  # Exit the rotation loop
             
-            # elif err_theta_from_x > 0.1:
+            # Move forward along x-axis until x-coordinate matches target_x
+            while True:
+                self.localisation.update_odometry()
+                current_x = self.localisation.robot_position["x"]
+                err_x = target_x - current_x
                 
+                if abs(err_x) > DISTANCE_THRESHOLD:
+                    self.move_forward()
+                else:
+                    self.stop_motors()
+                    break  # Reached target_x
+            
+            # Now orient the robot to face along the y-axis
+            while True:
+                self.localisation.update_odometry()
+                current_theta = self.localisation.robot_position["theta"]
+                err_theta = THETA_FACING_Y - current_theta
+                err_theta = (err_theta + np.pi) % (2 * np.pi) - np.pi  # Normalize to [-pi, pi]
                 
-            # driving until the current x doesnt change
+                if abs(err_theta) > ANGLE_THRESHOLD:
+                    if err_theta < 0:
+                        self.anti_clockwise_spin()
+                    else:
+                        self.clock_spin()
+                else:
+                    self.stop_motors()
+                    break  # Exit the rotation loop
+            
+            # Move forward along y-axis until y-coordinate matches target_y
+            while True:
+                self.localisation.update_odometry()
+                current_y = self.localisation.robot_position["y"]
+                err_y = target_y - current_y
+                
+                if abs(err_y) > DISTANCE_THRESHOLD:
+                    self.move_forward()
+                else:
+                    self.stop_motors()
+                    break  # Reached target_y
+            
+            # Proceed to the next waypoint in the path
+            print(f"Reached waypoint: ({target_x}, {target_y})")
+        
+        # Stop the robot after reaching the final waypoint
+        self.stop_motors()
+        print("Path following complete.")
 
         
         
