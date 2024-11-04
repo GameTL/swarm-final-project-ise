@@ -10,7 +10,7 @@ MESSAGE_INTERVAL = 2000 # ms
 PRIORITY_LIST = ["TurtleBot1", "TurtleBot2"]
 
 class Communicator:
-    def __init__(self, robot: Robot, mode=0, verbose=False):
+    def __init__(self, robot: Robot, mode=0, verbose=True):
         self.verbose = verbose
         # setting up
         self.robot : Robot = robot
@@ -38,11 +38,12 @@ class Communicator:
         """
         # Receive messages from other robots and print
         while self.receiver.getQueueLength() > 0:  
+            time.sleep(0.001)
             received_message = self.receiver.getString()
             if self.verbose: self.print_received_message(received_message)
             title, robot_id, message_id, content = json.loads(received_message)
             
-            print(f"{self.robot.getName()} received a message from {robot_id}; message ID: {message_id}")
+            # print(f"{self.robot.getName()} received a message from {robot_id}; message ID: {message_id}")
             # Check for probing message
             if title == "[path_receiving]":
                 return "path_receiving"

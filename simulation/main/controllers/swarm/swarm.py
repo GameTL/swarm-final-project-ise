@@ -64,7 +64,6 @@ class SwarmMember:
         
     def random_movement_find(self):
         while self.robot.step(self.timestep) != -1:
-            
             # Check for incoming messages
             status = self.communicator.listen_to_message()
             if status != None:
@@ -81,7 +80,6 @@ class SwarmMember:
 
                 print(f"[consensus]({self.robot.getName()}) waiting consensus...")
                 self.communicator.broadcast_message("[task]", cylinder_position)
-
             elif self.status == "path_finding":
                 # Used only by the TaskMaster
                 if self.detected_flag:
