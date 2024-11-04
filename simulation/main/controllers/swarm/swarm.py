@@ -156,7 +156,7 @@ class SwarmMember:
             coords = self.communicator.robot_entries.copy()
             for robot_name in coords:
                 coords[robot_name] = list(
-                    map(lambda x: round(x, 1), coords[robot_name])
+                    map(lambda x: round(x, 2), coords[robot_name])
                 )
             # print(f"[path_finding]({self.name}): current coords={coords}")
 
