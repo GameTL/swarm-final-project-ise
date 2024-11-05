@@ -77,6 +77,7 @@ class SwarmMember:
             elif self.status == "consensus" and not self.detected_flag:
                 self.detected_flag = True  # detect once and top
                 self.task_master = self.name
+                self.communicator.task_master = self.name
 
                 print(f"[consensus]({self.robot.getName()}) waiting consensus...")
                 self.communicator.broadcast_message("[task]", cylinder_position)

@@ -39,7 +39,6 @@ class Communicator:
         # Receive messages from other robots and print
         return_status = None
         while self.receiver.getQueueLength() > 0:  
-            time.sleep(0.001)
             received_message = self.receiver.getString()
             if self.verbose: self.print_received_message(received_message)
             title, robot_id, message_id, content = json.loads(received_message)
@@ -51,7 +50,7 @@ class Communicator:
             elif title == "[probe]":
                 self.robot_entries[robot_id] = content
             elif title == "[object_detected]":
-                retreturn_status = "idle" 
+                return_status = "idle" 
             elif title == "[task]":
                 self.task_master = robot_id
                 self.object_coordinates = content
@@ -69,7 +68,10 @@ class Communicator:
                     self.mode = 2
                     return_status = "idle"
             elif title == "[task_successful]":
-                return_status = "path_finding"
+                if self.task_master == self.name:
+                    return_status = "path_finding"
+                else:
+                    return_status = "idle"
             else:
                 print("x")
             
