@@ -7,7 +7,7 @@ import ast
 EMITTER_DEVICE_NAME = "emitter"
 RECEIVER_DEVICE_NAME = "receiver"
 MESSAGE_INTERVAL = 2000 # ms
-PRIORITY_LIST = ["TurtleBot1", "TurtleBot2"]
+PRIORITY_LIST = ["TurtleBot3Burger_1", "TurtleBot3Burger_2", "TurtleBot3Burger_3"]
 
 class Communicator:
     def __init__(self, robot: Robot, mode=0, verbose=True):
@@ -26,6 +26,7 @@ class Communicator:
 
         self.message_interval = MESSAGE_INTERVAL
         self.time_tracker = 0
+        self.priority_queue = PRIORITY_LIST
 
         self.object_coordinates = {}
         self.task_master = ""
@@ -37,46 +38,53 @@ class Communicator:
         listen for ['[probe]', '[object_detected]', '[task]', '[task_conflict]', '[task_successful]']
         """
         # Receive messages from other robots and print
-        return_status = None
         while self.receiver.getQueueLength() > 0:  
+            print(list(self.robot_entries.keys()))
             received_message = self.receiver.getString()
             if self.verbose: self.print_received_message(received_message)
             title, robot_id, message_id, content = json.loads(received_message)
+            self.receiver.nextPacket()
             
             # print(f"{self.robot.getName()} received a message from {robot_id}; message ID: {message_id}")
             # Check for probing message
             if title == "[path_receiving]":
-                return_status = "path_receiving"
+                return "path_receiving"
             elif title == "[probe]":
                 self.robot_entries[robot_id] = content
             elif title == "[object_detected]":
-                return_status = "idle" 
+                return "idle" 
             elif title == "[task]":
                 self.task_master = robot_id
                 self.object_coordinates = content
                 print(f"[task]({self.robot.getName()}) Object Detected from: {robot_id}@{content}; checking conflict...")
-                return_status = "task"
+                return "task"
             elif title == "[task_conflict]":
+                if content == self.priority_queue:
+                    return "reassign"
+                else:
+                    return "idle"
+                '''
                 self.priority_list = content
                 self.task_master = self.priority_list[0]
+                '''
+                
             elif title == "[path_following]":
                 paths = ast.literal_eval(content)
                 if self.name in paths.keys():
                     self.path = paths.get(self.name, "")
-                    return_status = "path_following"
+                    return "path_following"
                 else:
                     self.mode = 2
-                    return_status = "idle"
+                    return "idle"
             elif title == "[task_successful]":
                 if self.task_master == self.name:
-                    return_status = "path_finding"
+                    return "path_finding"
                 else:
-                    return_status = "idle"
+                    return "idle"
             else:
                 print("x")
             
-            self.receiver.nextPacket()
-        return return_status 
+        return None 
     
     def broadcast_message(self, title: str, content):
         # Send the message

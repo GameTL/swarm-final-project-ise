@@ -14,7 +14,7 @@ from swarmtools import Driver
 
 # GPS = True
 GPS = False
-PRIORITY_LIST = ["robot1", "robot2", "robot3"]
+PRIORITY_LIST = ["TurtleBot3Burger_1", "TurtleBot3Burger_2", "TurtleBot3Burger_3"]
 
 cylinder_position = {"x": 0.75, "y": -0.25, "theta": 0.0}
 
@@ -53,6 +53,7 @@ class SwarmMember:
         self.path = None
         self.status_prev = None
         self.status = None
+        self.reassign_flag = False
 
         # testing for sim
         self.driver = Driver(
@@ -63,6 +64,7 @@ class SwarmMember:
         print(f"[helper]({self.robot.getName()}) Robot X position: {self.robot_position['x']:6.3f}    Robot Y position: {self.robot_position['y']:6.3f}    Robot Theta position: {self.robot_position['theta']:6.3f}")
         
     def random_movement_find(self):
+        print(f"{self.priority_queue} from {self.name}")
         while self.robot.step(self.timestep) != -1:
             # Check for incoming messages
             status = self.communicator.listen_to_message()
@@ -71,9 +73,19 @@ class SwarmMember:
             if self.status_prev != self.status or self.verbose:
                 print(f"[{self.status}]({self.robot.getName()}) CHANGED")
 
+            if self.object_detector.detect() and not self.detected_flag:
+                # * As a member that found the object becomes the master.
+                print(
+                    f"[object_detected]({self.robot.getName()}) found cylinder @ {cylinder_position}"
+                )
+                # self.status = "path_finding"  
+                self.status = "consensus"  
+                self.driver.stop()
+
             # print(self.robot.getName(),f'{status=}')
             if self.status == "idle":
                 self.driver.stop()
+
             elif self.status == "consensus" and not self.detected_flag:
                 self.detected_flag = True  # detect once and top
                 self.task_master = self.name
@@ -81,6 +93,7 @@ class SwarmMember:
 
                 print(f"[consensus]({self.robot.getName()}) waiting consensus...")
                 self.communicator.broadcast_message("[task]", cylinder_position)
+
             elif self.status == "path_finding" and self.task_master == self.name:
                 # Used only by the TaskMaster
                 if self.detected_flag:
@@ -120,23 +133,33 @@ class SwarmMember:
                 #     print(f"[path_following]({self.robot.getName()}) FUCK")
 
                 # break
-            elif self.object_detector.detect() and not self.detected_flag:
-                # * As a member that found the object becomes the master.
-                print(
-                    f"[object_detected]({self.robot.getName()}) found cylinder @ {cylinder_position}"
-                )
-                # self.status = "path_finding"  
-                self.status = "consensus"  
-                self.driver.stop()
+
             elif self.status == "task":
                 if self.detected_flag:
                     print(f"[task_conflict]({self.robot.getName()})")
+                    self.communicator.broadcast_message("[task_conflict]", self.priority_queue)
                 else:
                     print(f"[task_successful]({self.robot.getName()})")
                     self.task_master = self.communicator.task_master
                     self.communicator.broadcast_message("[task_successful]", self.task_master)
-                    print("changing status to IDLE")
+
+                self.status = "idle"
+
+            elif self.status == "reassign" and not self.detected_flag:
+                print(f"{self.priority_queue} from {self.name}")
+                task_master = self.communicator.priority_queue.pop()
+                print(task_master)
+                if task_master == self.name:
+                    self.status = "path_finding"
+                else:
+                    self.task_master = task_master
+                    self.communicator.task_master = task_master
+                    self.communicator.broadcast_message("[task_successful]", self.task_master)
                     self.status = "idle"
+                self.priority_queue = self.communicator.priority_queue.append(task_master)
+                
+                self.reassign_flag = True
+
             else:
                 self.driver.move_along_polynomial()
                 self.communicator.send_position(
@@ -146,6 +169,7 @@ class SwarmMember:
                         "theta": self.robot_position["theta"],
                     }
                 )
+
             if GPS:
                 self.robot_position["x"], self.robot_position["y"], current_z = (
                     self.driver.gps.getValues()
