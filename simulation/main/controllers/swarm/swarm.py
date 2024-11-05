@@ -205,11 +205,13 @@ class SwarmMember:
                 )
             # print(f"[path_finding]({self.name}): current coords={coords}")
 
+            #! Obstacles are in a list format e.g. [(-1, -1.4), (0.6, 0.3), (0.1, 1.67)]; should be input from map so leaving it empty for now
             self.formationer = FormationMaster(
                 robot=self.robot,
                 current_coords=coords,
                 object_coords=(cylinder_position["x"], cylinder_position["y"]),
-                verbose=False,
+                obstacles=[],
+                debug_level=0,
             )
             self.formationer.calculate_target_coords()
             self.formationer.plan_paths()
