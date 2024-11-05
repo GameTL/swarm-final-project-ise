@@ -148,7 +148,7 @@ class SwarmMember:
                 self.status = "idle"
 
             elif self.status == "reassign" and not self.reassign_flag:
-                task_master = self.priority_queue[0]
+                task_master = self.priority_queue.pop(0)
                 if task_master == self.name:
                     self.path_finding()
                     self.status = "path_finding"
@@ -166,6 +166,7 @@ class SwarmMember:
                     self.communicator.task_master = task_master
                     self.communicator.broadcast_message("[task_successful]", self.task_master)
                     self.status = "idle"
+                self.priority_queue.append(task_master)
                 
                 self.reassign_flag = True
 

@@ -10,7 +10,7 @@ MESSAGE_INTERVAL = 2000 # ms
 PRIORITY_LIST = ["TurtleBot3Burger_1", "TurtleBot3Burger_2", "TurtleBot3Burger_3"]
 
 class Communicator:
-    def __init__(self, robot: Robot, mode=0, verbose=True):
+    def __init__(self, robot: Robot, mode=0, verbose=False):
         self.verbose = verbose
         # setting up
         self.robot : Robot = robot
