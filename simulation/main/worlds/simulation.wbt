@@ -11,8 +11,8 @@ IMPORTABLE EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R20
 WorldInfo {
 }
 Viewpoint {
-  orientation -0.008425270476938028 0.9987625041552963 0.04901504984014709 1.6416735111840999
-  position 1.1332192481731163 -1.0102547728687166 10.855236861197836
+  orientation 0.46311854100140526 0.44989268611934125 -0.7636214952167426 1.7662846859186307
+  position 0.06145986878420362 5.345944426398445 7.663914726068956
 }
 TexturedBackground {
 }
@@ -24,11 +24,11 @@ RectangleArena {
   wallHeight 0.5
 }
 FifaSoccerBall {
-  translation -2.2405081472148143 -2.387386028298871 0.1118250720000971
-  rotation 0.009195555612055827 0.01867038359553979 0.999783405810169 -2.1900849893483185
+  translation -2.2405081472148143 -2.387386028298871 0.11182507200000003
+  rotation 0.009195555612055834 0.018670383595539797 0.999783405810169 -2.1900849893483185
 }
 FifaSoccerBall {
-  translation -1.67 -1.76 0.111825
+  translation -1.67 -1.76 0.11182507200000003
   name "fifa soccer ball(1)"
 }
 Dog {
@@ -36,7 +36,8 @@ Dog {
   rotation 0 0 1 1.309
 }
 Robot {
-  translation -1.31502 -0.9684 -0.000247666
+  translation -0.964586 -0.720701 -0.0133269
+  rotation -0.005660930895169994 -0.005799700917113869 0.9999671581260418 0.552172
   children [
     Lidar {
       name "lidar_sensor"
@@ -714,7 +715,7 @@ Robot {
     }
     DEF RIGHT_JOINT HingeJoint {
       jointParameters HingeJointParameters {
-        position 777.6931515605372
+        position 890.032292020419
         axis 0 1 0
         anchor 0 -0.08 0.033
       }
@@ -731,7 +732,7 @@ Robot {
       ]
       endPoint Solid {
         translation 0 -0.08 0.033
-        rotation -1.512975529273017e-17 -1 -1.6862259637758094e-16 2.992622529731531
+        rotation 5.054140300976795e-17 -1 -1.6960779421485669e-16 3.7508175990822545
         children [
           DEF RIGHT_WHEEL Pose {
             rotation 1 0 0 -1.5708003061004252
@@ -833,7 +834,7 @@ Robot {
     }
     DEF LEFT_JOINT HingeJoint {
       jointParameters HingeJointParameters {
-        position 436.0417997604352
+        position 542.5243689684677
         axis 0 1 0
         anchor 0 0.08 0.033
       }
@@ -850,7 +851,7 @@ Robot {
       ]
       endPoint Solid {
         translation 0 0.08 0.033
-        rotation 0.8935497512508253 -2.2088301431718906e-06 -0.4489641879200491 3.1415941165238723
+        rotation -0.9553910602278978 2.057827610944074e-06 0.2953437353870555 3.1415904816596334
         children [
           DEF RIGHT_WHEEL Pose {
             rotation 1 0 0 -1.5708003061004252
@@ -880,12 +881,12 @@ Robot {
     }
     DEF CASTER_JOINT BallJoint {
       jointParameters BallJointParameters {
-        position 1721.0095917942556
+        position 1196.6802960744747
         anchor -0.081 0 0.004
       }
       endPoint Solid {
-        translation -0.08098071610553215 -8.769503259791466e-06 0.004003810968393872
-        rotation -0.8315988169601365 0.4837297205627615 0.2728533765134201 2.453297792968039
+        translation -0.0810004054430471 1.5725942697386586e-05 0.003988254226846883
+        rotation -0.9704139593291107 -0.14087547783058973 0.19608887598536012 -1.9688355835263227
         children [
           Shape {
             appearance PBRAppearance {
@@ -1115,7 +1116,8 @@ Robot {
   controller "swarm"
 }
 Robot {
-  translation -1.01449 -1.86906 -0.000247745
+  translation 0.653661 1.59331 -0.00397099
+  rotation 0.002186020513322141 -0.001865495025483065 0.9999958706127867 1.7331154767641257
   children [
     Lidar {
       name "lidar_sensor"
@@ -1793,7 +1795,7 @@ Robot {
     }
     DEF RIGHT_JOINT HingeJoint {
       jointParameters HingeJointParameters {
-        position 604.9901689510416
+        position 663.9233183845545
         axis 0 1 0
         anchor 0 -0.08 0.033
       }
@@ -1810,7 +1812,7 @@ Robot {
       ]
       endPoint Solid {
         translation 0 -0.08 0.033
-        rotation 0 1 0 0.23358346180134842
+        rotation 0 -1 0 3.665120176481633
         children [
           DEF RIGHT_WHEEL Pose {
             rotation 1 0 0 -1.5708003061004252
@@ -1912,7 +1914,7 @@ Robot {
     }
     DEF LEFT_JOINT HingeJoint {
       jointParameters HingeJointParameters {
-        position 332.39619537115146
+        position 406.57979179488615
         axis 0 1 0
         anchor 0 0.08 0.033
       }
@@ -1929,7 +1931,7 @@ Robot {
       ]
       endPoint Solid {
         translation 0 0.08 0.033
-        rotation 0.46096505721490255 7.016340060398575e-07 0.8874182869573793 3.141597090563658
+        rotation -0.1278801165705148 1.84218017328458e-06 0.9917896328266987 3.1415954963678407
         children [
           DEF RIGHT_WHEEL Pose {
             rotation 1 0 0 -1.5708003061004252
@@ -1959,12 +1961,12 @@ Robot {
     }
     DEF CASTER_JOINT BallJoint {
       jointParameters BallJointParameters {
-        position 3369.8922582304217
+        position 3171.9221158215723
         anchor -0.081 0 0.004
       }
       endPoint Solid {
-        translation -0.08099140217545941 9.51622767764137e-06 0.003986768687695785
-        rotation 0.19790882356976464 -0.899005172022043 0.3906683993246042 2.5719444717610034
+        translation -0.0810196964817087 -1.389277449859172e-06 0.003985416404288234
+        rotation -0.9935666914638361 -0.0950815259216697 -0.06152018402128647 2.0699267799913663
         children [
           Shape {
             appearance PBRAppearance {
@@ -2194,7 +2196,8 @@ Robot {
   controller "swarm"
 }
 Robot {
-  translation 1.32033 -0.26454 -0.00024768
+  translation 1.35546 -0.17802 -0.00858574
+  rotation -0.0010306900056462121 0.0022196200121592773 0.9999970054780734 2.96788
   children [
     Lidar {
       name "lidar_sensor"
@@ -2872,7 +2875,7 @@ Robot {
     }
     DEF RIGHT_JOINT HingeJoint {
       jointParameters HingeJointParameters {
-        position 600.1916396679214
+        position 671.5143629702684
         axis 0 1 0
         anchor 0 -0.08 0.033
       }
@@ -2889,7 +2892,7 @@ Robot {
       ]
       endPoint Solid {
         translation 0 -0.08 0.033
-        rotation 0 -1 0 4.564945821318548
+        rotation 0 1 0 3.925924409232543
         children [
           DEF RIGHT_WHEEL Pose {
             rotation 1 0 0 -1.5708003061004252
@@ -2991,7 +2994,7 @@ Robot {
     }
     DEF LEFT_JOINT HingeJoint {
       jointParameters HingeJointParameters {
-        position 329.19029649904974
+        position 394.1577335480065
         axis 0 1 0
         anchor 0 0.08 0.033
       }
@@ -3008,7 +3011,7 @@ Robot {
       ]
       endPoint Solid {
         translation 0 0.08 0.033
-        rotation -0.9017785161931509 2.1947844466883606e-06 0.4321984587289295 3.1415911084091515
+        rotation -0.05604568460584511 1.7349135568878923e-06 0.9984282053478118 3.1415957545893236
         children [
           DEF RIGHT_WHEEL Pose {
             rotation 1 0 0 -1.5708003061004252
@@ -3038,12 +3041,12 @@ Robot {
     }
     DEF CASTER_JOINT BallJoint {
       jointParameters BallJointParameters {
-        position -40.87500722853703
+        position -413.64971186904165
         anchor -0.081 0 0.004
       }
       endPoint Solid {
-        translation -0.0809839846616906 -1.8091203710667607e-06 0.004003986756412596
-        rotation -0.2853054768089519 0.8947452946256272 0.3435573353140873 2.7331327548888176
+        translation -0.08100511558644286 -5.573024621785549e-07 0.004024999025792479
+        rotation -0.637202057092153 0.7706849083560668 0.004279073466224073 1.7954719967334305
         children [
           Shape {
             appearance PBRAppearance {
@@ -3315,7 +3318,7 @@ Solid {
   ]
 }
 Solid {
-  translation -0.730799 0.619201 0
+  translation -0.942929 0.831331 0
   rotation 0 0 1 -2.3561953071795863
   children [
     Shape {
@@ -3328,6 +3331,25 @@ Solid {
       }
     }
   ]
+  recognitionColors [
+    1 0 1
+  ]
+}
+Solid {
+  translation 2.06223 -2.17383 0
+  rotation 0 0 1 -2.3561953071795863
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1 1 0
+        metalness 0
+      }
+      geometry Box {
+        size 0.8 0.2 0.4
+      }
+    }
+  ]
+  name "solid(1)"
   recognitionColors [
     1 0 1
   ]
