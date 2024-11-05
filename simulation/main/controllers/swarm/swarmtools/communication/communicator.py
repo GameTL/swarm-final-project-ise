@@ -37,6 +37,7 @@ class Communicator:
         listen for ['[probe]', '[object_detected]', '[task]', '[task_conflict]', '[task_successful]']
         """
         # Receive messages from other robots and print
+        return_status = None
         while self.receiver.getQueueLength() > 0:  
             time.sleep(0.001)
             received_message = self.receiver.getString()
@@ -46,16 +47,16 @@ class Communicator:
             # print(f"{self.robot.getName()} received a message from {robot_id}; message ID: {message_id}")
             # Check for probing message
             if title == "[path_receiving]":
-                return "path_receiving"
+                return_status = "path_receiving"
             elif title == "[probe]":
                 self.robot_entries[robot_id] = content
             elif title == "[object_detected]":
-                return "idle" 
+                retreturn_status = "idle" 
             elif title == "[task]":
                 self.task_master = robot_id
                 self.object_coordinates = content
                 print(f"[task]({self.robot.getName()}) Object Detected from: {robot_id}@{content}; checking conflict...")
-                return "task"
+                return_status = "task"
             elif title == "[task_conflict]":
                 self.priority_list = content
                 self.task_master = self.priority_list[0]
@@ -63,17 +64,17 @@ class Communicator:
                 paths = ast.literal_eval(content)
                 if self.name in paths.keys():
                     self.path = paths.get(self.name, "")
-                    return "path_following"
+                    return_status = "path_following"
                 else:
                     self.mode = 2
-                    return "idle"
+                    return_status = "idle"
             elif title == "[task_successful]":
-                return "path_finding"
+                return_status = "path_finding"
             else:
                 print("x")
             
             self.receiver.nextPacket()
-        return None 
+        return return_status 
     
     def broadcast_message(self, title: str, content):
         # Send the message

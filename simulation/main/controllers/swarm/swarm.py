@@ -74,13 +74,13 @@ class SwarmMember:
             # print(self.robot.getName(),f'{status=}')
             if self.status == "idle":
                 self.driver.stop()
-                break
             elif self.status == "consensus" and not self.detected_flag:
                 self.detected_flag = True  # detect once and top
+                self.task_master = self.name
 
                 print(f"[consensus]({self.robot.getName()}) waiting consensus...")
                 self.communicator.broadcast_message("[task]", cylinder_position)
-            elif self.status == "path_finding":
+            elif self.status == "path_finding" and self.task_master == self.name:
                 # Used only by the TaskMaster
                 if self.detected_flag:
                     print(f"[path_finding]({self.robot.getName()}) calculating...")
