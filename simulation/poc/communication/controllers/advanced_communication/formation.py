@@ -115,9 +115,11 @@ class FormationMaster:
         if difference_x > 0:
             # Append x + 0.01
             movement_options.append((round(current_coords[0] + 0.01, self.fineness), current_coords[1]))
+            self.correct_x = False
         elif difference_x < 0:
             # Append x - 0.01
             movement_options.append((round(current_coords[0] - 0.01, self.fineness), current_coords[1]))
+            self.correct_x = False
         else:
             # x already at correct position
             self.correct_x = True
@@ -129,12 +131,33 @@ class FormationMaster:
         if difference_y > 0:
             # Append y + 0.01
             movement_options.append((current_coords[0], round(current_coords[1] + 0.01, self.fineness)))
+            self.correct_y = False
         elif difference_y < 0:
             # Append y - 0.01
             movement_options.append((current_coords[0], round(current_coords[1] - 0.01, self.fineness)))
+            self.correct_y = False
         else:
             # y already at correct position
             self.correct_y = True
+
+    def evaluate_movement_direction(self, current, selected):
+        # print(f"{current=} {selected=}")
+        difference_x = selected[0] - current[0]
+        difference_y = selected[1] - current[1]
+        if difference_x == 0 and difference_y == 0:
+            # Staying in place
+            return "0"
+        elif difference_x > 0 and difference_y == 0:
+            return "+x"
+        elif difference_x < 0 and difference_y == 0:
+            return "-x"
+        elif difference_x == 0 and difference_y > 0:
+            return "+y"
+        elif difference_x == 0 and difference_y < 0:
+            return "-y"
+        else:
+            return "ERROR"
+        
 
     def path_planning_algorithm(self, start: tuple, end: tuple, verbose=False):
         # print(f'{start=} {end=}')
@@ -178,11 +201,16 @@ class FormationMaster:
                 if movement in self.obstacles:
                     if verbose: print(f"(helper)[DEBUG] Obstacle found at: {movement}")
                     self.movement_options.remove(movement)
+                    if len(self.movement_options) == 0:
+                        # EDGE CASE: at correct x/y and finds obstacle
+                        self.go_around = not self.go_around
+
                 # Remove conflicting movement options if step has already been initialized
                 if step in self.conflict_map:
                     if movement in self.conflict_map[step]:
                         if verbose: print(f"(helper)[DEBUG] Pruning conflicting step: {step}")
                         self.movement_options.remove(movement)
+
             if verbose: print(f"(helper)[DEBUG] Movement option(s) after pruning: {self.movement_options}")
             
             if verbose: print(f"(helper)[DEBUG] Correct x; {self.correct_x}, Correct y; {self.correct_y}")
@@ -195,6 +223,15 @@ class FormationMaster:
                 # if one movement option -> choose the remaining one
                 # if 2 movement options -> choose the first one
                 path[step] = self.movement_options[0]
+
+            # Evaluate movement direction
+            self.previous_movement = self.evaluate_movement_direction(
+                current=current_coords, 
+                selected=path[step]
+            )
+            if self.previous_movement == "ERROR":
+                print("(helper)[ERROR] An unexpected error occurred")
+
             current_coords = path[step]
             if verbose: print(f"(helper)[DEBUG] Current coordinates: {current_coords}")
             
@@ -210,7 +247,13 @@ class FormationMaster:
             step += 1
             
             if self.correct_x and self.correct_y:
+                print("Path found")
                 return path
+            
+            if self.previous_movement == "0":
+                #! Testing
+                print("Early breakout")
+                break
 
 
 if __name__ == "__main__":
@@ -220,8 +263,8 @@ if __name__ == "__main__":
         'TurtleBot3Burger_2': [-2.05, -1.40, 0.20], 
         'TurtleBot3Burger_3': [-0.35, 1.67, 0.50]
     }
-    # obstacles = [(-1, -1.4), (0.6, 0.3), (0.1, 1.67)]
-    obstacles = []
+    obstacles = [(-1, -1.4), (0.6, 0.3), (0.1, 1.67)]
+    # obstacles = []
     name = 'TurtleBot3Burger_2'
 
     formation_master = FormationMaster(
@@ -241,5 +284,5 @@ if __name__ == "__main__":
 
     paths = json.dumps(formation_master.paths)
     loading = json.loads(paths)
-    pprint(loading)
+    # pprint(loading)
     # pprint(f"{name}: {loading[name]}")
