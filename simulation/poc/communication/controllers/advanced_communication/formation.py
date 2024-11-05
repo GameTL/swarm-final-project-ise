@@ -22,6 +22,8 @@ class FormationMaster:
         self.radius = radius
         self.fineness = fineness
         self.verbose = verbose
+        self.go_around = False
+        self.previous_movement = ""
 
         # Initialize calculation parameters
         self.target_coords = []
@@ -58,7 +60,6 @@ class FormationMaster:
         
         # Round to self.fineness digits
         self.target_coords = list(map(lambda x: (round(x[0], self.fineness), round(x[1], self.fineness)), self.target_coords))
-        print(self.target_coords)
 
         # Match closest start to target
         self.match_coords()
@@ -93,105 +94,144 @@ class FormationMaster:
         for member, order in self.matches.items():
             self.matches[member] = self.target_coords[order]
         
-        print("Matches:", self.matches)
+        pprint(f"Matches: {self.matches}")
 
     def plan_paths(self):
         print("# ===== Calculating paths ===== #")
-        # print(self.target_coords)
-        # for (robot_id, target) in self.target_coords:
-        #     print(robot_id, target)
-        #     for current_robot_coords in self.current_coords_dict:
-        #         print(securrent_robot_coords)
+        
+        for (robot_id, target) in self.matches.items():
+            start = self.current_coords[robot_id][0:2]
+            end = target
 
-            # print(f"[path_planning](self) Assigning {robot_id} {self.current_coords_dict[robot_id][0:2]} -> {target}")
-            # path = self.path_planning_algorithm(self.current_coords_dict[robot_id][0:2], target, verbose=self.verbose)
-            # self.paths[robot_id] = path
+            print(f"[path_planning](self) Assigning {robot_id} {start} -> {end}")
+            path = self.path_planning_algorithm(start=start, end=end, verbose=self.verbose)
+            
+            self.paths[robot_id] = path
+
+    def movement_x(self, movement_options, current_coords, end):
+        difference_x = end[0] - current_coords[0]
+        
+        # Get closer by x-axis
+        if difference_x > 0:
+            # Append x + 0.01
+            movement_options.append((round(current_coords[0] + 0.01, self.fineness), current_coords[1]))
+        elif difference_x < 0:
+            # Append x - 0.01
+            movement_options.append((round(current_coords[0] - 0.01, self.fineness), current_coords[1]))
+        else:
+            # x already at correct position
+            self.correct_x = True
+
+    def movement_y(self, movement_options, current_coords, end):
+        difference_y = end[1] - current_coords[1]
+        
+        # Get closer by y-axis
+        if difference_y > 0:
+            # Append y + 0.01
+            movement_options.append((current_coords[0], round(current_coords[1] + 0.01, self.fineness)))
+        elif difference_y < 0:
+            # Append y - 0.01
+            movement_options.append((current_coords[0], round(current_coords[1] - 0.01, self.fineness)))
+        else:
+            # y already at correct position
+            self.correct_y = True
 
     def path_planning_algorithm(self, start: tuple, end: tuple, verbose=False):
         # print(f'{start=} {end=}')
-        current_coordinates = start
+        current_coords = start
         step = 0
         path = {}
-        correct_x = False
-        correct_y = False
+        self.correct_x = False
+        self.correct_y = False
 
         while True:
-            difference_x = end[0] - current_coordinates[0]
-            difference_y = end[1] - current_coordinates[1]
-            if verbose: print(f"(helper)[DEBUG] {difference_x=} {difference_y=}")
-
-            movement_options = []
-            # Get closer by x-axis
-            if difference_x > 0:
-                # Append x + 0.01
-                movement_options.append((round(current_coordinates[0] + 0.01, self.fineness), current_coordinates[1]))
-            elif difference_x < 0:
-                # Append x - 0.01
-                movement_options.append((round(current_coordinates[0] - 0.01, self.fineness), current_coordinates[1]))
+            self.movement_options = []
+            if not self.go_around:
+                # Normal movement
+                self.movement_x(
+                    movement_options=self.movement_options, 
+                    current_coords=current_coords, 
+                    end=end
+                )
+                self.movement_y(
+                    movement_options=self.movement_options, 
+                    current_coords=current_coords, 
+                    end=end
+                )
             else:
-                # x already at correct position
-                correct_x = True
-            
-            # Get closer by y-axis
-            if difference_y > 0:
-                # Append y + 0.01
-                movement_options.append((current_coordinates[0], round(current_coordinates[1] + 0.01, self.fineness)))
-            elif difference_y < 0:
-                # Append y - 0.01
-                movement_options.append((current_coordinates[0], round(current_coordinates[1] - 0.01, self.fineness)))
-            else:
-                # y already at correct position
-                correct_y = True
+                # If encounter an obstacle
+                self.movement_y(
+                    movement_options=self.movement_options, 
+                    current_coords=current_coords, 
+                    end=end
+                )
+                self.movement_x(
+                    movement_options=self.movement_options, 
+                    current_coords=current_coords, 
+                    end=end
+                )  
 
-            if verbose: print(f"(helper)[DEBUG] Movement options before pruning: {movement_options}")
+            if verbose: print(f"(helper)[DEBUG] Movement options before pruning: {self.movement_options}")
 
-            for movement in movement_options:
+            for movement in self.movement_options:
                 # Remove movement options that move towards an obstacle
                 if movement in self.obstacles:
                     if verbose: print(f"(helper)[DEBUG] Obstacle found at: {movement}")
-                    movement_options.remove(movement)
+                    self.movement_options.remove(movement)
                 # Remove conflicting movement options if step has already been initialized
                 if step in self.conflict_map:
                     if movement in self.conflict_map[step]:
                         if verbose: print(f"(helper)[DEBUG] Pruning conflicting step: {step}")
-                        movement_options.remove(movement)
-            if verbose: print(f"(helper)[DEBUG] Movement option(s) after pruning: {movement_options}")
+                        self.movement_options.remove(movement)
+            if verbose: print(f"(helper)[DEBUG] Movement option(s) after pruning: {self.movement_options}")
             
-            if verbose: print(f"(helper)[DEBUG] Correct x; {correct_x}, Correct y; {correct_y}")
+            if verbose: print(f"(helper)[DEBUG] Correct x; {self.correct_x}, Correct y; {self.correct_y}")
             
-            if len(movement_options) == 0:
+            if len(self.movement_options) == 0:
                 # Stay in place if no movement options
-                path[step] = current_coordinates
+                path[step] = current_coords
             else:
                 # 2 possibilities; 
                 # if one movement option -> choose the remaining one
                 # if 2 movement options -> choose the first one
-                path[step] = movement_options[0]
-            current_coordinates = path[step]
-            if verbose: print(f"(helper)[DEBUG] Current coordinates: {current_coordinates}")
+                path[step] = self.movement_options[0]
+            current_coords = path[step]
+            if verbose: print(f"(helper)[DEBUG] Current coordinates: {current_coords}")
             
             if step in self.conflict_map:
                 # Key exists
-                self.conflict_map[step].append(current_coordinates)
+                self.conflict_map[step].append(current_coords)
             else:
                 # Key doesn't exist yet
-                self.conflict_map[step] = [current_coordinates]
+                self.conflict_map[step] = [current_coords]
             
             # if verbose: print(f"(helper)[DEBUG] Conflict map: {self.conflict_map}")
 
             step += 1
             
-            if correct_x and correct_y:
+            if self.correct_x and self.correct_y:
                 return path
 
 
 if __name__ == "__main__":
     #! Example current positions (coordinates of the members)
-    current_positions = {'TurtleBot3Burger_1': [1.78, -1.05, 0.20], 'TurtleBot3Burger_2': [-2.05, -1.40, 0.20], 'TurtleBot3Burger_3': [-0.35, 1.67, 0.50]}
-    obstacles = [(-1, -1.4), (0.6, 0.3), (0.1, 1.67)]
+    current_positions = {
+        'TurtleBot3Burger_1': [1.78, -1.05, 0.20], 
+        'TurtleBot3Burger_2': [-2.05, -1.40, 0.20], 
+        'TurtleBot3Burger_3': [-0.35, 1.67, 0.50]
+    }
+    # obstacles = [(-1, -1.4), (0.6, 0.3), (0.1, 1.67)]
+    obstacles = []
     name = 'TurtleBot3Burger_2'
 
-    formation_master = FormationMaster(robot="", current_coords=current_positions, object_coords=(0.75, -0.25), obstacles=obstacles, radius=0.3, verbose=True)
+    formation_master = FormationMaster(
+        robot="", 
+        current_coords=current_positions, 
+        object_coords=(0.75, -0.25), 
+        obstacles=obstacles, 
+        radius=0.3, 
+        verbose=False
+    )
     formation_master.calculate_target_coords()
     formation_master.plan_paths()
 
@@ -201,5 +241,5 @@ if __name__ == "__main__":
 
     paths = json.dumps(formation_master.paths)
     loading = json.loads(paths)
-    # pprint(loading)
+    pprint(loading)
     # pprint(f"{name}: {loading[name]}")
