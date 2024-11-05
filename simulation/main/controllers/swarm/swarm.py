@@ -62,7 +62,23 @@ class SwarmMember:
 
     def print_position(self):
         print(f"[helper]({self.robot.getName()}) Robot X position: {self.robot_position['x']:6.3f}    Robot Y position: {self.robot_position['y']:6.3f}    Robot Theta position: {self.robot_position['theta']:6.3f}")
+
+    def path_finding(self):
+        print(f"[path_finding]({self.robot.getName()}) calculating...")
+        paths_json = self.formation_object()
+
+        self.communicator.broadcast_message("[path_following]", paths_json)
+
+        if self.path == None:
+            self.path = self.communicator.path
+        if self.verbose:
+            print(f"[{self.status}]{self.name}: {self.path}")  # big print
         
+        paths = ast.literal_eval(paths_json)
+        if self.name in paths.keys():
+            self.path = paths.get(self.name, "")
+        self.communicator.path = self.path # Sync with communicator
+
     def random_movement_find(self):
         print(f"{self.priority_queue} from {self.name}")
         while self.robot.step(self.timestep) != -1:
@@ -96,21 +112,7 @@ class SwarmMember:
 
             elif self.status == "path_finding" and self.task_master == self.name:
                 # Used only by the TaskMaster
-                if self.detected_flag:
-                    print(f"[path_finding]({self.robot.getName()}) calculating...")
-                    paths_json = self.formation_object()
-
-                    self.communicator.broadcast_message("[path_following]", paths_json)
-
-                if self.path == None:
-                    self.path = self.communicator.path
-                if self.verbose:
-                    print(f"[{self.status}]{self.name}: {self.path}")  # big print
-                
-                paths = ast.literal_eval(paths_json)
-                if self.name in paths.keys():
-                    self.path = paths.get(self.name, "")
-                self.communicator.path = self.path # Sync with communicator
+                self.path_finding()
                 self.status = "path_following"
                 # self.status = "idle"
 
@@ -145,18 +147,25 @@ class SwarmMember:
 
                 self.status = "idle"
 
-            elif self.status == "reassign" and not self.detected_flag:
-                print(f"{self.priority_queue} from {self.name}")
-                task_master = self.communicator.priority_queue.pop()
-                print(task_master)
+            elif self.status == "reassign" and not self.reassign_flag:
+                task_master = self.priority_queue[0]
                 if task_master == self.name:
+                    self.path_finding()
                     self.status = "path_finding"
+                    self.path = self.communicator.path
+
+                    if self.path != "":
+                        # self.driver.move_forward()
+                        self.driver.simple_follow_path(self.path)
+                        # self.driver.anti_clockwise_spin()
+                        quit()
+                        # self.driver.stop()
+                    self.status = "idle"
                 else:
                     self.task_master = task_master
                     self.communicator.task_master = task_master
                     self.communicator.broadcast_message("[task_successful]", self.task_master)
                     self.status = "idle"
-                self.priority_queue = self.communicator.priority_queue.append(task_master)
                 
                 self.reassign_flag = True
 

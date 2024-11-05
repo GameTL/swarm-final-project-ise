@@ -59,10 +59,7 @@ class Communicator:
                 print(f"[task]({self.robot.getName()}) Object Detected from: {robot_id}@{content}; checking conflict...")
                 return "task"
             elif title == "[task_conflict]":
-                if content == self.priority_queue:
-                    return "reassign"
-                else:
-                    return "idle"
+                return "reassign"
                 '''
                 self.priority_list = content
                 self.task_master = self.priority_list[0]
