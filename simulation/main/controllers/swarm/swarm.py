@@ -58,12 +58,12 @@ class SwarmMember:
 
 
     def print_position(self):
-        print(f"[helper]({self.robot.getName()}) Robot X position: {self.robot_position['x']:6.3f}    Robot Y position: {self.robot_position['y']:6.3f}    Robot Theta position: {self.robot_position['theta']:6.3f}")
+        print(f"[helper]({self.robot.getName()}) Robot X position: {self.driver.robot_position['x']:6.3f}    Robot Y position: {self.driver.robot_position['y']:6.3f}    Robot Theta position: {self.driver.robot_position['theta']:6.3f}")
 
     def path_finding(self):
         print(f"[path_finding]({self.robot.getName()}) calculating...")
         paths_json = self.formation_object()
-        print(f"[helper]({self.robot.getName()}) Robot X position: {self.driver.robot_position['x']:6.3f}    Robot Y position: {self.driver.robot_position['y']:6.3f}    Robot Theta position: {self.driver.robot_position['theta']:6.3f}")
+        self.print_position()
         
     def random_movement_find(self):
         while self.robot.step(self.timestep) != -1:

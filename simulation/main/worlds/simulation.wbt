@@ -728,7 +728,6 @@ Robot {
         PositionSensor {
           name "right_wheel_sensor"
           resolution 1.25e-06
-          resolution 1.25e-06
         }
       ]
       endPoint Solid {
@@ -847,7 +846,6 @@ Robot {
         }
         PositionSensor {
           name "left_wheel_sensor"
-          resolution 1.25e-06
           resolution 1.25e-06
         }
       ]
@@ -1810,7 +1808,6 @@ Robot {
         PositionSensor {
           name "right_wheel_sensor"
           resolution 1.25e-06
-          resolution 1.25e-06
         }
       ]
       endPoint Solid {
@@ -1929,7 +1926,6 @@ Robot {
         }
         PositionSensor {
           name "left_wheel_sensor"
-          resolution 1.25e-06
           resolution 1.25e-06
         }
       ]
@@ -2892,7 +2888,6 @@ Robot {
         PositionSensor {
           name "right_wheel_sensor"
           resolution 1.25e-06
-          resolution 1.25e-06
         }
       ]
       endPoint Solid {
@@ -3011,7 +3006,6 @@ Robot {
         }
         PositionSensor {
           name "left_wheel_sensor"
-          resolution 1.25e-06
           resolution 1.25e-06
         }
       ]
