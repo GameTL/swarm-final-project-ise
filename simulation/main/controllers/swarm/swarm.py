@@ -29,6 +29,8 @@ class SwarmMember:
         self.communicator = Communicator(self.robot)
         self.driver = Driver(self.robot)
         self.tick = 0
+        self.driver = Driver(self.robot)
+        self.tick = 0
 
         # Computer vision
         self.detected_flag = False
@@ -38,6 +40,9 @@ class SwarmMember:
         self.mode = mode
         self.priority_queue = PRIORITY_LIST
         self.communicator.robot_entries[self.name] = (
+            self.driver.robot_position["x"],
+            self.driver.robot_position["y"],
+            self.driver.robot_position["theta"],
             self.driver.robot_position["x"],
             self.driver.robot_position["y"],
             self.driver.robot_position["theta"],
@@ -58,6 +63,33 @@ class SwarmMember:
     def path_finding(self):
         print(f"[path_finding]({self.robot.getName()}) calculating...")
         paths_json = self.formation_object()
+        print(f"[helper]({self.robot.getName()}) Robot X position: {self.driver.robot_position['x']:6.3f}    Robot Y position: {self.driver.robot_position['y']:6.3f}    Robot Theta position: {self.driver.robot_position['theta']:6.3f}")
+        
+    def random_movement_find(self):
+        while self.robot.step(self.timestep) != -1:
+            # self.tick += 1
+            # if self.tick % (self.timestep)*200000000 == 0:
+            print(self.driver.get_pretty_position())
+            #     self.tick = 0
+            
+            # self.driver.test_pid()
+            
+            # Check for incoming messages
+            status = self.communicator.listen_to_message()
+            if status != None:
+                self.status = status
+            if self.status_prev != self.status or self.verbose:
+                print(f"[{self.status}]({self.robot.getName()}) CHANGED")
+
+            # print(self.robot.getName(),f'{status=}')
+            if self.status == "idle":
+                self.driver.stop()
+                break
+            elif self.status == "path_finding":
+                # Used only by the TaskMaster
+                if self.detected_flag:
+                    print(f"[path_finding]({self.robot.getName()}) calculating...")
+                    paths_json = self.formation_object()
 
         self.communicator.broadcast_message("[path_following]", paths_json)
 
@@ -170,12 +202,13 @@ class SwarmMember:
                 self.reassign_flag = True
 
             else:
-                self.driver.move_along_polynomial()
+                # self.driver.move_along_polynomial()
+                self.driver.move_forward()
                 self.communicator.send_position(
                     robot_position={
-                        "x": self.robot_position["x"],
-                        "y": self.robot_position["y"],
-                        "theta": self.robot_position["theta"],
+                        "x": self.driver.robot_position["x"],
+                        "y": self.driver.robot_position["y"],
+                        "theta": self.driver.robot_position["theta"],
                     }
                 )
 
