@@ -11,8 +11,8 @@ IMPORTABLE EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R20
 WorldInfo {
 }
 Viewpoint {
-  orientation -0.008425270476938028 0.9987625041552963 0.04901504984014709 1.6416735111840999
-  position 1.1332192481731163 -1.0102547728687166 10.855236861197836
+  orientation -0.5615095886485727 0.588228321695558 0.5819745900045272 2.123272461598296
+  position -0.23672896935223908 0.04894779827459502 9.796683124513212
 }
 TexturedBackground {
 }
@@ -726,7 +726,7 @@ Robot {
         }
         PositionSensor {
           name "right_wheel_sensor"
-          resolution 0.00390625
+          resolution 1.25e-06
         }
       ]
       endPoint Solid {
@@ -845,12 +845,12 @@ Robot {
         }
         PositionSensor {
           name "left_wheel_sensor"
-          resolution 0.00390625
+          resolution 1.25e-06
         }
       ]
       endPoint Solid {
         translation 0 0.08 0.033
-        rotation 0.8935497512508253 -2.2088301431718906e-06 -0.4489641879200491 3.1415941165238723
+        rotation 0.8935497512508254 -2.2088301431767983e-06 -0.4489641879200492 3.1415941165238723
         children [
           DEF RIGHT_WHEEL Pose {
             rotation 1 0 0 -1.5708003061004252
@@ -884,7 +884,7 @@ Robot {
         anchor -0.081 0 0.004
       }
       endPoint Solid {
-        translation -0.08098071610553215 -8.769503259791466e-06 0.004003810968393872
+        translation -0.08098071610553215 -8.769503259791635e-06 0.004003810968393872
         rotation -0.8315988169601365 0.4837297205627615 0.2728533765134201 2.453297792968039
         children [
           Shape {
@@ -1805,7 +1805,7 @@ Robot {
         }
         PositionSensor {
           name "right_wheel_sensor"
-          resolution 0.00390625
+          resolution 1.25e-06
         }
       ]
       endPoint Solid {
@@ -1924,12 +1924,12 @@ Robot {
         }
         PositionSensor {
           name "left_wheel_sensor"
-          resolution 0.00390625
+          resolution 1.25e-06
         }
       ]
       endPoint Solid {
         translation 0 0.08 0.033
-        rotation 0.46096505721490255 7.016340060398575e-07 0.8874182869573793 3.141597090563658
+        rotation 0.46096505721490255 7.016340060829535e-07 0.8874182869573793 3.141597090563658
         children [
           DEF RIGHT_WHEEL Pose {
             rotation 1 0 0 -1.5708003061004252
@@ -1963,8 +1963,8 @@ Robot {
         anchor -0.081 0 0.004
       }
       endPoint Solid {
-        translation -0.08099140217545941 9.51622767764137e-06 0.003986768687695785
-        rotation 0.19790882356976464 -0.899005172022043 0.3906683993246042 2.5719444717610034
+        translation -0.08099140217545941 9.51622767764118e-06 0.003986768687695785
+        rotation 0.19790882356976452 -0.899005172022043 0.3906683993246042 2.571944471761003
         children [
           Shape {
             appearance PBRAppearance {
@@ -2194,7 +2194,7 @@ Robot {
   controller "swarm"
 }
 Robot {
-  translation 1.32033 -0.26454 -0.00024768
+  translation -0.64967 -1.21454 -0.00024768
   children [
     Lidar {
       name "lidar_sensor"
@@ -2884,7 +2884,7 @@ Robot {
         }
         PositionSensor {
           name "right_wheel_sensor"
-          resolution 0.00390625
+          resolution 1.25e-06
         }
       ]
       endPoint Solid {
@@ -3003,12 +3003,12 @@ Robot {
         }
         PositionSensor {
           name "left_wheel_sensor"
-          resolution 0.00390625
+          resolution 1.25e-06
         }
       ]
       endPoint Solid {
         translation 0 0.08 0.033
-        rotation -0.9017785161931509 2.1947844466883606e-06 0.4321984587289295 3.1415911084091515
+        rotation -0.9017785161931509 2.194784446700654e-06 0.4321984587289295 3.1415911084091515
         children [
           DEF RIGHT_WHEEL Pose {
             rotation 1 0 0 -1.5708003061004252
@@ -3042,8 +3042,8 @@ Robot {
         anchor -0.081 0 0.004
       }
       endPoint Solid {
-        translation -0.0809839846616906 -1.8091203710667607e-06 0.004003986756412596
-        rotation -0.2853054768089519 0.8947452946256272 0.3435573353140873 2.7331327548888176
+        translation -0.0809839846616906 -1.8091203710667818e-06 0.004003986756412596
+        rotation -0.2853054768089519 0.8947452946256272 0.3435573353140872 2.7331327548888176
         children [
           Shape {
             appearance PBRAppearance {
