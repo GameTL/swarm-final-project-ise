@@ -74,6 +74,13 @@ class SwarmMember:
     def random_movement_find(self):
         print(f"{self.priority_queue} from {self.name}")
         while self.robot.step(self.timestep) != -1:
+            # self.tick += 1
+            # if self.tick % (self.timestep)*200000000 == 0:
+            print(self.driver.get_pretty_position())
+            #     self.tick = 0
+            
+            # self.driver.test_pid()
+            
             # Check for incoming messages
             status = self.communicator.listen_to_message()
             if status != None:
