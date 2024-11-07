@@ -245,12 +245,15 @@ class Driver:
             #$ Place these updates in the main loop where needed:
             self.x_positions.append(position_state[0])
             self.y_positions.append(position_state[1])
-            self.update_plot()
-            # return f"[helper]({self.robot_name}) Robot X position:{self.robot_position['x']:6.3f}    Robot Y position: {self.robot_position['y']:6.3f}    Robot Theta position: {self.robot_position['theta']:6.3f} ||| X+IMU_THETA position:{self.robot_position['imu_x']:6.3f}    Y+IMU_THETA position: {self.robot_position['imu_y']:6.3f}    IMU Theta position: {self.robot_position['imu_theta']:6.3f}"
+            
+            ##************************************************* 
+            ##* UNCOMMENT THE FOLLOWING LINE TO UPDATE THE PLOT
+            ##*************************************************  
+            self.update_plot() 
+            ##************************************************* 
+            ##************************************************* 
+            ##************************************************* 
 
-            # if ((y_target-y_current)**2+(x_target-x_current)**2) < 0.0008:  # x2mm+y2mm tolorance
-
-            #     break
                 
     def simple_follow_path(self, path):
         # Constants

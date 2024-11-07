@@ -16,6 +16,11 @@ PRIORITY_LIST = ["TurtleBot3Burger_1", "TurtleBot3Burger_2", "TurtleBot3Burger_3
 cylinder_position = {"x": 0.75, "y": -0.25, "theta": 0.0}
 
 
+""" 
+NOTES:
+Uncomment line 252 in driver.py to enable live plotting of the robot's path + waypoints, disable live plotting will allow for FASTER SIMULATION
+"""
+
 class SwarmMember:
     def __init__(self, mode=0, verbose=False):
         # Instantiate the robot & big objects
