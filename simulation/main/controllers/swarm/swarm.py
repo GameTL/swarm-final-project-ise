@@ -61,79 +61,79 @@ class SwarmMember:
             print(self.driver.get_pretty_position())
             #     self.tick = 0
             
-            self.driver.test_pid()
+            # self.driver.test_pid()
             
-            # # Check for incoming messages
-            # status = self.communicator.listen_to_message()
-            # if status != None:
-            #     self.status = status
-            # if self.status_prev != self.status or self.verbose:
-            #     print(f"[{self.status}]({self.robot.getName()}) CHANGED")
+            # Check for incoming messages
+            status = self.communicator.listen_to_message()
+            if status != None:
+                self.status = status
+            if self.status_prev != self.status or self.verbose:
+                print(f"[{self.status}]({self.robot.getName()}) CHANGED")
 
-            # # print(self.robot.getName(),f'{status=}')
-            # if self.status == "idle":
-            #     self.driver.stop()
-            #     break
-            # elif self.status == "path_finding":
-            #     # Used only by the TaskMaster
-            #     if self.detected_flag:
-            #         print(f"[path_finding]({self.robot.getName()}) calculating...")
-            #         paths_json = self.formation_object()
+            # print(self.robot.getName(),f'{status=}')
+            if self.status == "idle":
+                self.driver.stop()
+                break
+            elif self.status == "path_finding":
+                # Used only by the TaskMaster
+                if self.detected_flag:
+                    print(f"[path_finding]({self.robot.getName()}) calculating...")
+                    paths_json = self.formation_object()
 
-            #         self.communicator.broadcast_message("[path_following]", paths_json)
+                    self.communicator.broadcast_message("[path_following]", paths_json)
 
-            #     if self.path == None:
-            #         self.path = self.communicator.path
-            #     if self.verbose:
-            #         print(f"[{self.status}]{self.name}: {self.path}")  # big print
+                if self.path == None:
+                    self.path = self.communicator.path
+                if self.verbose:
+                    print(f"[{self.status}]{self.name}: {self.path}")  # big print
                 
-            #     paths = ast.literal_eval(paths_json)
-            #     if self.name in paths.keys():
-            #         self.path = paths.get(self.name, "")
-            #     self.communicator.path = self.path # Sync with communicator
-            #     self.status = "path_following"
-            #     # self.status = "idle"
+                paths = ast.literal_eval(paths_json)
+                if self.name in paths.keys():
+                    self.path = paths.get(self.name, "")
+                self.communicator.path = self.path # Sync with communicator
+                self.status = "path_following"
+                # self.status = "idle"
 
-            # elif self.status == "path_following":
-            #     self.path = self.communicator.path
-            #     # print(f"[path_printing]({self.name}) {self.path}")
+            elif self.status == "path_following":
+                self.path = self.communicator.path
+                # print(f"[path_printing]({self.name}) {self.path}")
 
-            #     # self.driver.stop()
-            #     if self.path != "":
-            #         # self.driver.move_forward()
-            #         self.driver.simple_follow_path(self.path)
-            #         # self.driver.anti_clockwise_spin()
-            #         quit()
-            #         # self.driver.stop()
-            #     self.status = "idle"
-            #     #     print(
-            #     #         f"[path_following]({self.robot.getName()}) Making my way downtown, walking fast"
-            #     #     )
-            #     # else:
-            #     #     print(f"[path_following]({self.robot.getName()}) FUCK")
+                # self.driver.stop()
+                if self.path != "":
+                    # self.driver.move_forward()
+                    self.driver.simple_follow_path(self.path)
+                    # self.driver.anti_clockwise_spin()
+                    quit()
+                    # self.driver.stop()
+                self.status = "idle"
+                #     print(
+                #         f"[path_following]({self.robot.getName()}) Making my way downtown, walking fast"
+                #     )
+                # else:
+                #     print(f"[path_following]({self.robot.getName()}) FUCK")
 
-            #     # break
-            # elif self.object_detector.detect() and not self.detected_flag:
-            #     # * As a member that found the object becomes the master.
-            #     print(
-            #         f"[object_detected]({self.robot.getName()}) found cylinder @ {cylinder_position}"
-            #     )
-            #     self.detected_flag = True  # detect once and top
-            #     self.status = "path_finding"  #
-            #     self.driver.stop()
-            # elif self.status == "task":
-            #     self.driver.stop()
-            #     break
-            # else:
-            #     # self.driver.move_along_polynomial()
-            #     self.driver.move_forward()
-            #     self.communicator.send_position(
-            #         robot_position={
-            #             "x": self.driver.robot_position["x"],
-            #             "y": self.driver.robot_position["y"],
-            #             "theta": self.driver.robot_position["theta"],
-            #         }
-            #     )
+                # break
+            elif self.object_detector.detect() and not self.detected_flag:
+                # * As a member that found the object becomes the master.
+                print(
+                    f"[object_detected]({self.robot.getName()}) found cylinder @ {cylinder_position}"
+                )
+                self.detected_flag = True  # detect once and top
+                self.status = "path_finding"  #
+                self.driver.stop()
+            elif self.status == "task":
+                self.driver.stop()
+                break
+            else:
+                # self.driver.move_along_polynomial()
+                self.driver.move_forward()
+                self.communicator.send_position(
+                    robot_position={
+                        "x": self.driver.robot_position["x"],
+                        "y": self.driver.robot_position["y"],
+                        "theta": self.driver.robot_position["theta"],
+                    }
+                )
 
             self.communicator.robot_entries[self.name] = (
                 self.driver.robot_position["x"],
