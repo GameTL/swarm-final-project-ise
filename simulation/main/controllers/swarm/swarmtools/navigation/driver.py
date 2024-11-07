@@ -70,15 +70,16 @@ class Driver:
         self.time_prev = 0
         
         # PID config 
-        self.waypoint_threshold = 0.05
         if self.robot_name == "TurtleBot3Burger_3":
             self.sorted_waypoints = [(-0.3,-1.1),(-0.1,-0.65),(-0.1,-0.3),(0,0),(1,1)]
         else:
             self.sorted_waypoints = []
+        self.waypoint_threshold = 0.02
         self.dt = 0.032  # Time step (adjust according to your simulation)
         self.v_linear = 2
-        self.Kp_linear = 2.0
-        self.Ki_linear = 0.0
+        self.Kp_linear = 7.0
+        self.Ki_linear = .1
+        
         self.Kp_angular = 20.0
         self.Ki_angular = 0.1
         self.linear_integral = 0.0
@@ -137,11 +138,11 @@ class Driver:
         theta_error = math.atan2(math.sin(theta_error), math.cos(theta_error))
 
         # 2. Update Integral Terms for Linear and Angular Velocities
-        # self.linear_integral += distance_error * self.dt
+        self.linear_integral += distance_error * self.dt
         self.angular_integral += theta_error * self.dt
 
         # 3. Compute Linear Velocity (v) using PI Controller
-        # v_linear = self.Kp_linear * distance_error + self.Ki_linear * self.linear_integral
+        v_linear = self.Kp_linear * distance_error + self.Ki_linear * self.linear_integral
 
         # 4. Compute Angular Velocity (u) using PI Controller
         v_pid = self.Kp_angular * theta_error + self.Ki_angular * self.angular_integral
@@ -177,11 +178,11 @@ class Driver:
         self.ax.set_ylim(-2.5, 2.5)
         self.ax.plot(self.x_positions, self.y_positions, 'bo-',markersize=1)
         for waypoint in self.sorted_waypoints:
-            self.ax.plot(waypoint[0], waypoint[1], 'ro', markersize=5)  # Red color for waypoints
+            self.ax.plot(waypoint[0], waypoint[1], 'ro', markersize=1)  # Red color for waypoints
         plt.draw()
         plt.pause(0.001)
         
-    def test_pid(self):
+    def pid_path_follow(self):
         #$ Initialization code here
         self.x_positions = []
         self.y_positions = []
@@ -257,6 +258,7 @@ class Driver:
         DISTANCE_THRESHOLD = 0.01  # meters
 
         # Get the list of waypoints from the path
+        print(f'{path=}')
         work_path = list(path.values())
         print("Original path:", work_path)
 
@@ -503,45 +505,3 @@ class Driver:
                 else:
                     print(".", end="")
             print()
-        
-        
-""" 
-
-    [-0.29, 1.2],
-│   [-0.28, 1.2],
-│   [-0.27, 1.2],
-│   [-0.26, 1.2],
-│   [-0.25, 1.2],
-│   [-0.24, 1.2],
-│   [-0.23, 1.2],
-│   [-0.22, 1.2],
-│   [-0.21, 1.2],
-│   [-0.2, 1.2],
-│   [-0.19, 1.2],
-│   [-0.18, 1.2],
-│   [-0.17, 1.2],
-│   [-0.16, 1.2],
-│   [-0.15, 1.2],
-│   [-0.14, 1.2],
-│   [-0.13, 1.2],
-│   [-0.12, 1.2],
-│   [-0.11, 1.2],
-│   [-0.1, 1.2],
-│   [-0.09, 1.2],
-│   [-0.08, 1.2],
-│   [-0.07, 1.2],
-│   [-0.06, 1.2],
-│   [-0.05, 1.2],
-│   [-0.04, 1.2],
-│   [-0.03, 1.2],
-│   [-0.02, 1.2],
-│   [-0.01, 1.2],
-│   [0.0, 1.2],
-│   [0.01, 1.2],
-│   [0.02, 1.2],
-│   [0.03, 1.2],
-│   [0.04, 1.2],
-│   [0.05, 1.2],
-│   [0.06, 1.2],
-
-"""
