@@ -4,7 +4,7 @@ from rich.pretty import pprint
 
 
 class FormationMaster:
-    def __init__(self, robot, current_coords: dict, object_coords: tuple, obstacles: dict, radius=0.3, fineness=2, verbose=False):
+    def __init__(self, robot, current_coords: dict, object_coords: tuple, obstacles: dict, radius=0.3, fineness=2, debug_level=0):
         """ 
         current_coords: assumed that data are in this order [('TurtleBot3Burger_1', [1.3787268144635236, -0.38032573186548774, 0.0]), ('TurtleBot3Burger_2', [0.07806162991058642, 0.8007404816156147, 0.0])]
         current_coords: assumed that data are in this order [robot1,robot2,robot3] -> [5,6]
@@ -21,7 +21,11 @@ class FormationMaster:
         # Configurations
         self.radius = radius
         self.fineness = fineness
-        self.verbose = verbose
+        self.debug_level = debug_level
+        if self.debug_level != 0:
+            print(f"(helper)[DEBUG] Initializing with Debug Level {self.debug_level}")
+        else:
+            print(f"(helper)[DEBUG] Not initializing Formation debugger")
         self.go_around = False
         self.previous_movement = ""
 
@@ -94,7 +98,7 @@ class FormationMaster:
         for member, order in self.matches.items():
             self.matches[member] = self.target_coords[order]
         
-        pprint(f"Matches: {self.matches}")
+        print(f"Matches: {self.matches}")
 
     def plan_paths(self):
         print("# ===== Calculating paths ===== #")
@@ -104,7 +108,7 @@ class FormationMaster:
             end = target
 
             print(f"[path_planning](self) Assigning {robot_id} {start} -> {end}")
-            path = self.path_planning_algorithm(start=start, end=end, verbose=self.verbose)
+            path = self.path_planning_algorithm(start=start, end=end)
             
             self.paths[robot_id] = path
 
@@ -113,12 +117,12 @@ class FormationMaster:
         
         # Get closer by x-axis
         if difference_x > 0:
-            # Append x + 0.01
-            movement_options.append((round(current_coords[0] + 0.01, self.fineness), current_coords[1]))
+            # Append x + 10 ^ self.fineness
+            movement_options.append((round(current_coords[0] + (10 ** -self.fineness), self.fineness), current_coords[1]))
             self.correct_x = False
         elif difference_x < 0:
-            # Append x - 0.01
-            movement_options.append((round(current_coords[0] - 0.01, self.fineness), current_coords[1]))
+            # Append x - 10 ^ self.fineness
+            movement_options.append((round(current_coords[0] - (10 ** -self.fineness), self.fineness), current_coords[1]))
             self.correct_x = False
         else:
             # x already at correct position
@@ -129,12 +133,12 @@ class FormationMaster:
         
         # Get closer by y-axis
         if difference_y > 0:
-            # Append y + 0.01
-            movement_options.append((current_coords[0], round(current_coords[1] + 0.01, self.fineness)))
+            # Append y + 10 ^ self.fineness
+            movement_options.append((current_coords[0], round(current_coords[1] + (10 ** -self.fineness), self.fineness)))
             self.correct_y = False
         elif difference_y < 0:
-            # Append y - 0.01
-            movement_options.append((current_coords[0], round(current_coords[1] - 0.01, self.fineness)))
+            # Append y - 10 ^ self.fineness
+            movement_options.append((current_coords[0], round(current_coords[1] - (10 ** -self.fineness), self.fineness)))
             self.correct_y = False
         else:
             # y already at correct position
@@ -146,7 +150,7 @@ class FormationMaster:
         difference_y = selected[1] - current[1]
         if difference_x == 0 and difference_y == 0:
             # Staying in place
-            return "0"
+            return "00"
         elif difference_x > 0 and difference_y == 0:
             return "+x"
         elif difference_x < 0 and difference_y == 0:
@@ -158,14 +162,58 @@ class FormationMaster:
         else:
             return "ERROR"
         
+    def obstacle_avoidance(self, current_coords):
+        if self.previous_movement == "ERROR":
+            print("(helper)[ERROR] An error occurred while resolving obstacle avoidance")
+        if self.previous_movement == "00" and self.debug_level == 2:
+            print("(helper)[DEBUG] Waiting")
+        
+        if self.previous_movement[1] == "x":
+            if self.previous_movement[0] == "+":
+                selection = (current_coords[0] + (10 ** -self.fineness), current_coords[1])
+            elif self.previous_movement[0] == "-":
+                selection = (current_coords[0] - (10 ** -self.fineness), current_coords[1])
+            
+            if selection in self.obstacles:
+                # Assume obstacle in the same direction as movement
+                selections = [
+                    (current_coords[0], current_coords[1] + (10 ** -self.fineness)), 
+                    (current_coords[0], current_coords[1] - (10 ** -self.fineness))
+                ]
+                self.movement_options.append(selections[0])
+                self.movement_options.append(selections[1])
+            else:
+                # Assume obstacle in different direction
+                self.movement_options.append(selection)
+        elif self.previous_movement[1] == "y":
+            if self.previous_movement[0] == "+":
+                selection = (current_coords[0], current_coords[1] + (10 ** -self.fineness))
+            elif self.previous_movement[0] == "-":
+                selection = (current_coords[0], current_coords[1] - (10 ** -self.fineness))
+            
+            if selection in self.obstacles:
+                # Assume obstacle in the same direction as movement
+                selections = [
+                    (current_coords[0] + (10 ** -self.fineness), current_coords[1]), 
+                    (current_coords[0] - (10 ** -self.fineness), current_coords[1])
+                ]
+                self.movement_options.append(selections[0])
+                self.movement_options.append(selections[1])
+            else:
+                # Assume obstacle in different direction
+                self.movement_options.append(selection)
+        
+        if self.debug_level == 1:
+            print(f"(helper)[DEBUG] Edge case: {self.movement_options=}")
 
-    def path_planning_algorithm(self, start: tuple, end: tuple, verbose=False):
+    def path_planning_algorithm(self, start: tuple, end: tuple):
         # print(f'{start=} {end=}')
         current_coords = start
         step = 0
         path = {}
         self.correct_x = False
         self.correct_y = False
+        self.go_around = False
 
         while True:
             self.movement_options = []
@@ -194,26 +242,37 @@ class FormationMaster:
                     end=end
                 )  
 
-            if verbose: print(f"(helper)[DEBUG] Movement options before pruning: {self.movement_options}")
+            if self.debug_level == 2:
+                print(f"(helper)[DEBUG] Movement options before pruning: {self.movement_options}")
 
             for movement in self.movement_options:
                 # Remove movement options that move towards an obstacle
                 if movement in self.obstacles:
-                    if verbose: print(f"(helper)[DEBUG] Obstacle found at: {movement}")
+                    if self.debug_level == 1:
+                        print(f"(helper)[DEBUG] Obstacle found at: {movement}")
+                        print(f"(helper)[DEBUG] Current position: {current_coords}")
+                        print(f"(helper)[DEBUG] Before: {self.movement_options=}")
                     self.movement_options.remove(movement)
+                    if self.debug_level == 1:
+                        print(f"(helper)[DEBUG] Removed: {self.movement_options=}")
+                    
                     if len(self.movement_options) == 0:
-                        # EDGE CASE: at correct x/y and finds obstacle
+                        # EDGE CASE: at correct x/y and finds obstacle -> continue same direction
+                        self.obstacle_avoidance(current_coords)
+
+                        # Toggle; prioritize movement in opposite axis
                         self.go_around = not self.go_around
 
                 # Remove conflicting movement options if step has already been initialized
                 if step in self.conflict_map:
                     if movement in self.conflict_map[step]:
-                        if verbose: print(f"(helper)[DEBUG] Pruning conflicting step: {step}")
+                        if self.debug_level == 2:
+                            print(f"(helper)[DEBUG] Pruning conflicting step: {step}")
                         self.movement_options.remove(movement)
 
-            if verbose: print(f"(helper)[DEBUG] Movement option(s) after pruning: {self.movement_options}")
-            
-            if verbose: print(f"(helper)[DEBUG] Correct x; {self.correct_x}, Correct y; {self.correct_y}")
+            if self.debug_level == 2:
+                print(f"(helper)[DEBUG] Movement option(s) after pruning: {self.movement_options}")
+                print(f"(helper)[DEBUG] Correct x; {self.correct_x}, Correct y; {self.correct_y}")
             
             if len(self.movement_options) == 0:
                 # Stay in place if no movement options
@@ -233,7 +292,8 @@ class FormationMaster:
                 print("(helper)[ERROR] An unexpected error occurred")
 
             current_coords = path[step]
-            if verbose: print(f"(helper)[DEBUG] Current coordinates: {current_coords}")
+            if self.debug_level == 2:
+                print(f"(helper)[DEBUG] Current coordinates: {current_coords}")
             
             if step in self.conflict_map:
                 # Key exists
@@ -242,18 +302,15 @@ class FormationMaster:
                 # Key doesn't exist yet
                 self.conflict_map[step] = [current_coords]
             
-            # if verbose: print(f"(helper)[DEBUG] Conflict map: {self.conflict_map}")
+            if self.debug_level == 3:
+                print(f"(helper)[DEBUG] Conflict map: {self.conflict_map}")
 
             step += 1
             
             if self.correct_x and self.correct_y:
-                print("Path found")
+                if self.debug_level == 1:
+                    print("(helper)[DEBUG] Path found")
                 return path
-            
-            if self.previous_movement == "0":
-                #! Testing
-                print("Early breakout")
-                break
 
 
 if __name__ == "__main__":
@@ -273,7 +330,7 @@ if __name__ == "__main__":
         object_coords=(0.75, -0.25), 
         obstacles=obstacles, 
         radius=0.3, 
-        verbose=False
+        debug_level=0
     )
     formation_master.calculate_target_coords()
     formation_master.plan_paths()
@@ -284,5 +341,5 @@ if __name__ == "__main__":
 
     paths = json.dumps(formation_master.paths)
     loading = json.loads(paths)
-    # pprint(loading)
+    pprint(loading)
     # pprint(f"{name}: {loading[name]}")
