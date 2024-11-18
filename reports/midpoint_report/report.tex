@@ -1,0 +1,86 @@
+\documentclass[
+    a4paper,
+    12pt,
+    oneside
+]{report}
+
+% Import packages
+\usepackage{graphicx}
+\usepackage{subfigure}
+\usepackage{amsmath}  % Replaced latexsym with amsmath for symbols and mathematical operations
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{pdfpages}
+\usepackage[
+    backend=biber,
+    style=ieee
+]{biblatex} % IEEE style citations
+\usepackage{csquotes}
+\usepackage{url}
+\usepackage[T1]{fontenc}
+\usepackage{float}
+\usepackage{palatino}
+\usepackage{color}
+
+\setlength{\doublerulesep}{\arrayrulewidth}
+\setlength{\textwidth}{16cm}
+\setlength{\textheight}{24cm}
+\setlength{\hoffset}{-1.7cm} 
+\setlength{\voffset}{-1cm}
+\setlength{\topmargin}{-0.5cm} 
+\setlength{\footskip}{27pt}
+
+\renewcommand{\baselinestretch}{1.3}
+\linespread{1}
+
+\usepackage{titlesec}
+\titlespacing*{\chapter}{0pt}{-1\baselineskip}{1\baselineskip}
+\titlespacing*{\section}{0pt}{\baselineskip}{0pt} 
+
+\usepackage{fancyhdr}
+
+\fancypagestyle{noheadrule}{
+    \fancyhf{}
+    \renewcommand{\headrulewidth}{0pt}
+    \renewcommand{\footrulewidth}{0.5pt}
+    \fancyfoot[L,LO]{\textit {FINAL PROJECT PROPOSAL}}
+    \fancyfoot[R,RO]{\bfseries\thepage}
+}
+
+% Add bibliography file to document
+\addbibresource{biblio.bib}
+
+\begin{document}
+
+% Cover
+\input{chapters/cover}
+
+\thispagestyle{empty}
+\pagenumbering{roman} \setcounter{page}{1}
+\setcounter{secnumdepth}{11}
+\setcounter{tocdepth}{3}
+\renewcommand{\chaptermark}[1]{\markboth{Chapter ~\thechapter~:~#1}{}}
+\fancyhf{}
+\fancyhead[R,RO]{\bfseries\leftmark}
+\fancyfoot[L,LO]{\textit {FINAL PROJECT PROPOSAL}} 
+\fancyfoot[R,RO]{\bfseries\thepage}
+\fancypagestyle{plain}{
+    \fancyhead{}
+    \renewcommand{\headrulewidth}{0pt}
+} 
+\pagestyle{fancy}
+\selectlanguage{english}
+{\linespread{.8}\tableofcontents}
+\newpage
+\pagenumbering{arabic}
+\titlespacing{\chapter}{0cm}{1cm}{2cm}
+
+% Chapters
+% \input{chapters/introduction}
+% \input{chapters/conclusion}
+
+% Bibliography
+\nocite{*}
+% \printbibliography
+
+\end{document}
