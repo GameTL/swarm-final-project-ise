@@ -3,21 +3,23 @@ import ast
 import json
 import asyncio
 import numpy as np
+import random
 from rich.pretty import pprint
 from controller import Robot, Camera, Motor, Display, Supervisor
 from swarmtools import FormationMaster
 from swarmtools import ObjectDetector
 from swarmtools import Communicator
-from swarmtools import Localisation
 from swarmtools import Driver
 
-
-# GPS = True
-GPS = False
 PRIORITY_LIST = ["TurtleBot3Burger_1", "TurtleBot3Burger_2", "TurtleBot3Burger_3"]
 
 cylinder_position = {"x": 0.75, "y": -0.25, "theta": 0.0}
 
+
+""" 
+NOTES:
+Uncomment line 252 in driver.py to enable live plotting of the robot's path + waypoints, disable live plotting will allow for FASTER SIMULATION
+"""
 
 class SwarmMember:
     def __init__(self, mode=0, verbose=False):
@@ -28,23 +30,22 @@ class SwarmMember:
         self.verbose = verbose
         self.object_detector = ObjectDetector(self.robot)
         self.communicator = Communicator(self.robot)
-
-        if GPS:
-            self.robot_position = {"x": 0.0, "y": 0.0, "theta": 0.0}
-        else:
-            self.localisation = Localisation(self.robot)
-            self.robot_position = self.localisation.robot_position
+        self.driver = Driver(self.robot)
+        self.tick = 0
         # Computer vision
         self.detected_flag = False
 
         # Retrieve robot parameters
-        self.name = self.robot.getName()
+        self.robot_name = self.robot.getName()
         self.mode = mode
         self.priority_queue = PRIORITY_LIST
-        self.communicator.robot_entries[self.name] = (
-            self.robot_position["x"],
-            self.robot_position["y"],
-            self.robot_position["theta"],
+        self.communicator.robot_entries[self.robot_name] = (
+            self.driver.robot_position["x"],
+            self.driver.robot_position["y"],
+            self.driver.robot_position["theta"],
+            self.driver.robot_position["x"],
+            self.driver.robot_position["y"],
+            self.driver.robot_position["theta"],
         )
 
         # Detection parameters
@@ -55,13 +56,9 @@ class SwarmMember:
         self.status = None
         self.reassign_flag = False
 
-        # testing for sim
-        self.driver = Driver(
-            robot=self.robot, robot_position=self.robot_position, localisation=self.localisation
-        )
 
     def print_position(self):
-        print(f"[helper]({self.robot.getName()}) Robot X position: {self.robot_position['x']:6.3f}    Robot Y position: {self.robot_position['y']:6.3f}    Robot Theta position: {self.robot_position['theta']:6.3f}")
+        print(f"[helper]({self.robot.getName()}) Robot X position: {self.driver.robot_position['x']:6.3f}    Robot Y position: {self.driver.robot_position['y']:6.3f}    Robot Theta position: {self.driver.robot_position['theta']:6.3f}")
 
     def path_finding(self):
         print(f"[path_finding]({self.robot.getName()}) calculating...")
@@ -72,15 +69,16 @@ class SwarmMember:
         if self.path == None:
             self.path = self.communicator.path
         if self.verbose:
-            print(f"[{self.status}]{self.name}: {self.path}")  # big print
+            print(f"[{self.status}]{self.robot_name}: {self.path}")  # big print
         
         paths = ast.literal_eval(paths_json)
-        if self.name in paths.keys():
-            self.path = paths.get(self.name, "")
+        if self.robot_name in paths.keys():
+            self.path = paths.get(self.robot_name, "")
         self.communicator.path = self.path # Sync with communicator
 
     def random_movement_find(self):
-        print(f"{self.priority_queue} from {self.name}")
+        
+        print(f"{self.priority_queue} from {self.robot_name}")
         while self.robot.step(self.timestep) != -1:
             # Check for incoming messages
             status = self.communicator.listen_to_message()
@@ -104,26 +102,36 @@ class SwarmMember:
 
             elif self.status == "consensus" and not self.detected_flag:
                 self.detected_flag = True  # detect once and top
-                self.task_master = self.name
-                self.communicator.task_master = self.name
+                self.task_master = self.robot_name
+                self.communicator.task_master = self.robot_name
 
                 print(f"[consensus]({self.robot.getName()}) waiting consensus...")
                 self.communicator.broadcast_message("[task]", cylinder_position)
 
-            elif self.status == "path_finding" and self.task_master == self.name:
+            elif self.status == "path_finding" and self.task_master == self.robot_name:
                 # Used only by the TaskMaster
                 self.path_finding()
                 self.status = "path_following"
                 # self.status = "idle"
 
             elif self.status == "path_following":
-                self.path = self.communicator.path
-                # print(f"[path_printing]({self.name}) {self.path}")
+                list_waypoint =  list(self.communicator.path.values())
+                
+
+                self.driver.sorted_waypoints = list(self.communicator.path.values())[::20]
+                self.driver.sorted_waypoints.append(list_waypoint[-1])
+                print(f"[path_printing_reduced]({self.robot_name}) {self.driver.sorted_waypoints}")
+                # if self.robot_name != "TurtleBot3Burger_1":
+                #     quit()
 
                 # self.driver.stop()
                 if self.path != "":
                     # self.driver.move_forward()
-                    self.driver.simple_follow_path(self.path)
+                    # self.driver.simple_follow_path(self.communicator.path)
+                    # for i in self.driver.sorted_waypoints:
+                    #     print(i)
+                    
+                    self.driver.pid_path_follow()
                     # self.driver.anti_clockwise_spin()
                     quit()
                     # self.driver.stop()
@@ -149,7 +157,7 @@ class SwarmMember:
 
             elif self.status == "reassign" and not self.reassign_flag:
                 task_master = self.priority_queue.pop(0)
-                if task_master == self.name:
+                if task_master == self.robot_name:
                     self.path_finding()
                     self.status = "path_finding"
                     self.path = self.communicator.path
@@ -171,29 +179,21 @@ class SwarmMember:
                 self.reassign_flag = True
 
             else:
-                self.driver.move_along_polynomial()
+                self.driver.move_along_polynomial() # option for driving 1
+                # self.driver.move_forward() # option for driving 2
                 self.communicator.send_position(
                     robot_position={
-                        "x": self.robot_position["x"],
-                        "y": self.robot_position["y"],
-                        "theta": self.robot_position["theta"],
+                        "x": self.driver.robot_position["x"],
+                        "y": self.driver.robot_position["y"],
+                        "theta": self.driver.robot_position["theta"],
                     }
                 )
 
-            if GPS:
-                self.robot_position["x"], self.robot_position["y"], current_z = (
-                    self.driver.gps.getValues()
-                )
-            else:
-                # self.localisation.update_odometry()
-                self.localisation.update_odometry_o1()
-            # self.leftMotor.setVelocity(MAX_SPEED * 0.5)
-            # self.rightMotor.setVelocity(MAX_SPEED)
 
-            self.communicator.robot_entries[self.name] = (
-                self.robot_position["x"],
-                self.robot_position["y"],
-                self.robot_position["theta"],
+            self.communicator.robot_entries[self.robot_name] = (
+                self.driver.robot_position["x"],
+                self.driver.robot_position["y"],
+                self.driver.robot_position["theta"],
             )
 
     def formation_object(self):
@@ -203,7 +203,7 @@ class SwarmMember:
                 coords[robot_name] = list(
                     map(lambda x: round(x, 2), coords[robot_name])
                 )
-            # print(f"[path_finding]({self.name}): current coords={coords}")
+            # print(f"[path_finding]({self.robot_name}): current coords={coords}")
 
             #! Obstacles are in a list format e.g. [(-1, -1.4), (0.6, 0.3), (0.1, 1.67)]; should be input from map so leaving it empty for now
             self.formationer = FormationMaster(
@@ -217,7 +217,7 @@ class SwarmMember:
             self.formationer.plan_paths()
 
             paths = json.dumps(self.formationer.paths)
-            self.path = json.loads(paths)[self.name]
+            self.path = json.loads(paths)[self.robot_name]
 
             return paths
         else:
@@ -226,22 +226,35 @@ class SwarmMember:
             # )
             return None
 
-
 def main():
     import threading
-    # task1 = asyncio.create_task(listening())
-    # while 1:
-    member = SwarmMember()
-    if member.localisation.check_encoder_not_null_and_init():
+    import traceback
+    class bcolors:
+        RED_FAIL       = '\033[91m'
+        GRAY_OK        = '\033[90m'
+        GREEN_OK       = '\033[92m'
+        YELLOW_WARNING = '\033[93m'
+        BLUE_OK        = '\033[94m'
+        MAGENTA_OK     = '\033[95m'
+        CYAN_OK        = '\033[96m'
+        ENDC           = '\033[0m'
+        BOLD           = '\033[1m'
+        ITALIC         = '\033[3m'
+        UNDERLINE      = '\033[4m'
         
-        # if 1:
-        # Create tasks for the asynchronous SLAM functions
-        # odometry_task = asyncio.create_task(member.update_odometry())  #$
-        # map_task = asyncio.create_task(member.update_map())  #$
+    member = SwarmMember()
+    localisation_service = threading.Thread(target=member.driver.run_odometry_service)
 
-        member.random_movement_find()
-
-        # await asyncio.gather(odometry_task, map_task)  #$
+    if member.driver.check_encoder_not_null_and_init():
+        localisation_service.start()
+        try:
+            member.random_movement_find()
+        except:
+            tb_str = traceback.format_exc()
+            print(bcolors.RED_FAIL + tb_str + bcolors.ENDC)
+            member.driver.alive = False
+            quit()
+        member.driver.alive = False
 
 
 main()
