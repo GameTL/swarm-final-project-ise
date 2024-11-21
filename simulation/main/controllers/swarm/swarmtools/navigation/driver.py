@@ -9,9 +9,9 @@ MAX_SPEED = 6.28
 MAP_WIDTH = 250
 MAP_HEIGHT = 220
 RESOLUTION = 0.1  # 10 cm per grid cell
-WHEEL_RADIUS = 0.034
+WHEEL_RADIUS = 0.033
 # WHEEL_RADIUS = 0.033
-WHEEL_BASE = 0.160
+WHEEL_BASE = 0.18
 GPS_DEVICE_NAME = "gps"
 
 ## for testing pid need to be moved
@@ -22,7 +22,7 @@ theta_integral = 0.0  # Integral of the heading error
 distance_integral = 0.0
 # dt = 0.032  # Time step (adjust according to your simulation)
 # dt = 0.1  # Time step (adjust according to your simulation)
-L = 0.16   # Wheelbase (distance between the wheels)
+# L = 0.16   # Wheelbase (distance between the wheels)
 v = 1.0   # Linear velocity (adjust as needed)
 
 class Driver:
@@ -249,7 +249,7 @@ class Driver:
             ##************************************************* 
             ##* UNCOMMENT THE FOLLOWING LINE TO UPDATE THE PLOT
             ##*************************************************  
-            self.update_plot() 
+            # self.update_plot() 
             ##************************************************* 
             ##************************************************* 
             ##************************************************* 
