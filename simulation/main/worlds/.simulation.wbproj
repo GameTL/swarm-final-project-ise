@@ -5,7 +5,7 @@ sceneTreePerspectives: 000000ff00000001000000030000001e000000c0000000fa010000000
 maximizedDockId: -1
 centralWidgetVisible: 1
 orthographicViewHeight: 1
-textFiles: 0 "worlds/simulation.wbt"
+textFiles: -1
 consoles: Console:All:All
 consoles: Console:All:All
 renderingDevicePerspectives: TurtleBot3Burger_1:camera;1;0.457143;0;0.00737705
