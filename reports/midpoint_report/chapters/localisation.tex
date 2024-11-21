@@ -1,0 +1,32 @@
+
+\chapter{Localisation}
+
+This chapter focuses on robot localisation in a simulated environment, achieved through the computation of its position and orientation using wheel encoder readings, a method known as odometry. The robot calculates the distance traveled by each wheel, determining the forward movement as:
+
+\[
+\Delta_{\text{center}} = \frac{\Delta_{\text{left}} + \Delta_{\text{right}}}{2}
+\]
+
+and the change in orientation as:
+
+\[
+\Delta_{\theta} = \frac{\Delta_{\text{right}} - \Delta_{\text{left}}}{\text{wheel base}}
+\]
+
+Using these values, the robot updates its global position and orientation at each step of the simulation. The updated coordinates are given by:
+
+\[
+x_{\text{new}} = x_{\text{old}} + \Delta_{\text{center}} \cdot \cos(\theta_{\text{old}})
+\]
+
+\[
+y_{\text{new}} = y_{\text{old}} + \Delta_{\text{center}} \cdot \sin(\theta_{\text{old}})
+\]
+
+\[
+\theta_{\text{new}} = \theta_{\text{old}} + \Delta_{\theta}
+\]
+
+The system continuously monitors the encoder values during each simulation step, ensuring real-time refinement of the robot's position and orientation. By leveraging these calculations, the robot maintains an accurate understanding of its location within the environment, which is essential for precise movement and navigation.
+
+
