@@ -1,0 +1,28 @@
+\chapter{Next Steps}
+
+This semester, two key areas have been underdeveloped: the implementation of SLAM and the integration of hardware.
+
+\subsection*{SLAM Implementation}
+For SLAM, we have already outlined a clear plan based on the steps described in the Graph SLAM chapter. Our approach begins with implementing the solution in a Webots simulation. Landmarks will be identified and labeled with either numbers or names, serving as reference points for navigation. Initially, we will use cameras for object detection as a placeholder, with plans to incorporate a LIDAR sensor in the future.
+
+\subsection*{Hardware Integration}
+In terms of hardware, we are designing and developing swarm robots using a modified RoboCup soccer platform. The hardware includes:
+\begin{itemize}
+    \item Four Maxon motors paired with omnidirectional wheels, each controlled with BLDC XDrive drive boards running Drive firmware.
+    \item AS5600 magnetic stick encoders for closed-loop control, replacing the expired hall sensors in the Maxon motors.
+    \item A Jetson Nano with an M.2 SSD for stability, running Ubuntu 22 for ARM and ROS 2 Humble, as the robot’s computing unit.
+    \item An RP LiDAR with a 40-meter range for mapping.
+    \item A Sony IMX219 camera for object detection.
+    \item An IdaFluke IMU for orientation sensing.
+    \item Ultrasonic sensors to prevent collisions, especially with glass surfaces.
+    \item An emergency stop button for safety.
+\end{itemize}
+
+The robot’s baseplate will be 3D-printed to sit atop the original RoboCup soccer platform base. While awaiting parts, we plan to:
+\begin{itemize}
+    \item Test the motors.
+    \item Clean and refurbish the old robot hardware.
+    \item Prototype designs using CAD models.
+\end{itemize}
+
+Currently, we have three robots in our possession. The goal is to fully integrate the ordered components, such as the motor drivers and power supplies, which include both locally sourced parts and imports. Once completed, these robots will operate as a swarm, showcasing object detection, obstacle avoidance, and coordinated movement.
