@@ -71,7 +71,7 @@ Each message may trigger a state transition; this is done by the communicator ha
 \centering
 \begin{tabular}{|p{3cm}|p{12cm}|}
 \hline
- idle & State (Default) where the robot halt and wait for instructions\\ \hline
+ idle (Default) & State where the robot halt and wait for instructions\\ \hline
  consensus & State where an agreement of the task master is decided.\\ \hline
  path\_finding & State where the task master generates navigation paths for all robots.\\ \hline
  path\_following &  State where the robot follows it's path.\\ \hline
@@ -81,7 +81,7 @@ Each message may trigger a state transition; this is done by the communicator ha
 \caption{Robot States}
 \end{table}
 
-The consensus mechanism used in this project is inspired by the Paxos Algorithm but is more lightweight. Making a protocol that allows a group of robot agents to agree on a single value, even if some of the agents fail to be responsive. In our case, the major concern that we need to tackle is a scenario of multiple robots detecting the object at the same time, and the allocation of task masters needs to be agreed.
+The consensus mechanism used in this project is inspired by the Paxos Algorithm but is more lightweight. We are making a protocol that allows a group of robot agents to agree on a single value, even if some of the agents fail to be responsive. In our case, the major concern that we need to tackle is a scenario of multiple robots detecting the object at the same time, and the allocation of taskmasters needs to be agreed upon by all parties. To do that, we added an intermediate state after an object is detected. And if the detected robot receives \textit{object\_detection} from other robots before receiving confirmation messages, it will raise the error and can send \textit{task\_conflict} to other robots.
 
 \begin{figure}[!htb]
     \minipage{0.5\textwidth}
