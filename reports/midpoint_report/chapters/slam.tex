@@ -18,7 +18,7 @@
     \theta_{t} = \theta_{i} + \Delta \theta
     \]
     where $\Delta s$ is the distance traveled. 
-
+    
     The edge $e_{ij}$ is represented as:
     \[
     e_{ij} = 
@@ -132,6 +132,8 @@
 
     Check for convergence by ensuring $f(x)$ is below a predefined threshold. If so the algorithm has converged and it can stop.
     Else, once again compute the residuals and the Jacobian.
+    \subsection*{Future SLAM Implementation}
+    As described above, we have already outlined a clear plan to approach SLAM. Our approach begins with implementing the solution in a Webots simulation using a third party github repository. Landmarks will be identified and labeled with either numbers or names, serving as reference points for navigation. Initially, we will use cameras for object detection as a placeholder, with plans to incorporate a LIDAR sensor in the future.
 \end{enumerate}
 
 \end{document}
