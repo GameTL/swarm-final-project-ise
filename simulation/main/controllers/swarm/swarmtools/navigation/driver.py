@@ -1,4 +1,4 @@
-import time 
+import time
 import random
 import numpy as np
 import math
@@ -76,11 +76,12 @@ class Driver:
             self.sorted_waypoints = [(-0.3,-1.1),(-0.1,-0.65),(-0.1,-0.3),(0,0),(1,1)]
         else:
             self.sorted_waypoints = []
+        
         self.waypoint_threshold = 0.02
         self.dt = 0.032  # Time step (adjust according to your simulation)
         self.v_linear = 2
-        self.Kp_linear = 8 * 0.45
-        self.Ki_linear = 8 * 0.54 / 6
+        self.Kp_linear = 10
+        self.Ki_linear = 0.1
         
         self.Kp_angular = 20
         self.Ki_angular = 0.1

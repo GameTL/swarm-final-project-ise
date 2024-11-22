@@ -118,7 +118,7 @@ class SwarmMember:
                 list_waypoint =  list(self.communicator.path.values())
                 
                 # Sampling
-                self.driver.sorted_waypoints = list(self.communicator.path.values())[::50]
+                self.driver.sorted_waypoints = list(self.communicator.path.values())[::45]
                 # self.driver.sorted_waypoints = []
                 self.driver.sorted_waypoints.append(list_waypoint[-1])
                 print(f"[path_printing_reduced]({self.robot_name}) {self.driver.sorted_waypoints}")

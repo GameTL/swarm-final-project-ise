@@ -27,3 +27,12 @@ temp.py
 venv/
 reports/midpoint_report 2.zip
 *.zip
+reports/midpoint_report/report.toc
+reports/midpoint_report/report.synctex(busy)
+reports/midpoint_report/report.pdf
+reports/midpoint_report/report.log
+reports/midpoint_report/report.fls
+reports/midpoint_report/report.fdb_latexmk
+reports/midpoint_report/report.bcf
+reports/midpoint_report/report.aux
+reports/midpoint_report/report.synctex.gz
