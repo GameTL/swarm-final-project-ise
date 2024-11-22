@@ -16,14 +16,16 @@ GPS_DEVICE_NAME = "gps"
 
 ## for testing pid need to be moved
 # Constants and Gains
-Kp = 4.0  # Proportional gain
-Ki = 0.0  # Integral gain
 theta_integral = 0.0  # Integral of the heading error
 distance_integral = 0.0
 # dt = 0.032  # Time step (adjust according to your simulation)
 # dt = 0.1  # Time step (adjust according to your simulation)
 # L = 0.16   # Wheelbase (distance between the wheels)
 v = 1.0   # Linear velocity (adjust as needed)
+
+plotting = "position" 
+# plotting = "position_err_pid" 
+# plotting = "angle_err_pid" 
 
 class Driver:
     def __init__(self, robot):
@@ -77,10 +79,10 @@ class Driver:
         self.waypoint_threshold = 0.02
         self.dt = 0.032  # Time step (adjust according to your simulation)
         self.v_linear = 2
-        self.Kp_linear = 7.0
-        self.Ki_linear = .1
+        self.Kp_linear = 8 * 0.45
+        self.Ki_linear = 8 * 0.54 / 6
         
-        self.Kp_angular = 20.0
+        self.Kp_angular = 20
         self.Ki_angular = 0.1
         self.linear_integral = 0.0
         self.angular_integral = 0.0
@@ -93,6 +95,8 @@ class Driver:
         self.lidar = self.robot.getDevice("lidar_sensor")
         self.lidar.enable(self.timestep)
         self.map = np.zeros((MAP_HEIGHT, MAP_WIDTH), dtype=np.float64)
+        
+        self.plot_data = []
         
 
 
@@ -124,6 +128,46 @@ class Driver:
         self.left_motor.setVelocity(0)
         self.right_motor.setVelocity(0)
     
+    def update_plot_position(self):
+        self.ax.clear()
+        self.ax.set_title(f'Robot Position in Real-Time {self.robot_name}')
+        self.ax.set_xlabel('X Position')
+        self.ax.set_ylabel('Y Position')
+        self.ax.set_xlim(-2.5, 2.5)
+        self.ax.set_ylim(-2.5, 2.5)
+        self.ax.plot(self.x_positions, self.y_positions, 'bo-',markersize=1)
+        for waypoint in self.sorted_waypoints:
+            self.ax.plot(waypoint[0], waypoint[1], 'ro', markersize=1)  # Red color for waypoints
+        plt.draw()
+        plt.pause(0.001)
+        
+    def update_plot_position_err_pid(self, time, distance_err):
+        self.plot_data.append((time, distance_err))
+        self.ax.clear()
+        self.ax.set_title(f'Robot Position_PID in Real-Time {self.robot_name}')
+        self.ax.set_ylabel('distance_err')
+        self.ax.set_xlabel('Time')
+        # self.ax.set_xlim(-2.5, 2.5)
+        self.ax.set_ylim(bottom=0)
+        for data in self.plot_data:
+            self.ax.plot(data[0], data[1], 'ro', markersize=1)  
+        # self.ax.plot(self.plot_data[0], distance_err, 'bo-',markersize=1)
+        plt.draw()
+        plt.pause(0.01)
+    
+    def update_plot_angle_err_pid(self, time, angle_err):
+        self.plot_data.append((time, angle_err))
+        self.ax.clear()
+        self.ax.set_title(f'Robot Position_PID in Real-Time {self.robot_name}')
+        self.ax.set_ylabel('angle_err')
+        self.ax.set_xlabel('Time')
+
+        for data in self.plot_data:
+            self.ax.plot(data[0], data[1], 'ro', markersize=1)  
+        # self.ax.plot(self.plot_data[0], distance_err, 'bo-',markersize=1)
+        plt.draw()
+        plt.pause(0.01)
+    
     def pi_controller(self, v_linear, current_vector, target_vector):
         """
         PI Controller for differential-drive robot to follow waypoints.
@@ -132,10 +176,14 @@ class Driver:
         dx = target_vector[0] - current_vector[0]
         dy = target_vector[1] - current_vector[1]
         distance_error = math.hypot(dx, dy)
+        if plotting == "position_err_pid":
+            self.update_plot_position_err_pid(self.robot.getTime(), distance_error) 
         theta_desired = math.atan2(dy, dx)
         theta_error = theta_desired - current_vector[2]
         # Normalize theta_error to [-pi, pi]
         theta_error = math.atan2(math.sin(theta_error), math.cos(theta_error))
+        if plotting == "angle_err_pid":
+            self.update_plot_angle_err_pid(self.robot.getTime(), theta_error) 
 
         # 2. Update Integral Terms for Linear and Angular Velocities
         self.linear_integral += distance_error * self.dt
@@ -168,19 +216,6 @@ class Driver:
     #     self.robot_position["imu_theta"] # get the theta of the robot
     #     self.robot_position["y"] # get the theta of the robot
     #     self.robot_position["x"] # get the theta of the robot
-
-    def update_plot(self):
-        self.ax.clear()
-        self.ax.set_title(f'Robot Position in Real-Time {self.robot_name}')
-        self.ax.set_xlabel('X Position')
-        self.ax.set_ylabel('Y Position')
-        self.ax.set_xlim(-2.5, 2.5)
-        self.ax.set_ylim(-2.5, 2.5)
-        self.ax.plot(self.x_positions, self.y_positions, 'bo-',markersize=1)
-        for waypoint in self.sorted_waypoints:
-            self.ax.plot(waypoint[0], waypoint[1], 'ro', markersize=1)  # Red color for waypoints
-        plt.draw()
-        plt.pause(0.001)
         
     def pid_path_follow(self):
         #$ Initialization code here
@@ -193,6 +228,7 @@ class Driver:
         self.ax.set_xlim(-2.5, 2.5)
         self.ax.set_ylim(-2.5, 2.5)
         #$ Plot waypoints as red dots
+        print(self.sorted_waypoints)
         for waypoint in self.sorted_waypoints:
             self.ax.plot(waypoint[0], waypoint[1], 'ro', markersize=2)  # Red color for waypoints
         plt.ion()  #$ Turn on interactive mode for live updates
@@ -249,7 +285,8 @@ class Driver:
             ##************************************************* 
             ##* UNCOMMENT THE FOLLOWING LINE TO UPDATE THE PLOT
             ##*************************************************  
-            # self.update_plot() 
+            if plotting == "position":
+                self.update_plot_position() 
             ##************************************************* 
             ##************************************************* 
             ##************************************************* 

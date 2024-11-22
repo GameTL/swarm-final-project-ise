@@ -25,3 +25,5 @@ temp.py
 
 # Virtual environment
 venv/
+reports/midpoint_report 2.zip
+*.zip

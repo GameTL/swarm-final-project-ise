@@ -117,8 +117,9 @@ class SwarmMember:
             elif self.status == "path_following":
                 list_waypoint =  list(self.communicator.path.values())
                 
-
-                self.driver.sorted_waypoints = list(self.communicator.path.values())[::20]
+                # Sampling
+                self.driver.sorted_waypoints = list(self.communicator.path.values())[::50]
+                # self.driver.sorted_waypoints = []
                 self.driver.sorted_waypoints.append(list_waypoint[-1])
                 print(f"[path_printing_reduced]({self.robot_name}) {self.driver.sorted_waypoints}")
                 # if self.robot_name != "TurtleBot3Burger_1":
@@ -175,7 +176,6 @@ class SwarmMember:
                     self.communicator.broadcast_message("[task_successful]", self.task_master)
                     self.status = "idle"
                 self.priority_queue.append(task_master)
-                
                 self.reassign_flag = True
 
             else:
