@@ -6,6 +6,7 @@ In the current simulation on Webots, the object detection system utilizes OpenCV
 \paragraph*{}
 The detection process commences with the robot utilizing an RGB camera mounted on the front-most part of the TurtleBot3 to capture its surrounding environment. To address potential issues related to the robot's physics and balance, the RGB camera is approximated as a point source, as illustrated in Figure~\ref{fig:object detection figure 1}. The captured image is subsequently converted into the HSV color space to facilitate the segmentation of the yellow object based on a predefined color range. A mask is then applied to the regions containing the yellow color, enabling the generation of a contour around the detected object. This contour functions as a visual boundary, allowing the robot to perceive and localize the object with precision.
 
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.5\linewidth]{assets/images/object_detection/fig1.png}
@@ -25,23 +26,32 @@ Once the object is detected, the robot moves until the contour is centered withi
 \end{figure}
 
 \paragraph*{}
-After aligning with the object as shown in Figure~\ref{fig:object detection figure 2}, the robot calculates the real-world distance from its current position to the object's surface. This is achieved by using a pre-calculated focal length of the camera, derived from the following formulas:
+After aligning with the object, as illustrated in Figure~\ref{fig:object detection figure 2}, the robot determines the real-world distance between its current position and the object's surface. By utilizing the known distance and real-world dimensions of the object within the simulation, the system computes the real-time distance from the robot's camera to the object's surface. This information guides the robot in determining the distance it must travel to reach the yellow cylindrical object. The calculation is performed using a pre-determined focal length of the camera, derived through the following formulas:
 
 \begin{equation}
 \text{f} = \frac{H_{\text{real}}\cdot D_{\text{known}}}{H_{\text{img}}}\
+\label{eq: focal length}
 \end{equation}
 
 \begin{equation}
 \text d_{\text{real}} = \frac{H_{\text{real}}\cdot f}{H_{\text{img}}}\
+\label{eq: real world distance}
 \end{equation}
 
 where \(f\) represents the focal length of the camera, \(H_{\text{img}}\) is the known width of the object in the image (in pixels), \(D_{\text{known}}\) denotes the known distance to the object (in meters), \(H_{\text{real}}\) is the real-world width of the object (in meters), and {\text{f}} is the focal length of the camera (in pixels).
 
 \paragraph*{}
-By defining the known distance and real-world dimensions of the object in the simulation, the system can compute the real-time distance between the robot's camera and the object's surface. This calculation guides the robot on how far it must travel to reach the yellow cylindrical object.
+To calculate the real-world distance, the process begins by determining the focal length of the camera. The positions of both the robot and the cylinder are defined within the simulation. The distance perpendicular to the outermost surface of the cylinder and the RGB camera mounted on the robot is denoted as \(D_{\text{known}}\). The cylinder's height in the real world, defined in the simulation, is represented as \(H_{\text{real}}\), while \(H_{\text{img}}\) corresponds to the detected height in pixels, obtained via the OpenCV model. Using Equation~\ref{eq: focal length}, the focal length \(f\) is calculated. This focal length is then applied in Equation~\ref{eq: real world distance}, along with \(H_{\text{real}}\), \(H_{\text{img}}\), and \(f\), to compute \(d_{\text{real}}\), the real-world distance.
+
 
 \paragraph*{}
 Several adjustments were made to improve the detection system. Increasing the simulation's luminosity setting from 1 to 1.2 enhanced the brightness, ensuring the environment's colors closely resembled real-world conditions. Consequently, the HSV color range for detecting yellow was refined to \((70, 100, 0)\) to \((90, 255, 255)\), making the detection process more reliable and accurate. These modifications addressed earlier issues with color recognition and bridged the gap between simulated and real-world object detection.
+
+\paragraph*{}
+Regarding the evaluation of whether the project met its expectations, the object detection performance is somewhat below the level anticipated in the project proposal. The original plan included advanced detection capabilities, such as distinguishing objects of different colors and geometries. However, this goal was deprioritised to concentrate on establishing the functionality of other essential components, such as communication and localization. The advanced object detection features will be addressed during the transition from simulation to the physical robot to minimize inefficiencies, such as retraining the model specifically for real-world conditions.
+
+\paragraph*{}
+One of the primary challenges encountered during the development of the object detection simulation was related to the program configuration. Specifically, it was necessary to readjust the luminosity settings in the Webots environment to achieve optimal detection performance. Additionally, there was a limitation with the device used for displaying real-time images from the camera. Instead of using the camera overlay, which could not render the bounding box generated by the OpenCV model, the display device had to be utilized to perform this task effectively.
 
 \paragraph*{}
 The current system reliably detects and interacts with a single yellow object. Moving forward, the next step is to transition the object detection simulation to a real-world setting, beginning with cylindrical objects and other simple geometric shapes. The ultimate objective is to enable robots to detect and interact with objects of diverse geometries and colors. This will include addressing challenges such as object pose estimation, thereby enhancing the system's adaptability and versatility in real-world applications.
