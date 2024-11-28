@@ -38,15 +38,15 @@ Messages such as [probe] is used for updating position data. When an object is d
  \newline \textbf{Format}: \{[probe], robot\_id, message\_id, (robot\_position["x"], robot\_position["y"], robot\_position["theta"])\} \\ 
  \hline
  object\_detected & Broadcasts the encounter of the target object. 
- \newline \textbf{Sender}: Sends object's position data. \newline \textbf{Receiver}: Changes it's state to \textit{idle} and waits for further action. \newline \textbf{Format}: \{[object\_detected], robot\_id, found cylinder @ \{cylinder\_position\}\} \\ 
+ \newline \textbf{Sender}: Sends object's position data. \newline \textbf{Receiver}: Changes its state to \textit{idle} and waits for further action. \newline \textbf{Format}: \{[object\_detected], robot\_id, found cylinder @ \{cylinder\_position\}\} \\ 
  \hline
  task & Broadcasts the assigning of a new taskmaster for the path planning. 
  \newline \textbf{Sender}: Sends an initiative to assign itself as the taskmaster. 
- \newline \textbf{Receiver}: Changes it's state to \textit{task} and report conflicting status. 
+ \newline \textbf{Receiver}: Changes its state to \textit{task} and report conflicting status. 
  \newline \textbf{Format}: \{[task], robot\_id, message\_id, cylinder\_position\}\\ 
  \hline
  task\_conflict & Broadcasts the conflict occurs in task master assignment. 
- \newline \textbf{Sender}: Sends conflict information to other robots. \newline \textbf{Receiver}: Change it's state to \textit{reassign}. 
+ \newline \textbf{Sender}: Sends conflict information to other robots. \newline \textbf{Receiver}: Change its state to \textit{reassign}. 
  \newline \textbf{Format}: \{[task\_conflict], robot\_id, message\_id, priority\_queue\}\\ 
  \hline
  task\_successful & Broadcasts a success operation in task master assignment.  
@@ -56,7 +56,7 @@ Messages such as [probe] is used for updating position data. When an object is d
  \hline
  path\_following & Broadcasts a notification for robots to follow the given paths.  
  \newline \textbf{Sender}: Sends planned path to each robots. 
- \newline \textbf{Receiver}: Changes it's state to \textit{path\_following}, and updates it's path.
+ \newline \textbf{Receiver}: Changes its state to \textit{path\_following}, and updates its path.
  \newline \textbf{Format}: \{[path\_following], robot\_id, message\_id, paths\_json\}\\ 
  \hline
 \end{tabular}
