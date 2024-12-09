@@ -4,7 +4,7 @@
 This chapter gives the end results for the test from the Webots simulation on the sub-task \textbf{Communication in the swarm}. This sub-task resolves around the assumption that the \textit{swarm fleet is capable of object detection}, which is the key for task parallelization in our system. The main components of the communication system consist of the protocol, the robot's modes (states), consensus, and system integration.
 
 \paragraph*{}
-In general, the main robot we use is the Burger model of the third version of the TurtleBot robot, which has two functioning motors and a pre-built LiDAR system. Additionally, three more basic nodes are added to the TurtleBot object, which are the following: Firstly, the GPS node (Figure 2.1), this module is installed to obtain the robot’s position in the simulated world. This direct approach is used because the localization and mapping process is not available yet. Secondly, the Emitter node (Figure 2.2), this module is added to the robot to model a broadcast behavior. Thirdly, the receiver node (Figure 2.3), this module is connected as an accompaniment to the Emitter Class because the emitter node does not support both emitting and receiving functionalities. By combining all the devices, the basic simulation of swarm robotics communication is completed.
+In general, the main robot we use is the Burger model of the third version of the TurtleBot robot, which has two functioning motors and a pre-built LiDAR system. Additionally, three more basic nodes are added to the TurtleBot object, which are the following: Firstly, the GPS node (Figure 2.1), this module is installed to obtain the robot’s position in the simulated world. This direct approach is used because the localization and mapping process is not yet available. Secondly, the Emitter node (Figure 2.2), this module is added to the robot to model a broadcast behaviour. Third, the receiver node (Figure 2.3), this module is connected as an accompaniment to the Emitter Class because the emitter node does not support both emitting and receiving functionalities. By combining all the devices, the basic simulation of swarm robotics communication is completed.
 
 \begin{figure}[!htb]
     \minipage{0.32\textwidth}
@@ -21,7 +21,7 @@ In general, the main robot we use is the Burger model of the third version of th
     \endminipage
 \end{figure}
 
-This approach allows simple communication in the swarm system and awareness of other robot members in the swarm system. We then further build the system's protocol to ensure useful and safe information is transmitted across a reliable platform. These messages are processed through states combining structured communication with dynamic state transitions. 
+This approach allows simple communication in the swarm system and awareness of other robot members in the swarm system. We then further build the system's protocol to ensure useful and safe information is transmitted across a reliable platform. These messages are processed through states, combining structured communication with dynamic state transitions. 
 
 \paragraph*{}
 The protocol is built to support the incoming series of structured messages in a queue (Table 2.1) and robot states (Table 2.2).
@@ -81,15 +81,15 @@ Each message may trigger a state transition; this is done by the communicator ha
 \caption{Robot States}
 \end{table}
 
-The consensus mechanism used in this project is inspired by the Paxos Algorithm but is more lightweight. We are making a protocol that allows a group of robot agents to agree on a single value, even if some of the agents fail to be responsive. In our case, the major concern that we need to tackle is a scenario of multiple robots detecting the object at the same time, and the allocation of taskmasters needs to be agreed upon by all parties. To do that, we added an intermediate state after an object is detected. And if the detected robot receives \textit{object\_detection} from other robots before receiving confirmation messages, it will raise the error and can send \textit{task\_conflict} to other robots.
+The implemented consensus mechanism allows a group of robot agents to agree on a single value, even if some of the agents fail to respond. In our case, the major concern that we need to tackle is a scenario of multiple robots detecting the object at the same time, and the allocation of taskmasters needs to be agreed upon by all parties. To do that, we added an intermediate state after an object is detected. And if the detected robot receives \textit{object\_detection} from other robots before receiving confirmation messages, it will raise the error and can send \textit{task\_conflict} to other robots.
 
 \begin{figure}[!htb]
     \minipage{0.5\textwidth}
         \includegraphics[width=\linewidth]{assets/images/communication/outputs/consensus_conflict.png}
-        \caption{Conflict State}\label{fig:GPS}
+        \caption{Conflict State}\label{fig:conflict-state}
     \endminipage\hfill
     \minipage{0.5\textwidth}
         \includegraphics[width=\linewidth]{assets/images/communication/outputs/consensus_normal.png}
-        \caption{Normal State}\label{fig:Emitter}
+        \caption{Normal State}\label{fig:normal-state}
     \endminipage\hfill
 \end{figure}
