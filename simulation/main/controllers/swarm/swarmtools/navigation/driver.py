@@ -23,7 +23,8 @@ distance_integral = 0.0
 # L = 0.16   # Wheelbase (distance between the wheels)
 v = 1.0   # Linear velocity (adjust as needed)
 
-plotting = "position" 
+plotting = None 
+# plotting = "position" 
 # plotting = "position_err_pid" 
 # plotting = "angle_err_pid" 
 
@@ -80,10 +81,17 @@ class Driver:
         self.waypoint_threshold = 0.02
         self.dt = 0.032  # Time step (adjust according to your simulation)
         self.v_linear = 2
-        self.Kp_linear = 10
-        self.Ki_linear = 0.1
+        # WORKS
+        # self.Kp_linear = 10
+        # self.Ki_linear = 0.1
         
-        self.Kp_angular = 20
+        # self.Kp_angular = 20
+        # self.Ki_angular = 0.1
+        # WORKS
+        self.Kp_linear = 8
+        self.Ki_linear = 0.2
+        
+        self.Kp_angular = 25
         self.Ki_angular = 0.1
         self.linear_integral = 0.0
         self.angular_integral = 0.0

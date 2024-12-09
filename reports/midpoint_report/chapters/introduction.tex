@@ -1,4 +1,16 @@
-\chapter{Introduction}
+\chapter{Introduction and Overview}
+\paragraph*{}
+The project, “Collective Transport using Decentralised Swarm Robotics,” aims to pioneer a new approach to robotic collaboration by enabling decentralised control for tasks such as object transportation in unstructured environments. Traditional centralised systems, like those in RoboCup Soccer, have dominated the field for decades but face limitations such as single points of failure and reliance on powerful centralized servers. This project seeks to address these challenges by leveraging decentralised swarm robotics, which ensures robust, scalable, and efficient operations without dependency on a single control unit.
+
+In real-world applications, this approach holds transformative potential, particularly in warehouse logistics and search-and-rescue operations. The decentralised model offers resilience and adaptability, making it suitable for scenarios where centralised systems may falter. Moreover, this technology aligns with Thailand’s growing need for innovative solutions in robotics, showcasing a shift towards decentralised systems that can operate independently without a centralised power hub. This represents a vision for the future of robotics, where hardware and computation costs decrease, enabling accessible and scalable robotic systems.
+
+The project development is divided into two phases:
+	1.	Phase 1: Exploration of foundational modules, including communication protocols, object detection via computer vision, and localisation. While the original plan included SLAM, it was deprioritised due to its limited necessity in the simulation phase. However, the team actively studied SLAM in preparation for its integration in Phase 2. A significant focus was placed on ensuring the robustness of these individual modules, validated through simulations in Webots, which provided a cost-efficient, risk-free environment.
+	2.	Phase 2: Integration of these foundational modules into a working prototype of robots navigating their environment. This phase also incorporates SLAM, advanced robot formations, and initial hardware configurations. The ultimate goal is to transition from simulation to real-world applications, with the simulation results guiding the hardware design.
+
+The success of the project is measured not only by the accuracy and control of individual robots but also by the robustness of their communication and coordination. Metrics include the ability to resolve edge conditions, such as simultaneous object detection or potential collision paths, and the effectiveness of decentralised decision-making. Overhead cameras verify the robots’ positional accuracy, ensuring that simulated and real-world performance align
+
+This report highlights the project’s accomplishments, including completed tasks like communication, object detection, and localisation, alongside the progress of module integration. It also underscores the importance of simulation as a foundation for hardware development and presents a roadmap for achieving decentralised, collaborative transport systems. Through this effort, the project aims to establish a framework that not only advances robotics technology but also addresses challenges specific to Thailand, paving the way for future innovations in swarm robotics.
 
 \paragraph*{}
 This midpoint report aims to highlight the progress of our project throughout the whole semester, with the evaluating criteria being the team's contributions alongside the pace in comparison to the ideal schedule. The ideal project timeline is presented with the Gantt Chart below. (Figure \ref{fig:gantt-chart})
@@ -10,25 +22,42 @@ This midpoint report aims to highlight the progress of our project throughout th
     \label{fig:gantt-chart}
 \end{figure}
 
-\paragraph*{}
-Our task allocations can be categorized as two main phases, with the first phase including initial explorations towards fundamental units of understanding necessary for the project completion, that is, \textbf{Communication in the swarm} (Task 1.1), \textbf{Object Detection using Computer Vision} (Task 1.2), and \textbf{Simultaneous Localization and Mapping}. These exploratory endeavors are all completed within \textit{Webots}, a robotic simulation software designed for seamless integration when implemented on actual hardware. The results of these fundamental tasks have all proven satisfactory, as Communication and Object Detection are all successful for the purpose of running a Minimum Viable Prototype simulation. However, Simultaneous Localization and Mapping has been deprioritized due to complications and requirement changes, instead being compensated with \textbf{Localization} (Task 1.3), which has been deemed sufficient for the current simulative implementation.
-
-\paragraph*{}
-The second phase entails consolidating the fundamental units into a refined version of simulation, considered as the Minimum Viable Prototype, alongside a few other exploratory tasks on topics such as \textbf{Simple Robot Formation} (Task 2.1), \textbf{Hardware Components} (Task 2.3), as well as a continuation on the deprioritized \textbf{Simultaneous Localization and Mapping} (Task 2.2). Nevertheless, the key highlight of the second iteration will be the \textbf{Combination of the Fundamental Modules in a Single Simulation} (Task 2.4)
-
-\paragraph*{}
-The progress of the second phase has also been satisfactory, with the Combined Simulation being completed with an additional bonus of Simple Robot Formation being completed in time to integrate with the Combined Simulation, giving it the ability of navigation. A deeper dive towards each task will be given in the upcoming chapters.
-
 \paragraph*{Current Gantt Chart and Progress:}
 \begin{description}
-    \item 1.1. Communication -- \textit{Completed}
-    \item 1.2. Object Detection using Computer Vision -- \textit{Completed}
-    \item 1.3. Localization -- \textit{Completed}
-    \item 2.1. Simple Robot Formation -- \textit{Completed}
-    \item 2.2. Simultaneous Localization and Mapping -- \textit{In progress}
-    \item 2.3. Hardware -- \textit{In progress}
-    \item 2.4. Combination of Individual Modules in Simulation -- \textit{Completed}
-    \item 3.1. Coordinated gripping -- \textit{To do}
-    \item 3.2. Advanced Robot formation -- \textit{To do}
-    \item 4.1. Hardware -- \textit{To do}
+    \item[Phase 1: Simulation and Fundamental Modules]
+    
+    \item 1.1. Communication -- \textit{Completed}  
+    Achieved seamless coordination between robots using an infrared-based communication system, with a consensus algorithm to resolve conflicts during simultaneous detections or task assignments.
+
+    \item 1.2. Object Detection using Computer Vision -- \textit{Completed}  
+    Developed a 2D object detection system with OpenCV for identifying the target (a yellow cylinder), aligning bounding boxes, and calculating distances accurately.
+
+    \item 1.3. Localisation -- \textit{Completed}  
+    Implemented wheel odometry with encoders and differential drive kinematics to update robot positions reliably.
+
+    \item 2.1. Simple Robot Formation -- \textit{Completed}  
+    Enabled basic formation control, allowing robots to form equilateral shapes and navigate in coordination.
+
+    \item 2.4. Combination of Individual Modules in Simulation -- \textit{Completed}  
+    Integrated communication, object detection, and localisation modules into a working prototype in the simulation.
+
+    \item 2.2. Simultaneous Localisation and Mapping (SLAM) -- \textit{In progress}  
+    Actively working on GraphSLAM, focusing on creating initial graphs, loop closure, and error function refinement to improve mapping accuracy.
+
+    \item[Phase 2: Transition to Hardware and Advanced Features]
+
+    \item 2.3. Hardware -- \textit{In progress}  
+    Transitioning simulation modules to hardware, including:
+    - Jetson installation with optimised configurations.
+    - Testing closed-loop control for BLDC motors.
+    - Preparing hardware communication systems for decentralised operations.
+
+    \item 3.1. Coordinated Gripping -- \textit{To do}  
+    Develop an end-effector for gripping and securing objects during collaborative transport.
+
+    \item 3.2. Advanced Robot Formation -- \textit{To do}  
+    Implement dynamic formation control to adapt to environmental changes and enhance navigation.
+
+    \item 4.1. Hardware -- \textit{To do}  
+    Transition the full system to physical robots, focusing on advanced motor control, sensor calibration, and hardware-based object detection.
 \end{description}
