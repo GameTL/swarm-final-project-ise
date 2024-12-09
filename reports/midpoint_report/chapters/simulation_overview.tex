@@ -10,10 +10,7 @@ Once the simulation starts, the robots move based on a predefined polynomial pat
 To handle potential multi-detections, a consensus mechanism based on an additional priority queue ensures that even if two robots detect the object at the same time, the system processes the detection correctly. When the first robot detects the yellow object, it captures the coordinates. Since this robot already knows the locations of the other two, it calculates the paths for them to reach the object and grasp it.
 
 \paragraph*{}
-The host robot — the one that detected the object — sends these paths to the other two robots. Once the message is received, the two robots acknowledge with a confirmation message. All three robots then follow the calculated paths to the destination, avoiding any obstacles and collisions along the paths.
-
-\paragraph*{}
-For path-following, a PID controller is used. The PID controller calculates the error in distance to each waypoint and adjusts the motor velocity or force accordingly. When the robots reach the detected object, they stop.
+The host robot — the one that detected the object — sends these paths to the other two robots. Once the message is received, the two robots acknowledge with a confirmation message. All three robots then follow the calculated paths to the destination, avoiding any obstacles and collisions along the paths. For path-following, a PID controller is used. The PID controller calculates the error in distance to each waypoint and adjusts the motor velocity or force accordingly. When the robots reach the detected object, they stop.
 
 \paragraph*{}
 The main challenge of this simulation was ensuring reliable communication among the three robots and accurately exchanging data.
