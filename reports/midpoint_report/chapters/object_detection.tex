@@ -14,11 +14,18 @@ The detection process commences with the robot utilising an RGB camera mounted o
 \end{figure}
 
 \paragraph*{}
-Once the object is detected, the robot moves until the contour is centred within the camera frame, ensuring that the robot faces the object directly. This alignment is achieved by comparing the distances between the left and right edges of the bounding box surrounding the contour and the corresponding edges of the camera frame. Specifically, the distance between the left edge of the frame and the left edge of the bounding box is compared with the distance between the right edge of the frame and the right edge of the bounding box. The robot stops when the difference between these two distances is less than or equal to 1, as the camera calculates distances as whole numbers. Using a threshold of \(\leq 1\) is more reliable than requiring exact equality, as slight variations in measurement may occur due to the camera's resolution or other factors.
+Once the object is detected, the robot moves until the contour is centred within the camera frame, ensuring that the robot faces the object directly. This alignment is achieved by comparing the distances between the left and right edges of the bounding box surrounding the contour and the corresponding edges of the camera frame. Specifically, the distance between the left edge of the frame and the left edge of the bounding box is compared with the distance between the right edge of the frame and the right edge of the bounding box. The robot stops when the difference between these two distances is less than or equal to 1, as the camera calculates distances as whole numbers. Using a threshold of \(\leq 1\) is more reliable than requiring exact equality, as slight variations in measurement may occur due to the camera's resolution or other factors. See Figure \ref{fig:obj-flow}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\linewidth]{assets/images/object_detection/obj-flow.png}
+    \caption{Object Detection Flowchart}
+    \label{fig:obj-flow}
+\end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\linewidth]{assets/images/object_detection/fig2.png}
+    \includegraphics[width=1.0\linewidth]{assets/images/object_detection/fig2.png}
     \caption{The location of the RGB camera mounted on the TurtleBot3}
     \label{fig:object detection figure 2} 
 \end{figure}

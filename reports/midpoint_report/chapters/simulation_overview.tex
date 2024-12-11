@@ -2,9 +2,10 @@
 
 \paragraph*{}
 For our simulation, we are working with three Turtlebots in the Webots simulation within a square arena. Initially, each robot faces parallel to the x-axis, resulting in a starting orientation angle (theta) of 0. This setup acts as a calibration step to ensure that every robot's odometry is correctly aligned with a theta of 0. The orgin x, y coordinates of each robots are given by the simulation, afterwards the location of the robots is updated based on the encoder odometry data. 
+
 \begin{figure} [H]
     \centering
-    \includegraphics[width=0.75\linewidth]{assets/images/simulation_overview/bothdetect.png}
+    \includegraphics[width=0.6\linewidth]{assets/images/simulation_overview/bothdetect.png}
     \caption{Starting of the simulation}
     \label{fig:start-sim}
 \end{figure}
@@ -35,23 +36,17 @@ The host robot — the one that detected the object — sends these paths to the
 \paragraph*{}
 The main challenge of this simulation was ensuring reliable communication among the three robots and accurately exchanging data.
 
-\begin{figure}
-    \centering
-    \includegraphics[width=0.5\linewidth]{assets/images/simulation_overview/sim_1.png}
-    \caption{Path of the TurtleBotBurger3 after receiving path to follow from the main controller.}
-    \label{fig:simulation_overview1} 
-\end{figure}
 
-\begin{figure}
+\begin{figure} [H]
     \centering
-    \includegraphics[width=0.5\linewidth]{assets/images/simulation_overview/sim_2.png}
+    \includegraphics[width=0.75\linewidth]{assets/images/simulation_overview/sim_2.png}
     \caption{3 robots converging to the pre-determined position.}
     \label{fig:simulation_overview2}
 \end{figure}
 
-\begin{figure}
-    \centering
-    \includegraphics[width=0.5\linewidth]{assets/images/simulation_overview/sim_3.png}
-    \caption{3 robots simply moving until an yellow object is found}
-    \label{simulation_overview3}
-\end{figure}
+\begin{figure} [H]
+        \centering
+        \includegraphics[width=0.75\linewidth]{assets/images/simulation_overview/sim_1.png}
+        \caption{Path of the TurtleBotBurger3 after receiving path to follow from the main controller.}
+        \label{fig:simulation_overview1} 
+    \end{figure}
