@@ -32,14 +32,14 @@ y_{\text{new}} = y_{\text{old}} + \Delta_{\text{center}} \cdot \sin(\theta_{\tex
 
 The system continuously monitors the encoder values during each simulation step, ensuring real-time refinement of the robot's position and orientation. By leveraging these calculations, the robot maintains an accurate understanding of its location within the environment, which is essential for precise movement and navigation.
 
-In this project, we initially set out to implement SLAM for the TurtleBot3 in the Webots simulation environment but realised our implementation was limited to localisation on a predetermined map rather than full SLAM. The TurtleBot3 was configured with motors for continuous movement, enabling exploration and data collection, and equipped with a LIDAR sensor for 360\degree{} obstacle detection. Encoders tracked wheel rotations, and odometry calculations used differential drive kinematics to update the robot's position and orientation. Localisation was achieved by updating the robot’s position based on encoder data and interpreting LIDAR data relative to a predefined rectangular map with fixed dimensions. This predefined knowledge of the environment meant that the implementation did not fully achieve SLAM, which requires both simultaneous mapping and localisation in an unknown environment. The robot updated its position and visualised its progress on the predetermined map in real-time, with periodic visualisations and debugging ensuring accuracy. Challenges, such as maintaining proper updates and sensor configuration, were addressed systematically.
+In this project, we initially set out to implement SLAM for the TurtleBot3 in the Webots simulation environment but realised our implementation was limited to localisation on a predetermined map rather than full SLAM. The TurtleBot3 was configured with motors for continuous movement, enabling exploration and data collection, and equipped with a LIDAR sensor for 360 degree obstacle detection. Encoders tracked wheel rotations, and odometry calculations used differential drive kinematics to update the robot's position and orientation. Localisation was achieved by updating the robot’s position based on encoder data and interpreting LIDAR data relative to a predefined rectangular map with fixed dimensions. This predefined knowledge of the environment meant that the implementation did not fully achieve SLAM, which requires both simultaneous mapping and localisation in an unknown environment. The robot updated its position and visualised its progress on the predetermined map in real-time, with periodic visualisations and debugging ensuring accuracy. Challenges, such as maintaining proper updates and sensor configuration, were addressed systematically.
 
 
 
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1.0\linewidth]{midpoint_report/assets/images/localisation/map.png}
+    \includegraphics[width=1.0\linewidth]{assets/images/localisation/map.png}
     \caption{A 2-D map depicting the location of the robot in its environment}
     \label{fig: map}
 \end{figure}
@@ -116,44 +116,41 @@ where \(\omega_x, \omega_y, \omega_\theta\) are weighted confidences.
 \begin{enumerate}
     \item Linearise using Taylor expansion:
     \[
-e_{ij}(x_{i}, x_{j}) \approx e_{ij}(x_{i0}, x_{j0}) + J_{ij}(x_{i} - x_{i0}),
+    e_{ij}(x_{i}, x_{j}) \approx e_{ij}(x_{i0}, x_{j0}) + J_{ij}(x_{i} - x_{i0}),
     \]
     where \(J_{ij} = \frac{\partial e_{ij}}{\partial x}\bigg|_{x=x_{0}}\).
 
     \item Substitute into the objective function and expand:
-\[
-f(x) \approx \sum_{(i,j) \in \text{edges}} \left(
-\begin{aligned}
-& e_{ij}(x_{i0}, x_{j0})^{T} \Omega_{ij} e_{ij}(x_{i0}, x_{j0}) \\
-& + 2 e_{ij}(x_{i0}, x_{j0})^{T} \Omega_{ij} J_{ij} (x - x_0) \\
-& + (x - x_0)^{T} J_{ij}^{T} \Omega_{ij} J_{ij} (x - x_0)
-\end{aligned}
-\right).
-\]
-
-
-
-
+    \[
+    f(x) \approx \sum_{(i,j) \in \text{edges}} 
+    \left(
+    \begin{aligned}
+        & e_{ij}(x_{i0}, x_{j0})^{T} \Omega_{ij} e_{ij}(x_{i0}, x_{j0}) \\
+        & + 2 e_{ij}(x_{i0}, x_{j0})^{T} \Omega_{ij} J_{ij} (x - x_0) \\
+        & + (x - x_0)^{T} J_{ij}^{T} \Omega_{ij} J_{ij} (x - x_0)
+    \end{aligned}
+    \right).
+    \]
 
     \item Solve the normal equations:
     \[
-H \Delta x = -g,
+    H \Delta x = -g,
     \]
     where
     \[
-H = \sum_{(i,j) \in \text{edges}} J_{ij}^{T} \Omega_{ij} J_{ij}, \quad g = \sum_{(i,j) \in \text{edges}} J_{ij}^{T} \Omega_{ij} e_{ij}(x_{i0}, x_{j0}).
+    H = \sum_{(i,j) \in \text{edges}} J_{ij}^{T} \Omega_{ij} J_{ij}, \quad g = \sum_{(i,j) \in \text{edges}} J_{ij}^{T} \Omega_{ij} e_{ij}(x_{i0}, x_{j0}).
     \]
 
     \item Use Cholesky decomposition for efficiency:
     \[
-H = L L^{T},
+    H = L L^{T},
     \]
     solve \(L y = -g\), then \(L^{T} \Delta x = y\).
 
     \item Update:
     \[
-x \leftarrow x + \Delta x.
+    x \leftarrow x + \Delta x.
     \]
 
     Repeat until convergence.
-\end
+\end{enumerate}

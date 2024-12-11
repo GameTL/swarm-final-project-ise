@@ -43,3 +43,5 @@ reports/midpoint_report/chapters/report.fdb_latexmk
 reports/midpoint_report/chapters/report.fls
 reports/midpoint_report/report.bbl
 texput.log
+reports/midpoint_report/report.bbl-SAVE-ERROR
+reports/midpoint_report/report.blg

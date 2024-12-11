@@ -25,12 +25,13 @@
 \usepackage{algorithmic}
 
 \setlength{\doublerulesep}{\arrayrulewidth}
-\setlength{\textwidth}{16cm}
-\setlength{\textheight}{24cm}
-\setlength{\hoffset}{-1.7cm} 
-\setlength{\voffset}{-1cm}
-\setlength{\topmargin}{-0.5cm} 
-\setlength{\footskip}{27pt}
+% \setlength{\textwidth}{16cm}
+% \setlength{\textheight}{24cm}
+% \setlength{\hoffset}{-1.7cm} 
+% \setlength{\voffset}{-1cm}
+% \setlength{\topmargin}{-0.5cm} 
+% \setlength{\footskip}{27pt}
+\usepackage[a4paper, margin=2.5cm]{geometry}
 
 \renewcommand{\baselinestretch}{1.3}
 \linespread{1}
@@ -88,8 +89,6 @@ Decentralised Swarm Robotics}}
 \input{chapters/object_detection}
 \input{chapters/communication}
 \input{chapters/localisation}
-% SLAM chapter
-\input{chapters/slam}
 % Phase 2
 \input{chapters/formation}
 % Hardware chapter
@@ -98,6 +97,6 @@ Decentralised Swarm Robotics}}
 
 % Bibliography
 \nocite{*}
-% \printbibliography
+\printbibliography
 
 \end{document}
