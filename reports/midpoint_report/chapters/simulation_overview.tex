@@ -1,16 +1,36 @@
 \chapter{Simulation Overview}
 
 \paragraph*{}
-For our simulation, we are working with three Turtlebots in the Webots simulation within a square arena. Initially, each robot faces parallel to the x-axis, resulting in a starting orientation angle (theta) of 0. This setup acts as a calibration step to ensure that every robot's odometry is correctly aligned with a theta of 0.
+For our simulation, we are working with three Turtlebots in the Webots simulation within a square arena. Initially, each robot faces parallel to the x-axis, resulting in a starting orientation angle (theta) of 0. This setup acts as a calibration step to ensure that every robot's odometry is correctly aligned with a theta of 0. The orgin x, y coordinates of each robots are given by the simulation, afterwards the location of the robots is updated based on the encoder odometry data. 
+\begin{figure} [H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{assets/images/simulation_overview/bothdetect.png}
+    \caption{Starting of the simulation}
+    \label{fig:start-sim}
+\end{figure}
 
 \paragraph*{}
 Once the simulation starts, the robots move based on a predefined polynomial path rather than random motion. Typically, this movement involves slight left turns. The simulation is designed so that two of the robots will detect a yellow object. If any of the robots detects the yellow object, it will stop and send a signal to the other two robots. The robots simultaneously share their location data, forming a mesh communication system.
 
+\begin{figure} [H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{assets/images/simulation_overview/isometricoverview.png}
+    \caption{3 robots following a path before an object is detected}
+    \label{fig:following-path}
+\end{figure}
+
 \paragraph*{}
-To handle potential multi-detections, a consensus mechanism based on an additional priority queue ensures that even if two robots detect the object at the same time, the system processes the detection correctly. When the first robot detects the yellow object, it captures the coordinates. Since this robot already knows the locations of the other two, it calculates the paths for them to reach the object and grasp it.
+To handle potential multi-detections, a consensus mechanism based on an additional priority queue ensures that even if two robots detect the object at the same time, the system processes the detection correctly. When the first robot detects the yellow object, it captures the object coordinates by inferring from a known database and calibrated camera. Since this robot already knows the locations of the other two, it calculates the paths for them to reach the object and grasp it.
 
 \paragraph*{}
 The host robot — the one that detected the object — sends these paths to the other two robots. Once the message is received, the two robots acknowledge with a confirmation message. All three robots then follow the calculated paths to the destination, avoiding any obstacles and collisions along the paths. For path-following, a PID controller is used. The PID controller calculates the error in distance to each waypoint and adjusts the motor velocity or force accordingly. When the robots reach the detected object, they stop.
+
+\begin{figure} [H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{assets/images/simulation_overview/coverged.png}
+    \caption{3 robots converged to the detected object}
+    \label{fig:converged}
+\end{figure}
 
 \paragraph*{}
 The main challenge of this simulation was ensuring reliable communication among the three robots and accurately exchanging data.
