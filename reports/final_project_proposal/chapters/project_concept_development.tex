@@ -1,0 +1,13 @@
+\chapter{Project Concept Development}
+
+\paragraph*{}
+In the near future, most repetitive tasks will inevitably be automated by robots. For instance, in the cleaning industry, fleets of robots will be required to communicate and collaborate effectively to optimise task completion. However, the current generation of robots typically operates in isolation, lacking the ability to be aware of or interact with other robots in their environment, which significantly hinders their overall scalability, efficiency, and coordination capabilities. However, a single complex robot is not viable in every scenario due to its limited reach, and high spatial and monetary investment.
+
+\paragraph*{}
+Thus, we turn to a simpler, more scalable solution, which is swarm robotics. Our main goal is to provide a stable foundation for swarm solutions to be applicable for domestic and commercial cleaning. We can achieve this by two major milestones: localisation with object identification, and object grasping through coordinated formations. The first milestone is crucial as it provides a functional component relevant to domestic use cases, enabling object identification, localization, and communication, all of which are key to managing a scalable fleet. Secondly, object grasping through coordinated formations is a crucial follow-up as it expands further upon an abstract concept to pinpoint specific use cases such as tidying items in a room.
+
+\paragraph*{}
+The metrics to evaluate our swarm system are scalability, flexibility, architectural tolerance, cost-effectiveness, efficiency, autonomous operations, and performance.
+
+\paragraph*{}
+The project involves deploying a swarm of three robots in a room with obstacles and targets, each equipped with RGB-D cameras, LiDAR for C-SLAM, and ultrasonic sensors, all within a budget of 250,000 THB. Designed with a fixed 90-degree gripper and a two-hour battery life, the robots independently use LiDAR and depth cameras for cost-effective 3D mapping, creating a shared environmental map. Speed is not a critical factor, as the focus is on task completion. Due to the constraints of operating on a level floor, the robots are constructed from heavy materials, which aids in object manipulation. For object detection, the robots utilise RGB-D cameras, and once consensus on the target is reached, roles are dynamically assigned: Alpha and Beta secure the object, while Gamma provides the pushing force to move it to the destination using a sliding method, ensuring efficient 2D movement.

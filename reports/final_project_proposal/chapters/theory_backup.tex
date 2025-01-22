@@ -1,0 +1,38 @@
+\chapter{Theory Backup}
+
+\section{Omnidirectional Movement}
+\paragraph*{}
+In the field of mobile robots, omnidirectional wheels have an advantage of moving in 2 degrees, 3 degrees of freedom. In the x-y axis and yaw. It's a holonomic locomotion unlike non-holonomic such as ackerman or diff drive. 90deg dual row would be the option of choice. The reason why we use omnidrive is because it can move in any direction without disengaging the object. Simple mechanism due to no linkage. Need a suspension.
+
+\section{Waypoint Navigation}
+
+\paragraph*{}
+Repulsive Potential limitation is the local minima for the velocity at which the robot can travel, which can cause the roboto be stuck. This is where Rotational Fieldsand Random Fields come into play. By adding a rotational field around obstacles, the symmetry of the potential field is broken. As a result, the potential field will act as a guide for the robot to manoeuvre around groups of obstacles while avoiding local minima. However, this function can cause unstable oscillation during high speeds, narrow corridors, or sudden changes. 
+
+\paragraph*{}
+The Wavefront Planner applies the brushfire algorithm, starting from the goal and labelling the goal pixel as 2, then adding all zero neighbours. It continues iterating by updating distances for neighbouring cells and adding them to the list until all cells are processed. The final result provides a distance value for each cell, allowing the robot to follow a gradient descent by moving to the neighbour with the lowest distance value.
+
+\section{Swarm Robotics Theory}
+
+\paragraph*{}
+Swarm Robotics is a robotics field that mimics the collective behaviour of natural swarms like ants, birds, and fish. The fundamental concept behind swarm robotics is to make use of multiple robots working together and carrying out tasks that would be difficult and inefficient for one single robot to handle. The four main principles of swarm robotics are self-organisation, distributed control, local interaction, and scalability. The principles are crucial for the robots to perform complex tasks by following simple individual instructions. Robots in a swarm are usually decentralised meaning that they operate on simple rules based on the local environment. This approach allows the swarm to be scaled easily as the number of robots increases\cite{beni1989swarm}.
+
+\section{SLAM}
+
+\paragraph*{}
+Simultaneous Localisation and Mapping, also known as SLAM, is a crucial aspect of swarm robotics. SLAM is what allows each robot to navigate autonomously in an environment by constructing a map of said environment. While the map is being constructed, the robot is simultaneously tracking down their own position as well\cite{thrun2003probabilistic}. In our project, we will be going a step further by using Collaborative SLAM (C-SLAM) in which multiple robots work together to build a shared map of the environment. C-SLAM builds on classic SLAM by having multiple robots dynamically sharing and updating their individual maps and position data. This novel approach significantly improves the efficiency and accuracy of map generation which could be a big advantage in dynamic environments.
+
+\section{Object Detection and Computer Vision (CV)}
+
+\paragraph*{}
+Computer Vision (CV) enables robots to recognise and classify objects within their environment. Cameras such as the RGB-D can be used for real time object detection as these types of cameras can capture both colour (RGB) and depth (D) information. This greatly enhances the ability of the robot to perceive the objects in the environment therefore becoming useful in recognizing objects in cluttered environments. In the last few years, object detection has been massively improved by machine learning with techniques such as Convolutional Neural Network becoming a successful way to recognise objects with high accuracy\cite{redmon2018yolov3}. 
+
+\section{Multi-Robot Collaboration and Coordination}
+
+\paragraph*{}
+Dynamic Role assignment is going to be able to allow robots to adapt their behaviour based on the tasks at hand. This is important in tasks that require multiple and complex actions. By using the process of distributed decision-making, each robot evaluates its own capabilities and checks the status of other robots when making the decision to assume which role to take\cite{parker1998alliance}.
+
+\section{Grasping and Object Manipulation in Robotics}
+
+\paragraph*{}
+In robotics, grasping and object manipulation are critical challenges that often require sophisticated algorithms for planning and controlling the end-effector, such as robotic grippers. In traditional robotic systems, grasp planning involves calculating the optimal points on an object to secure it, ensuring stable lifting and transport. This becomes particularly complex in cluttered or dynamic environments, where obstacles and unexpected changes may affect the robot’s ability to maintain a stable grasp. However, in swarm robotics, the collective behaviour of multiple robots can simplify this task. Instead of relying on a single robot to execute a complex grasp, multiple robots can collaborate in a more straightforward and effective manner. In our project, this is achieved using a sliding method for object manipulation, where one robot is responsible for pushing the object while the others stabilise it. This coordinated formation approach reduces the need for precise, complex grasp.
