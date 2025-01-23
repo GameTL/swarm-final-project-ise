@@ -3,8 +3,8 @@
 Assuming we are able to reach our goal by overcoming expected and unexpected challenges. 
 
 \paragraph*{}
-\textbf{Stage 1: Collaborative Localization and Mapping Using C-SLAM} \\
-In the first stage, three robots are randomly placed within a room containing furniture and three distinct target objects. Each robot will independently scan the environment using LiDAR and Collaborative Simultaneous Localization and Mapping (C-SLAM) to determine its own position, identify the relative positions of other robots, and collaboratively create a shared map of the room. This process continues until the entire space is mapped. The use of C-SLAM is advantageous due to its decentralised nature, reducing the risk of a single point of failure and benefiting from mesh redundancy, allowing the task to continue if one robot fails. C-SLAM also enhances efficiency through lightweight communication, and though it requires more expensive sensors like LIDAR, this is offset by improved localization accuracy. Additionally, C-SLAM offers flexibility in environments with strong network connectivity and supports 3D mapping through the integration of depth cameras. This stage will be conducted at the ISE Lab.
+\textbf{Stage 1: Collaborative Localization and Mapping Using GRAPH SLAM} \\
+In the first stage, three robots are randomly placed within a room containing furniture and three distinct target objects. Each robot will independently scan the environment using LiDAR and Graph Simultaneous Localization and Mapping (Graph SLAM) to determine its own position, identify the relative positions of other robots, and collaboratively create a shared map of the room. This process continues until the entire space is mapped. The use of Graph SLAM is advantageous due to its ability to accurately represent and optimize large-scale environments by solving the graph of poses and constraints efficiently, which ensures consistent mapping even in complex environments. Though it requires more expensive sensors like LiDAR, this is offset by improved localization accuracy. This stage will be conducted at the ISE Lab.
 
 \begin{figure}
     \centering
