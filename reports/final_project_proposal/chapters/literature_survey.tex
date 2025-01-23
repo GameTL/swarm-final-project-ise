@@ -25,96 +25,15 @@ For effective communication, especially in interdependent tasks, robots need to 
 
 \section{Object Detection}
 
-\paragraph*{}
-Object Detection plays a crucial role in computer vision by identifying and locating objects within images or video feeds. Its primary goal is to identify objects as well as determining its precise location through bounding boxes. In order for the robots to interact with the environment and eventually complete their task, it is crucial that they have to understand the dynamic and complex surroundings with their sensors, followed by recognising all targets around them as well as targeting them. Another key requirement is that each robot should distinguish other team members from objects in the environment, known as “Kin detection”, and know their relative position to others with data from their sensors
+\paragraph*{} Object detection is an essential component of this project, enabling each member of the swarm to perceive their environment and effectively interact with various targets. Traditional 2D object detection methods face challenges in dynamic and complex settings, where accurate estimation of size, distance, and position is critical \cite{hybridframework2023}. To address these issues, integrating a camera sensor with a LiDAR system offers a reliable solution for 3D object detection \cite{janai2020}, enabling precise measurement of the distance to the target as well as its dimensions.
 
-\paragraph*{}
-In various real-world applications, such as autonomous vehicles \cite{redmon2016yolo} and multi-robot coordination in warehousing \cite{kumar2018multi}, 2D object detection is effective for basic identification and localization tasks. However, detecting objects in complex environments presents challenges, particularly when object occlusion occurs \cite{girshick2014rich}. The limitations of 2D object detection, which relies on single-plane images, make it difficult to accurately identify objects that are distant or situated in cluttered settings \cite{chen2023object}.
+\paragraph*{} Object detection algorithms are typically classified into three categories based on the sensors utilised: camera-based algorithms, LiDAR-based algorithms, and LiDAR-camera fusion algorithms. The first category involves the use of a monocular camera for detection. Object detection with monocular cameras can be achieved through either traditional methods or deep learning-based approaches.
 
-\paragraph*{}
-Three-dimensional data can be acquired using various devices such as RADAR, RGB-D cameras, and stereo cameras \cite{karin2023comparative}. Each of these devices has distinct advantages and disadvantages:
+\paragraph*{} Traditional methods, such as the Scale-Invariant Feature Transform (SIFT), identify key points in images that are invariant to rotation and scaling, making them suitable for recognising objects under various transformations \cite{lowe2004distinctive}. Another widely used traditional approach is the Histogram of Oriented Gradients (HOG), which captures the distribution of gradient orientations within an image \cite{dalal2005histograms}. Both SIFT and HOG have been instrumental in earlier object detection tasks due to their effectiveness in identifying salient features.
 
-\paragraph*{}
-RADAR employs radio signals to measure distance and estimate the shape and size of objects but does not detect colour and has low spatial resolution \cite{karin2023comparative}. This limitation makes it challenging to distinguish between closely spaced or thin objects \cite{wang2020radar}. However, RADAR is particularly effective in poor visibility conditions, such as for collision avoidance and adaptive cruise control.
+\paragraph*{} In contrast, deep learning-based approaches have revolutionised object detection by surpassing traditional methods in terms of accuracy and adaptability. Prominent algorithms such as YOLO (You Only Look Once), SSD (Single Shot MultiBox Detector), and Faster R-CNN offer unique advantages and trade-offs \cite{sachan2019object}. YOLO is renowned for its real-time processing capabilities, making it well-suited for applications requiring high-speed detection without significant compromises in accuracy \cite{redmon2016you}. Faster R-CNN employs a two-stage process that prioritises detection accuracy, although at the cost of slower inference speeds, making it ideal for tasks where precision is critical \cite{ren2015faster}. Meanwhile, SSD strikes a balance between speed and accuracy by using a single-shot detection mechanism with moderate computational requirements \cite{liu2016ssd}.
 
-\paragraph*{}
-RGB-D cameras, like the Intel RealSense D455, capture both colour and depth information, which allows for detailed spatial analysis \cite{tychola2022reconstruction}. These cameras use techniques such as time-of-flight and structured light to measure depth \cite{tychola2022reconstruction}. The data from RGB images and depth maps can be processed to create 3D point clouds or models, facilitating object detection and scene analysis. These cameras are adept at perceiving attributes like colour and shape in real-time, making them suitable for dynamic environments. Nonetheless, their performance can be impacted by lighting conditions, which affects depth accuracy, and they have a more limited sensing range compared to RADAR.
-
-\paragraph*{}
-Stereo cameras operate with two lenses, capturing left and right images to mimic human vision \cite{medathati2016bio}. The data collected typically consists of a 3D point cloud that shows the spatial distribution of objects in the environment. Creating this 3D point cloud involves processing stereo images to identify matching points and calculate their depth. While stereo cameras can detect distant and small objects due to their dense pseudo point cloud\cite{li2024object}, they may struggle with object detection in dynamic environments because of noise in the point cloud data during rapid changes\cite{eppenberger2020leveraging}.
-
-\paragraph*{}
-Considering stereo camera and RGB-D camera performance, as it can perceive colour which is the main characteristic that is required in object detection and classification, in 3D object detection. The RGB-D camera produces 0.82\% average percentage error, while the stereo camera produces 2.61\% average percentage error measuring under the same condition and doing the same tasks in multi-object detection\cite{rodriguez2021comparison}. 
-
-\paragraph*{}
-Considering the data format obtained from the selected device which is the RGB-D camera will help to identify the suitable candidate of the 3D object detection approach. The input RGB-D data contain two formats, one with normal colour image which is red,green, and blue, another one uses black and white to represent the distance information in a single channel, The darker colour represents an object that is further from the camera than the ones with lighter colour. 
-
-\paragraph*{}
-Given the variety of tools and algorithms used in 3D object detection research with RGB-D cameras, a proper quantitative comparison has not been consistently conducted. Only a few approaches can be categorised into one of the four main groups of 3D object detection. Therefore, this section aims to provide an overview of the key techniques used. Each technique will include a discussion of its core concepts, along with its strengths and weaknesses. A quantitative comparison will be presented at the end of this section.
-
-\paragraph*{}
-There are four major categories for 3D object detection using RGB-D cameras. Firstly, \textbf{2.5D processing methods}. This method utilises the 3D convolution kernel The concept of this method is to use depth images obtained from the RGB-D camera as 2D images directly. Additionally, HHA encoding is used for enhancing the geometric representation including object’s height, surface angle compared to the ground etc.\cite{wang2021recent}. The combination of RGB and depth data in this approach enhances detection accuracy, especially in complex environments\cite{wang2021recent}\cite{arican2017object}. However, it can potentially perform not so well in highly dynamic or unstructured scenes especially when depth data is less accurate\cite{wang2021recent}.
-
-\paragraph*{}
-Secondly, \textbf{2D Driven 3D Methods} combine 2D object detection techniques with 3D processing to increase efficiency of 3D object detection. It basically narrows down the space with 2D detection followed by refining and defining 3D object boundaries using depth data. While RGB data remain unchanged, the depth data are transformed into point clouds\cite{wang2021recent}.  A more advanced model called “ The series of Frustum PointNet” which utilises RGB-D data for enhanced 3D object detection by integrating 2D image information (RGB data) with 3D point cloud data. 3D fustrums are transformed from 2D object proposals using camera projection metrics allowing effective feature extraction and object localisation using several advanced neural networks e.g. PointNet and LDG CNN. The integration of RGB and depth data boost the detection performance especially in small object detection like pedestrian as well as optimise computational resources while maintaining high detection rates\cite{paigwar2021frustum}. However, the complexity of the system and processing time can be increased from relying on both point cloud and RGB data\cite{tao2023fpvnet}. 
-
-\paragraph*{}
-\textbf{Geometric Descriptor-based Methods} utilises depth information from RGB-D camera for enhancing object recognition capabilities by using geometric features extracted from RGB image and depth data. This category comprises three main methods; Center of Gravity (COG) utilises the geometric centre of the detected objects’ features to improve the accuracy of the objects’ localisation. The boundaries of the object are refined and the detection reliability is enhanced by analysing spatial distribution of points in 3D space. Latent Surface Shape (LSS) identifies the pattern of the indoor settings by focusing on the surface that an object rests on. This approach helps explain the differences in object shapes. Although this approach allows small object detection to be done easier, it can struggle with objects with unclear supporting surfaces\cite{ren2018three}. Lastly, H3DNet\cite{zhang2020h3dnet} is a neural network that uses geometric shapes to detect objects. A detailed description of points is created for predicting the object's shapes. This is then used to make and improve proposals of object detections. The network refines object detection by adjusting the bounded box or other geometrical shape followed by classifying the object and eventually adding labels\cite{wang2021recent}.
-
-\paragraph*{}
-Lastly, \textbf{3D convolution based models} which highlight the importance of texture data that is obtained from the 3D object detection. There are several methods utilising both image and point clouds for enhancing overall performance with fusion schemes implementation. 
-
-\paragraph*{}
-The series of sliding windows including The Sliding Shapes method and Deep Sliding Shapes (DSS). The Sliding Shape approach performs the object classification using 3D sliding windows which are able to handle occlusions and changes in viewpoint effectively. However, the processing can be slowed down due to the hand-crafted features which this method relies on extensively. For the Deep Sliding Shapes, a 3d convolutional neural network (CNN) is used to improve the efficiency upon the Sliding Shapes method. This significantly solved two main challenges; speeding up the target detection and eliminating the need of CAD design that is done manually. Although the performance is enhanced, the demand for higher computation which is a result of 3D convolutions complexity. 
-
-\paragraph*{}
-VoteNet employs the voting mechanism when locating objects as well as generating high quality proposals which both help solve the sparse point cloud issue, but this can be limited by noisy or missing data points. Additionally, imVoteNet is built on the VoteNet by incorporating 2D image data together with texture and semantic information added. This enhances the object detection performance especially when there is a sparse point cloud data. Although the 2D and 3D data fusion increases the accuracy, the complexity is raised as well.
-
-\paragraph*{}
-The VoteNet's object detection is enhanced by BRNet which traces representative points back to their original vote centres and re-examining point clusters, allowing a more detailed understanding of object structures which also comes with higher cost of computational requirement due to higher complexity. MLCVNet improves VoteNet's performance by incorporating multi-level contextual information which enables the model to better grasp the relationships between objects and their surroundings, leading to more accurate detections. However, the increased complexity of simultaneously modelling both global and local context causes higher computational costs. 
-
-\paragraph*{}
-The Hierarchical Graph Network (HGNet) is the VoteNet method that adopts a graph-based approach for improving object detection performance. This features a shape-attentive feature extractor as well as integrated global scene contect, making the prediction even more accurate. However, the improved detection precision of this approach leads to higher computational cost as well.
-
-\paragraph*{}
-The author performs comparison of the 3D object detection performance of each approach by using the SUN RGB-D dataset which is a single-view RGB-D dataset containing 47 distinct indoor scenes shown in Figure 3.1. 
-
-\begin{figure}
-    \centering
-    \includegraphics[width=0.8\linewidth]{assets/images/literature_survey/table_1.png}
-    \caption{3D object detection performance comparisons on 10 classes on SUN RGB-D datasets. Table reused from \textit{Recent advances in 3D object detection based on RGB-D: A survey}\cite{wang2021recent}}
-    \label{fig:3D object detection performance comparisons on 10 classes on SUN RGB-D datasets.} 
-\end{figure}
-
-
-\paragraph*{}
-Although 3D convolution-based models tend to outperform other approaches, it's important to consider additional factors when selecting a method for our project, such as computational requirements, cost, deployment, integration with SLAM, and hardware compatibility.
-
-\paragraph*{}
-As some 3D object detection approaches build upon 2D object detection methods, such as convolutional networks, it’s equally important to evaluate the various available 2D object detection approaches in terms of their concepts, functionality, and performance.
-
-\paragraph*{}
-There are two major stages in 2D object detection development; the traditional stage and the new stage with deep learning. The concept of traditional object or target detection uses sliding window methods to generate boxed on target images or videos followed by manual feature extraction. Lastly, classifiers like Support Vector Machine (SVM)  and Logistic regression will classify the extracted features and there will be a box bounded around the target position. This can be seen in some models like SIFT and Cascades and some typical algorithms are HOG\cite{dalal2005histograms}, Viola Jones\cite{viola2001robust}, etc. which have limitations causing low detection speed and precision.
-
-\paragraph*{}
-In the second stage, Convolutional Neural Network (CNN) helps increase average detection accuracy by approximately 30\%\cite{zhou2023review}. There are two major algorithms in target detection with deep learning, one stage target detection and two-step target detection. 
-
-\paragraph*{}
-One-stage object detection algorithms predict both the coordinates and class probabilities of objects in a single step using a single neural network\cite{karbouj2024comparative}. Two prominent examples of these algorithms are Single Shot MultiBox Detector (SSD) and You Only Look Once (YOLO), both of which perform differently in various applications. SSD employs a VGG16 backbone for feature extraction and generates predictions at multiple layers, enabling it to handle objects of varying scales without the need for a region proposal network\cite{liu2016ssd}. On the other hand, YOLOv8, the latest iteration of the YOLO family, uses a more advanced Dark-53 backbone, alongside improved data augmentation techniques and anchor box clustering, which collectively boost its accuracy and efficiency\cite{zhou2023review}. To compare the performance of SSD and YOLOv8 in multi-object detection tasks, factors such as accuracy, adaptability, and speed are analysed. This comparison is based on the findings from the study "Performance Analysis of YOLOv8, RCNN, and SSD Object Detection Models for Precision Poultry Farming Management," where SSD, YOLOv8, and Faster R-CNN were tested for multi-object detection, as shown in Table 3.1. 
-
-\paragraph*{}
-Additionally, Two-stage Target Detection involves two steps: the first stage detects potential object locations, while the second stage refines these locations using a deep neural network to extract features from the proposed regions\cite{karbouj2024comparative}. The addition of a Region Proposal Network (RPN) in the second stage introduces extra computational demands, resulting in higher processing time and hardware requirements compared to one-stage detectors\cite{lin2017feature}. The main detectors in this category include;  R-CNN detector uses selective search to generate region proposals before applying CNN to each region to classify the target and bound each target with boxes. However, this approach is computationally  expensive as thousands of regions are processed by CNN independently\cite{girshick2014rich}.
-
-\paragraph*{}
-Fast R-CNN improves R-CNN by integrating region proposal generation and classification into one network for faster processing. It uses a CNN to process the image and classify ROIs from a shared feature map but still relies on external region proposals, limiting its real-time performance\cite{girshick2015fast}.
-
-\paragraph*{}
-Faster-CNN eliminates the need of selective search as it features an internal Regional Proposal Network (RPN) offering a strong balance between speed and accuracy which makes it suitable for real-time task\cite{ren2015faster}.
-     
-\paragraph*{}
-In addition to the aforementioned characteristics of various one-stage and two-stage target detection algorithms, three selected models; YOLOv8, SSD, and Faster-CNN are compared focusing on their speed, precision, and adaptability. The result is measured from the multi-object detection in precision poultry farming management. 
-
-\paragraph*{}
+\paragraph*{} A comparison of these three models is shown in Table \ref{tab:performance_metrics}, focusing on their speed, precision, and adaptability. The evaluation results demonstrate that YOLOv8 excels in multi-object detection, combining high accuracy with balanced speed and efficiency. This makes it a preferred choice for real-time applications due to its lower hardware demands \cite{kaliappan2023real}.
 
 \begin{table}[!h]
 \centering
@@ -125,11 +44,30 @@ In addition to the aforementioned characteristics of various one-stage and two-s
     SSD  & 0.65  & 77\%  & 89\% \\ \hline
     Faster R-CNN  & 0.67  & 59\%  & 77\% \\ \hline
 \end{tabular}
-\caption{A comparative analysis of YOLOv8, SSD, and Faster R-CNN based on key performance metrics, including Recall Value, Mean Average Precision (mAP@0.5), and Precision. Table reused from \textit{Performance analysis of YOLOv8, RCNN, and SSD object detection models for precision poultry farming management}\cite{kaliappan2023performance}}
+\caption{A comparative analysis of YOLOv8, SSD, and Faster R-CNN based on key performance metrics, including Recall Value, Mean Average Precision (mAP@0.5), and Precision \cite{kaliappan2023performance}.}
 \label{tab:performance_metrics}
 \end{table}
 
-Following this comparison, it is evident that YOLOv8 excels in multi-object detection, combining high accuracy with balanced speed and efficiency. This makes YOLOv8 particularly well-suited for real-time applications. Furthermore, YOLOv8’s lower hardware demands make it a more practical choice compared to the more resource-intensive Faster R-CNN and other two-stage detectors\cite{kaliappan2023real}.
+\paragraph*{} Monocular camera-based object detection relies solely on 2D image data to identify objects and approximate their depth and location using visual cues. While such cameras are effective in detecting colour and texture, estimating depth accurately often requires stereo vision or additional sensors.
+
+\paragraph*{} LiDAR-based object detection algorithms provide precise spatial and depth information in the form of 3D point clouds, making them highly effective for localising objects in complex environments, particularly under poor lighting conditions where cameras may struggle \cite{geiger2013vision}. LiDAR-based approaches can be broadly categorised into point-based and voxel-based methods.
+
+\paragraph*{} Point-based methods operate directly on raw 3D point clouds, leveraging their inherent spatial accuracy without converting the data into grids or images. For example, PointNet employs a shared Multi-Layer Perceptron (MLP) to extract features from individual points and aggregates these using max-pooling to capture global context \cite{qi2017pointnet}. PointNet++ enhances this approach by introducing hierarchical feature extraction to capture local geometric features, enabling better performance in cluttered or large-scale environments \cite{qi2017pointnet++}.
+
+\paragraph*{} Conversely, voxel-based methods transform raw point clouds into structured voxel grids, allowing for efficient feature extraction using 3D convolutional neural networks (CNNs). A notable example is VoxelNet, which divides the 3D space into voxels and extracts features using PointNet-inspired architectures, followed by 3D CNNs for detection \cite{zhou2018voxelnet}. Advances such as SECOND improve computational efficiency by optimising voxel representations and employing sparse convolutions \cite{yan2018second}.
+
+\paragraph*{} While LiDAR provides unparalleled depth and spatial accuracy, it lacks the rich texture and colour information necessary for tasks such as object classification and semantic segmentation. LiDAR-camera fusion addresses these limitations by combining the strengths of both sensors. Models such as Frustum PointNet project 2D image proposals onto LiDAR point clouds, improving object localisation and classification \cite{qi2018frustumpointnet}. Frameworks like MV3D and AVOD demonstrate how fusing RGB images and LiDAR data achieves significant performance improvements \cite{ku2018mv3d}.
+
+\paragraph*{} The integration strategy for LiDAR-camera fusion is crucial and can be classified into three categories:
+\begin{itemize}
+    \item \textbf{Early Fusion}: Aligns raw LiDAR point clouds with camera frames for unified processing \cite{ku2018mv3d}.
+    \item \textbf{Mid-Level Fusion}: Merges features extracted separately from LiDAR and camera data \cite{chen2017avod}.
+    \item \textbf{Late Fusion}: Combines decisions made by independent LiDAR and camera models \cite{qi2018frustumpointnet}.
+\end{itemize}
+
+\paragraph*{} Another critical task in object detection is determining the position and orientation of objects in the environment. Accurate pose estimation enables robots to interact effectively with their surroundings for tasks such as navigation, manipulation, and object placement \cite{paul2021object}. Pose estimation methods are broadly categorised into model-based approaches, such as Iterative Closest Point (ICP) \cite{yuan2023accurate}, and learning-based methods, including PoseNet \cite{kendall2015posenet} and PVNet \cite{peng2019pvnet}.
+
+\paragraph*{} Common benchmarks for evaluating pose estimation algorithms include datasets such as LINEMOD and YCB-Video, which offer annotated images and depth maps under varying poses and lighting conditions. However, challenges such as dynamic environments, real-time constraints, and robust performance under occlusions remain areas for further research \cite{chen2022occlusion}.
 
 \section{SLAM}
 
