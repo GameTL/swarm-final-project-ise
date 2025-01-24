@@ -1,6 +1,6 @@
 # Ignore all executables
 *.exe
-
+.vscode
 # Ignore report cache
 reports/progress_report_1/report.fls
 reports/progress_report_1/report.dvi
@@ -27,21 +27,28 @@ temp.py
 venv/
 reports/midpoint_report 2.zip
 *.zip
-reports/midpoint_report/report.toc
-reports/midpoint_report/report.synctex(busy)
-reports/midpoint_report/report.pdf
-reports/midpoint_report/report.log
-reports/midpoint_report/report.fls
-reports/midpoint_report/report.fdb_latexmk
-reports/midpoint_report/report.bcf
-reports/midpoint_report/report.aux
-reports/midpoint_report/report.synctex.gz
-reports/midpoint_report/report.run.xml
-reports/midpoint_report/chapters/report.aux
-reports/midpoint_report/chapters/report.bcf-SAVE-ERROR
-reports/midpoint_report/chapters/report.fdb_latexmk
-reports/midpoint_report/chapters/report.fls
-reports/midpoint_report/report.bbl
+*report.toc
+*report.synctex(busy)
+*report.pdf
+*report.log
+*report.fls
+*report.fdb_latexmk
+*report.bcf
+*report.aux
+*report.synctex.gz
+*report.run.xml
+*report.bbl
+*report.aux
+*report.bcf-SAVE-ERROR
+*report.fdb_latexmk
+*report.fls
 texput.log
 reports/midpoint_report/report.bbl-SAVE-ERROR
 reports/midpoint_report/report.blg
+.gitignore
+hardware/jetson_setup/install_chrome.sh
+hardware/jetson_setup/setup_system.md
+hardware/jetson_setup/setup_vnc.sh
+hardware/jetson_setup/setup.sh
+hardware/Odrive/config_odrive.txt
+hardware/Odrive/odrivetest.py
