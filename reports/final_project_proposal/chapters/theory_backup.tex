@@ -20,7 +20,7 @@ Swarm Robotics is a robotics field that mimics the collective behaviour of natur
 \section{SLAM}
 
 \paragraph*{}
-Simultaneous Localisation and Mapping, also known as SLAM, is a crucial aspect of swarm robotics. SLAM is what allows each robot to navigate autonomously in an environment by constructing a map of said environment. While the map is being constructed, the robot is simultaneously tracking down their own position as well\cite{thrun2003probabilistic}. In our project, we will be going a step further by using Collaborative SLAM (C-SLAM) in which multiple robots work together to build a shared map of the environment. C-SLAM builds on classic SLAM by having multiple robots dynamically sharing and updating their individual maps and position data. This novel approach significantly improves the efficiency and accuracy of map generation which could be a big advantage in dynamic environments.
+Simultaneous Localisation and Mapping, also known as SLAM, is a crucial aspect of swarm robotics. SLAM is what allows each robot to navigate autonomously in an environment by constructing a map of said environment. While the map is being constructed, the robot is simultaneously tracking down their own position as well\cite{thrun2003probabilistic}. In our project, we will be using graph SLAM due to its accurate loop closure and global consistency. As a backup we can also use cartographer or SLAM toolbox, both of which are available as ROS2 packages.
 
 \section{Object Detection and Computer Vision (CV)}
 
