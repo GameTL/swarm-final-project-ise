@@ -52,3 +52,5 @@ hardware/jetson_setup/setup_vnc.sh
 hardware/jetson_setup/setup.sh
 hardware/Odrive/config_odrive.txt
 hardware/Odrive/odrivetest.py
+*build*
+*install*
