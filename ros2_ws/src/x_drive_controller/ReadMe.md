@@ -34,9 +34,7 @@ ros2 run joy joy_enumerate_devices
 
 
 # to drive 
-ros2 run joy joy_node
-ros2 run teleop_joy teleop_joy 
-
+<!-- ros2 run joy joy_node -->
+<!-- ros2 run teleop_joy teleop_joy  -->
 ros2 run teleop_twist_keyboard teleop_twist_keyboard 
-
 ros2 run x_drive_controller x_drive_controller

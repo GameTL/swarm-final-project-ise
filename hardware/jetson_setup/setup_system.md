@@ -24,6 +24,6 @@ sudo apt install ros-humble-desktop
 # Possible values are: setup.bash, setup.sh, setup.zsh
 source /opt/ros/humble/setup.bash
 ```
-2. [Install Colcon](https://colcon.readthedocs.io/en/released/user/installation.html)
+2. [Install Colcon](https://colcon.readthedocs.io/en/released/user/isudo apt install python3-colcon-common-extensionsnstallation.html)
 3. export ROS_DOMAIN_ID=1 (to the number of the jetson)
 4. [Install the RPLidar Package](https://github.com/Slamtec/sllidar_ros2?tab=readme-ov-file) 

@@ -9,3 +9,22 @@
 run `ros2 launch sllidar_ros2 view_sllidar_s3_launch.py` to start the RPLidar Node
 
 
+# Odom 
+
+# run 
+colcon build --symlink-install
+
+
+# how to make a package 
+https://robotics.stackexchange.com/questions/97841/including-a-python-module-in-a-ros2-package
+
+
+
+# Setup 
+https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html
+ros2 run teleop_twist_keyboard teleop_twist_keyboard
+sudo apt-get install ros-humble-teleop-twist-keyboard
+
+# Drive 
+ros2 run teleop_twist_keyboard teleop_twist_keyboard 
+ros2 run x_drive_controller x_drive_controller

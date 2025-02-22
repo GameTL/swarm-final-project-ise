@@ -31,7 +31,7 @@ if system == "Darwin":
 elif system == "Linux":
     print("The operating system is Linux.")
     # DEVICENAME = '/dev/ttyUSB1'
-    DEVICENAME = '/dev/ttyUSB0'
+    DEVICENAME = '/dev/ttyUSB1'
 
 DISABLE = 0
 ENABLE = 1
