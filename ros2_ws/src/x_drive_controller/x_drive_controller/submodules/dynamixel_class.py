@@ -31,7 +31,7 @@ if system == "Darwin":
 elif system == "Linux":
     print("The operating system is Linux.")
     # DEVICENAME = '/dev/ttyUSB1'
-    DEVICENAME = '/dev/ttyUSB1'
+    DEVICENAME = '/dev/ttyUSB0'
 
 DISABLE = 0
 ENABLE = 1
@@ -41,7 +41,7 @@ index = 0
 dxl_goal_speed = [300, 800]         # Goal position
 
 MAX_LINEAR_STEP = 330
-MAX_ANGULAR_STEP = 213
+MAX_ANGULAR_STEP = 163
 STEP_LIMIT = MAX_LINEAR_STEP # MOVING SPEED LIMIT
 
 #********* DYNAMIXEL Model definition *********
@@ -70,7 +70,7 @@ class DynamixelInterface:
     def __init__(self, device_name=DEVICENAME, protocol_version=PROTOCOL_VERSION):
         self.portHandler    = PortHandler(device_name)            # Initialize PortHandler instance
         self.packetHandler  = PacketHandler(protocol_version)    # Initialize PacketHandler instance
-        self.motors_id = [1,2,3,4]
+        self.motors_id = [4,1,2,3]
         # Open port
         if self.portHandler.openPort():
             print("Succeeded to open the port")
@@ -264,39 +264,7 @@ class DynamixelInterface:
     def set_all_moving_speeds(self, speeds):
         for dxl_id, speed in zip(self.motors_id, speeds):
             self.write_register_only(dxl_id, ADDR_MOVING_SPEED, speed, 2)
-
-    # def drive(self, angle=45, speed=0, ang_speed=0):
-    #     # ang_speed * MAX_ANG
-    #     ang_speed * 200
-    #     # Precompute trigonometric values
-    #     angle_rad = np.radians(angle)
-    #     speeds_trig = np.array([
-    #         +np.cos(angle_rad - RADIANS45),
-    #         +np.cos(angle_rad - RADIANS135),
-    #         -np.cos(angle_rad - RADIANS45),
-    #         -np.cos(angle_rad - RADIANS135)
-    #     ], dtype=np.float32)
-
-    #     # Convert speeds to the correct format
-    #     speeds = [self.tf_speed(int(s)) for s in speeds_trig]
-
-    #     # Set all motor speeds at once
-    #     self.set_all_moving_speeds(speeds)
-    # def drive(self, angle=45, speed=DEFAULT_SPEED, ang_speed=0):
-    #     # Precompute trigonometric values
-    #     angle_rad = np.radians(angle)
-    #     speeds_trig = (np.array([
-    #         +np.cos(angle_rad - RADIANS45) ,
-    #         +np.cos(angle_rad - RADIANS135),
-    #         -np.cos(angle_rad - RADIANS45),
-    #         -np.cos(angle_rad - RADIANS135)
-    #     ]))* speed
-
-    #     # Convert speeds to the correct format
-    #     speeds = [self.tf_speed(int(s)) for s in speeds_trig]
-
-    #     # Set all motor speeds at once
-    #     self.set_all_moving_speeds(speeds)
+            
     def drive(self, xDot, yDot, thetaDot):
         # print("----")
         if (not(xDot) or not(yDot)):

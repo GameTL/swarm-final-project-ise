@@ -12,6 +12,14 @@ from math import degrees
 # Config
 
 
+""" 
+SAFE SPEED FOR LIDAR ODOM 
+CMD_VEL
+MAX_LINEARX_X = speed 0.08206928047885179
+MAX_LINEARX_Y = speed 0.08206928047885179
+ANGULAR_Z = turn 0.000357019954697317 
+"""
+
 class XDriveController(Node):
     """ 
     Motor Configuration: 45 degrees to each x & y axis
