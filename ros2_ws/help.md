@@ -21,14 +21,17 @@ sudo apt-get install ros-humble-teleop-twist-keyboard
 
 ## LiDAR
 For setting rf2o using CMAKE. First go the the CMakeLists.txt folder then run the following commands:
-- mkdir build
-- cd build
-- cmake ..
-- make
-
+```bash
+mkdir build
+cd build
+cmake ..
+make
+```
 
 Make sure that the LiDAR is running, after that run this command in a new terminal:
-- ros2 launch rf2o_laser_odometry rf2o_laser_odometry.launch.py
+```bash
+ros2 launch rf2o_laser_odometry rf2o_laser_odometry.launch.py
+```
 
 
 # Run
