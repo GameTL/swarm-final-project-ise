@@ -5,29 +5,24 @@
 1. add `source ~/swarm-final-project-ise/ros2_ws/install/setup.bash` to `~/.bashrc`
 1. check with bringups
 
-# Start for Mehul 
-run `ros2 launch sllidar_ros2 view_sllidar_s3_launch.py` to start the RPLidar Node
-
-
-# Odom 
-
 # run 
-colcon build --symlink-install
+colcon build --symlink-install or colcon_build
 
 
 # how to make a package 
 https://robotics.stackexchange.com/questions/97841/including-a-python-module-in-a-ros2-package
 
 
-
 # Setup 
+install from ros `swarm-final-project-ise/hardware/jetson_setup/setup_system.md`
 https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html
 ros2 run teleop_twist_keyboard teleop_twist_keyboard
 sudo apt-get install ros-humble-teleop-twist-keyboard
 
-# Drive 
+# Run
+## Drive 
 ros2 run teleop_twist_keyboard teleop_twist_keyboard 
 ros2 run x_drive_controller x_drive_controller
-# Lidar Odometry
-ros2 launch sllidar_ros2 view_sllidar_s3_launch.py
+## Lidar Odometry
+ros2 launch sllidar_ros2 view_sllidar_s3_launch.py # to start the RPLidar Node
 ros2 run rf2o_laser_odometry rf2o_laser_odometry_node 
