@@ -28,3 +28,6 @@ sudo apt-get install ros-humble-teleop-twist-keyboard
 # Drive 
 ros2 run teleop_twist_keyboard teleop_twist_keyboard 
 ros2 run x_drive_controller x_drive_controller
+# Lidar Odometry
+ros2 launch sllidar_ros2 view_sllidar_s3_launch.py
+ros2 run rf2o_laser_odometry rf2o_laser_odometry_node 
