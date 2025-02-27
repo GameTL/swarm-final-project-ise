@@ -5,11 +5,11 @@
 ]{report}
 
 % Import packages
+\usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage{subfigure}
 \usepackage{latexsym}
 \usepackage{pkg/cappar}
-\usepackage{subcaption}
 \usepackage{amssymb}
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
@@ -84,10 +84,8 @@
 
 % Chapters
 \input{chapters/introduction}
-
-\input{chapters/communication}
-\input{chapters/hardware}
 \input{chapters/slam}
+\input{chapters/communication}
 \input{chapters/odometry}
 \input{chapters/coordination}
 \input{chapters/object_detection}
@@ -95,7 +93,7 @@
 \input{chapters/conclusion}
 
 % Bibliography
-\nocite{*}
+% \nocite{*}
 \printbibliography
 
 \end{document} 

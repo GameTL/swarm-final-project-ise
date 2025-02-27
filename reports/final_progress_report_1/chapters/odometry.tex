@@ -14,5 +14,32 @@ The next odometry we investigated is the LIDAR odometry. For this we used a ros2
 For wheel encoder odometry in four-wheeled omnidirectional mobile robots, the motor controls each wheel independently, resulting in total control of the robot's movements in the 2-D plane. The measurements from the rotational movements of the encoders can help us determine the distance traveled by the wheel through mathematical calculations.
 AX-12W presents a complete interface for reading and writing the motor status. As for wheel odometry, the main data we are interested in specifically are the present position and speed of the motor. With a baud rate of 1M, and the ability to bulk-read all motors instantaneously, we presume that our motors will be well adapted to the robot's pose estimation model. \cite{phunopas2018motion}
 
+\begin{figure} [H]
+    \[
+    \begin{bmatrix}
+    W_1\\
+    W_2\\
+    W_3\\
+    W_4\\
+    \end{bmatrix}
+    =
+    \frac{1}{r}
+    \begin{bmatrix}
+    -\sin(\theta + \frac{\pi}{4})  & \cos(\theta +  \frac{\pi}{4})   & R \\
+    -\sin(\theta + \frac{3\pi}{4}) & \cos(\theta +  \frac{3\pi}{4})  & R \\
+    -\sin(\theta + \frac{5\pi}{4}) & \cos(\theta +  \frac{5\pi}{4})  & R \\
+    -\sin(\theta + \frac{7\pi}{4}) & \cos(\theta +  \frac{7\pi}{4})  & R \\
+    \end{bmatrix}
+    \begin{bmatrix}
+        V_x\\
+        V_y\\
+        \dot{\theta_z}\\
+        \end{bmatrix}
+    \]
+    \caption{Equation we use to calculate the wheel velocity, multiplication of the Inverse Jacobian matrix and the Twist message to get the wheel velocity. $\theta$ in this case is the orientation of the robot in the global frame. $R$ is the radius of the robot from center to wheel. $r$ is the radius of the wheel.} 
+    \label{fig:matrix-wheel}
+\end{figure}
+
+
 \paragraph*{}
 Sensor fusion is essential due to the inherent limitations of individual sensors. Wheel odometry is susceptible to wheel slippage and drift over time, LiDAR odometry performs well but is prone to errors when scanning dynamic objects, and IMU data suffers from integration drift. By fusing these sensors, their strengths can complement each other, mitigating individual weaknesses and improving overall accuracy. The Extended Kalman Filter (EKF) is the optimal solution for sensor fusion in this context because it effectively handles non-linear motion models while incorporating uncertainty from different sources. EKF recursively estimates the robot’s state by predicting its position using a motion model and continuously updating it with sensor measurements, ensuring a more stable and accurate pose estimation. We could the feed this odometry to SLAM to achieve the best possible mapping.
