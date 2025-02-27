@@ -54,3 +54,5 @@ hardware/Odrive/config_odrive.txt
 hardware/Odrive/odrivetest.py
 *build*
 *install*
+*.blg
+*.bbl-SAVE-ERROR
