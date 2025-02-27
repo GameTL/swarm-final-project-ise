@@ -2,15 +2,15 @@
 *.exe
 .vscode
 # Ignore report cache
-reports/progress_report_1/report.fls
-reports/progress_report_1/report.dvi
-reports/progress_report_1/report.fdb_latexmk
-reports/progress_report_1/report.bcf
-reports/progress_report_1/report.aux
-reports/progress_report_1/report.log
-reports/progress_report_1/report.run.xml
-reports/progress_report_1/report.synctex.gz
-reports/progress_report_1/report.toc
+*report.fls*
+*report.dvi*
+*report.fdb_latexmk*
+*report.bcf*
+*report.aux*
+*report.log*
+*report.run.xml*
+*report.synctex.gz*
+*report.toc*
 **/.DS_Store
 temp.txt
 
@@ -53,6 +53,12 @@ hardware/jetson_setup/setup.sh
 hardware/Odrive/config_odrive.txt
 hardware/Odrive/odrivetest.py
 *build*
+<<<<<<< Updated upstream
 *install*
 *.blg
 *.bbl-SAVE-ERROR
+=======
+*install*
+*report.bbl-SAVE-ERROR*
+*report.blg*
+>>>>>>> Stashed changes
