@@ -33,7 +33,7 @@ According to Figure \ref{fig:gantt_chart}, we are exploring four major sub-tasks
 \paragraph*{}
 To aid the visualization of this project. We have created a Petri Nets model (Figure \ref{fig:petri_nets}) to represent the project's workflow. Petri Nets serve as a formal modeling tool to
 represent concurrent and distributed systems, providing a structured framework for analyzing complex
-workflows. In the transition(rectangle) "Task Assigned from Taskmaster" force synchronization between the two dependent ask "Wait for instruction" and "Planned Path for All" to start following the planned path. For the place "Reach each destination of Yellow Cylinder \& grasp the cylinder", we can see it's 
+workflows. In the transition(rectangle) "Task Assigned from Taskmaster" force synchronization between the two dependent ask "Wait for instruction" and "Planned Path for All" to start following the planned path. For the place "Reach each destination of Yellow Cylinder \& grasp the cylinder", we can see it's connected to the transition "Task Assigned from Taskmaster" which means that the task is dependent on the taskmaster to assign the task to the robot. The transition "Task Assigned from Taskmaster" is connected to the place "Wait for instruction" which means that the robot will wait for the instruction from the taskmaster to start the task. The transition "Task Assigned from Taskmaster" is also connected to the place "Planned Path for All" which means that the robot will start following the planned path after the taskmaster assigns the task.
 
 \begin{figure}[H]
     \centering
