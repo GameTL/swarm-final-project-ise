@@ -13,7 +13,7 @@
 *report.toc*
 **/.DS_Store
 temp.txt
-
+*log*
 # Ignore world image
 **/worlds/*.jpg
 

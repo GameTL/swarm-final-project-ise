@@ -32,6 +32,7 @@ elif system == "Linux":
     print("The operating system is Linux.")
     # DEVICENAME = '/dev/ttyUSB1'
     DEVICENAME = '/dev/ttyUSB0'
+    # DEVICENAME = '/dev/usb_serial'
 
 DISABLE = 0
 ENABLE = 1
@@ -122,7 +123,8 @@ class DynamixelInterface:
         else:
             raise ValueError("Invalid size. Use 1 or 2")
             
-        if result != COMM_SUCCESS:
+        if result != COMM_SUCCESS or error != 0:
+        # if result != COMM_SUCCESS :
             print(f"Failed to read address {address}: {self.packetHandler.getTxRxResult(result)}")
         elif error != 0:
             print(f"Error reading address {address}: {self.packetHandler.getRxPacketError(error)}")
@@ -264,6 +266,13 @@ class DynamixelInterface:
     def set_all_moving_speeds(self, speeds):
         for dxl_id, speed in zip(self.motors_id, speeds):
             self.write_register_only(dxl_id, ADDR_MOVING_SPEED, speed, 2)
+
+    def call_back(self):
+        '''for dxl_id in self.motors_id:
+            print(f"Present Position: {self.read_register(dxl_id, ADDR_PRESENT_POSITION)}")'''
+        raw_speed = self.read_register(2 ,38, 2)
+        magnitude_speed = raw_speed & 0x3FF
+        print("Speed: ", raw_speed)
             
     def drive(self, xDot, yDot, thetaDot):
         # print("----")
@@ -296,6 +305,9 @@ class DynamixelInterface:
             V_motor_int_unsigned[idx] = (self.tf_speed(min(max(num,-STEP_LIMIT), STEP_LIMIT)))
         print(V_motor_int_unsigned)
         self.set_all_moving_speeds(V_motor_int_unsigned)
+        # time.sleep(0.1)
+        # self.call_back()
+        
     
     def anticlockwise(self, speed=DEFAULT_SPEED):
             self.set_moving_speed(1, 1024+speed,)

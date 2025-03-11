@@ -22,6 +22,7 @@ setup(
     entry_points={
         'console_scripts': [
             'x_drive_controller = x_drive_controller.x_drive_controller:main',
+            'x_drive_observer = x_drive_controller.x_drive_observer:main',
         ],
     },
 )
