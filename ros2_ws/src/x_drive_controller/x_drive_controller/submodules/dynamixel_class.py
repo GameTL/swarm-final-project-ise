@@ -6,6 +6,7 @@ from math import sin, cos, pi, cos, radians, degrees
 RADIANS45  = radians(45)
 RADIANS135 = radians(135)
 import numpy as np
+from numpy.linalg import inv
 
 mRAD2STEP = 0.085693
 R = int(168/2) # (mm) Radius from the Robot_center to Wheel_center 
@@ -273,6 +274,20 @@ class DynamixelInterface:
         raw_speed = self.read_register(2 ,38, 2)
         magnitude_speed = raw_speed & 0x3FF
         print("Speed: ", raw_speed)
+
+    def inv_drive(self, v1=0, v2=0, v3=0, v4=0):
+        V_motor = np.array([[v1],
+                            [v2],
+                            [v3],
+                            [v4]])
+        V_omega = V_motor/mRAD2STEP
+        inv_arcJ = inv(np.array([[-sin((5*pi)/4),  cos((5*pi)/4),  R],
+                    [-sin((3*pi)/4),  cos((3*pi)/4),  R],
+                    [-sin(pi/4),      cos(pi/4),      R],
+                    [-sin((7*pi)/4),  cos((7*pi)/4),  R]]) / r)
+        Vin = np.dot(inv_arcJ,V_omega)/2000
+        Vin = Vin/1000
+        return Vin[0], Vin[1], Vin[2]
             
     def drive(self, xDot, yDot, thetaDot):
         # print("----")
