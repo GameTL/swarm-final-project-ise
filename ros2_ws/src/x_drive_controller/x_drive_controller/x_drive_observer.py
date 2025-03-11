@@ -3,6 +3,7 @@ import rclpy
 from rclpy.node import Node
 from .submodules.dynamixel_class import DynamixelInterface  # Import motor interface
 import time
+import numpy as np
 
 class XDriveObserver(Node):
     """ 
@@ -20,6 +21,17 @@ class XDriveObserver(Node):
         # Set a timer to continuously check motor states every 0.5s
         self.timer_period = 0.01  # Adjust as needed
         self.timer = self.create_timer(self.timer_period, self.read_motor_state)
+
+        self.robot_position = np.array([0, 0, 0]) # initial position
+
+    def refresh_odometry(self, xDot, yDot, thetaDot):
+        dt = self.timer_period
+        velo = np.array([[xDot],
+                         [yDot],
+                         [thetaDot]])
+        delta_posi = velo*dt
+        self.robot_position = self.robot_position+delta_posi
+
 
     def read_motor_state(self):
         """ Periodically reads motor states """
