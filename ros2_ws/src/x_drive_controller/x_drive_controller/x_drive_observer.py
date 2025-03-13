@@ -33,6 +33,8 @@ class XDriveObserver(Node):
     def refresh_odometry(self):
         dt = self.timer_period
         velo = self.robot_velo
+        if np.linalg.norm(velo) < 1e-4:
+            return
         delta_posi = (velo * dt).reshape(-1)
         self.robot_position = (self.robot_position + delta_posi)
 
