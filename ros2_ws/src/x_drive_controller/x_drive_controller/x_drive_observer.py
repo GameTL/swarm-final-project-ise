@@ -20,24 +20,29 @@ class XDriveObserver(Node):
 
         # Set a timer to continuously check motor states every 0.5s
         self.timer_period = 0.01  # Adjust as needed
-        self.timer = self.create_timer(self.timer_period, self.read_motor_state)
+        self.timer1 = self.create_timer(self.timer_period, self.read_motor_state)
+        self.timer2 = self.create_timer(1, self.update_status)
 
+        self.robot_velo = np.array([0, 0, 0])
         self.robot_position = np.array([0, 0, 0]) # initial position
+    
+    def update_status(self):
+        print(f"Current Velo X: {self.robot_velo[0]}, Current Velo Y: {self.robot_velo[1]}, Current Velo Theta: {self.robot_velo[2]}"
+            f" \n Current Posi X: {self.robot_position[0]}, Current Posi Y: {self.robot_position[1]}, Current Posi Theta: {self.robot_position[2]}")
 
-    def refresh_odometry(self, xDot, yDot, thetaDot):
+    def refresh_odometry(self):
         dt = self.timer_period
-        velo = np.array([[xDot],
-                         [yDot],
-                         [thetaDot]])
-        delta_posi = velo*dt
-        self.robot_position = self.robot_position+delta_posi
-
+        velo = self.robot_velo
+        delta_posi = (velo * dt).reshape(-1)
+        self.robot_position = (self.robot_position + delta_posi)
 
     def read_motor_state(self):
         """ Periodically reads motor states """
         try:
-            print("Reading motor state...")
-            self.interface.call_back()
+            # print("Reading motor state...")
+            self.robot_velo = self.interface.call_back()
+            self.refresh_odometry()
+
         except Exception as e:
             self.get_logger().error(f"Error reading motor state: {e}")
 
