@@ -216,6 +216,11 @@ class DynamixelInterface:
         if int(speed) < 0: # if -ive
             return int(1024 - int(speed))
         return int(speed)
+    
+    def inv_tf_speed(self, speed):
+        if int(speed) > 1024:
+            return -int(speed)
+        return int(speed)
         
     def set_all_torque(self, torque=1023):
             self.set_torque(1, torque)
