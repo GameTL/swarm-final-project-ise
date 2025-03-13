@@ -1,9 +1,9 @@
 import json
 import time
-import random
 import socket
 import threading
 from collections import defaultdict
+from formation import FormationMaster
 
 IDENTIFIER = "jetson1"
 HOST_FP = "./communication/hosts.json"
@@ -11,14 +11,19 @@ MAX_CONNECTIONS = 5
 TIMEOUT = 5
 MAX_RETRIES = 3
 
-
 class Communicator:
     def __init__(self, host_fp=HOST_FP, identifier=IDENTIFIER, max_connections=MAX_CONNECTIONS):
+        # Initialize default attributes
         self.host_fp = host_fp
         self.identifier = identifier
         self.max_connections = max_connections
         self.taskmaster_claims = []
 
+        # For object detection and path planning
+        self.coords = (0.0, 0.0)
+        self.coords_dict = {}
+
+        # Initialize host information and priority queue
         self.parse_json()
 
     def parse_json(self):
@@ -65,8 +70,13 @@ class Communicator:
             if header == "OBJECT_DETECTED":
                 print("[INFO] Object detected, stopping.") # TODO Replace with actual functionality
                 self.consensus(sender)  # Trigger consensus function
-            elif header == "CONSENSUS_REACHED":
-                print(f"[INFO] Consensus reached, taskmaster is {content}")
+            # elif header == "CONSENSUS_REACHED":
+            #     print(f"[INFO] Consensus reached, taskmaster is {content}")
+            elif header == "COORDINATES":
+                print(f"[INFO] {sender} sent {content}")
+                print(type(content))
+                self.coords_dict[sender] = content
+                print(self.coords_dict)
 
             # Send ACK back
             client_fd.sendall("ACK".encode("utf-8"))
@@ -109,7 +119,7 @@ class Communicator:
                         # Send SYNACK confirmation
                         client_fd.sendall("SYNACK".encode("utf-8"))
                         print(f"[INFO] {peer} acknowledged the message.")
-                        break  # Stop retrying after success
+                        break
 
                 except (socket.timeout, ConnectionError):
                     print(f"[WARN] No ACK from {peer}, retrying ({attempt + 1}/{MAX_RETRIES})...")
@@ -147,7 +157,7 @@ class Communicator:
             if vote_count[most_voted] > len(self.taskmaster_claims) // 2:
                 self.taskmaster = most_voted
 
-        # Update priority queue (push taskmaster to back)
+        # Push taskmaster to back in the priority queue
         if self.taskmaster in self.priority_queue:
             self.priority_queue.remove(self.taskmaster)
             self.priority_queue.append(self.taskmaster)
@@ -155,14 +165,62 @@ class Communicator:
         print(f"[INFO] Consensus reached: {self.taskmaster} is the taskmaster.")
         
         # Broadcast consensus to all robots
-        self.broadcast("CONSENSUS_REACHED", self.taskmaster)
+        # self.broadcast("CONSENSUS_REACHED", self.taskmaster)
+
+        # Send own coordinates to the taskmaster
+        if self.identifier == self.taskmaster:
+            print(f"[INFO] {self.identifier} is the taskmaster, no need to send coords.")
+        else:
+            # Send coordinates to the taskmaster
+            self.send_coords_to_taskmaster(self.taskmaster)
 
         # Clear claims after consensus
         self.taskmaster_claims.clear()
 
+    def send_coords_to_taskmaster(self, taskmaster):
+        taskmaster_data = self.host_info.get(taskmaster)
+        if taskmaster_data:
+            try:
+                # Connect to the taskmaster
+                taskmaster_fd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                taskmaster_fd.settimeout(TIMEOUT)
+                taskmaster_fd.connect((taskmaster_data["ip"], taskmaster_data["port"]))
+
+                # Prepare the message with coordinates
+                message = json.dumps({
+                    "header": "COORDINATES",
+                    "sender": self.identifier,
+                    "content": self.coords
+                })
+
+                # Send the coordinates to the taskmaster
+                taskmaster_fd.sendall(message.encode("utf-8"))
+
+                # Wait for ACK
+                ack = taskmaster_fd.recv(1024).decode("utf-8")
+                if ack == "ACK":
+                    print(f"[INFO] Taskmaster {taskmaster} acknowledged the coordinates.")
+                    
+            except (socket.timeout, ConnectionError) as e:
+                print(f"[ERROR] Error sending coordinates to {taskmaster}: {e}")
+            finally:
+                taskmaster_fd.close()
+
+    def object_detected(self, message=""):
+        """
+        Utility function for robot to call when object is detected
+        """
+        communicator.broadcast("OBJECT_DETECTED", message) # Should be object and obstacle positions
+
     # TODO: Method to send its own coords to taskmaster, as well as receive object / obstacle positions with respect to global
     # TODO (above as prerequisite): Call on path planning algorithm to plan path for the swarm
-    
+
+    def path_planning(self, current_coords, object_coords, obstacle_coords, radius):
+        # Initialize formation master
+        self.formation_master = FormationMaster(self.identifier, current_coords=current_coords, object_coords=object_coords, obstacles=obstacle_coords, radius=radius)
+        
+        # Clear path planning params
+        self.coords_dict = {}
 
 if __name__ == "__main__":
     communicator = Communicator()
@@ -174,9 +232,9 @@ if __name__ == "__main__":
     while True:
         user_input = input("Press 'S' to claim taskmaster role: ").strip().upper()
         if user_input == "S":
-            time.sleep(random.uniform(1.1, 1.3))
-            communicator.broadcast("OBJECT_DETECTED", "Claiming taskmaster")
-        if user_input == "Q":
+            # time.sleep(random.uniform(1.1, 1.3))
+            communicator.object_detected()
+        elif user_input == "Q":
             break
 
     server_thread.join()

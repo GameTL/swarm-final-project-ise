@@ -45,7 +45,6 @@ reports/midpoint_report 2.zip
 texput.log
 reports/midpoint_report/report.bbl-SAVE-ERROR
 reports/midpoint_report/report.blg
-.gitignore
 hardware/jetson_setup/install_chrome.sh
 hardware/jetson_setup/setup_system.md
 hardware/jetson_setup/setup_vnc.sh
@@ -53,12 +52,10 @@ hardware/jetson_setup/setup.sh
 hardware/Odrive/config_odrive.txt
 hardware/Odrive/odrivetest.py
 *build*
-<<<<<<< Updated upstream
 *install*
 *.blg
 *.bbl-SAVE-ERROR
-=======
-*install*
 *report.bbl-SAVE-ERROR*
 *report.blg*
->>>>>>> Stashed changes
+
+temp_py_files/
