@@ -292,6 +292,7 @@ class DynamixelInterface:
                 v3=self.inv_tf_speed(velo_info.get(2, 0)),
                 v4=self.inv_tf_speed(velo_info.get(3, 0))
             )
+            # print(f"v1={velo_info.get(4, 0)}, v2={velo_info.get(1, 0)}, v3={velo_info.get(2, 0)}, v4={velo_info.get(3, 0)}")
         except KeyError as e:
             print(f"Error: Motor ID {e} not found in velo_info")  # Handle missing motor IDs gracefully
             return np.array([0, 0, 0])  # Return a default value in case of error
@@ -301,11 +302,12 @@ class DynamixelInterface:
     def inv_drive(self, v1=0, v2=0, v3=0, v4=0):
         V_motor = np.array([[v1], [v2], [v3], [v4]])
         V_omega = V_motor / mRAD2STEP  # This converts back to rad/s or mm/s
+        V_omega = V_omega / 2000
         inv_arcJ = pinv(np.array([[-sin((5*pi)/4),  cos((5*pi)/4),  R],
                                 [-sin((3*pi)/4),  cos((3*pi)/4),  R],
                                 [-sin(pi/4),      cos(pi/4),      R],
                                 [-sin((7*pi)/4),  cos((7*pi)/4),  R]]) / r)
-        Vin = np.dot(inv_arcJ, V_omega)  # Don't scale by 2000 here
+        Vin = np.dot(inv_arcJ, V_omega)  
         Vin = Vin / 1000  # Adjust for units properly
         return Vin[0], Vin[1], Vin[2]
      
