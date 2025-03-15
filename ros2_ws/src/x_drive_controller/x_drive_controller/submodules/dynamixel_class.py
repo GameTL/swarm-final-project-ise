@@ -276,7 +276,7 @@ class DynamixelInterface:
     def call_back(self):
         velo_info = {}
         for dxl_id in self.motors_id:
-            current_velo = int(self.read_register(dxl_id, 32))
+            current_velo = int(self.read_register(dxl_id, 38))
             # Filter out velocities that are too low or zero
             if current_velo <= 2048:
                 velo_info[dxl_id] = current_velo

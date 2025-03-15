@@ -19,7 +19,7 @@ class XDriveObserver(Node):
         self.interface = DynamixelInterface()
 
         # Set a timer to continuously check motor states every 0.5s
-        self.timer_period = 0.01  # Adjust as needed
+        self.timer_period = 0.001  # Adjust as needed
         self.timer1 = self.create_timer(self.timer_period, self.read_motor_state)
         self.timer2 = self.create_timer(1, self.update_status)
 
@@ -29,6 +29,7 @@ class XDriveObserver(Node):
     def update_status(self):
         print(f"Current Velo X: {self.robot_velo[0]}, Current Velo Y: {self.robot_velo[1]}, Current Velo Theta: {self.robot_velo[2]}"
             f" \n Current Posi X: {self.robot_position[0]}, Current Posi Y: {self.robot_position[1]}, Current Posi Theta: {self.robot_position[2]}")
+        # self.robot_visual.update_position(self.robot_position[0], self.robot_position[1], self.robot_position[2])
 
     def refresh_odometry(self):
         dt = self.timer_period
