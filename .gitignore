@@ -59,3 +59,4 @@ hardware/Odrive/odrivetest.py
 *report.blg*
 
 temp_py_files/
+.env*
