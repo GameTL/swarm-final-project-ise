@@ -6,6 +6,7 @@ from math import sin, cos, pi, cos, radians, degrees
 RADIANS45  = radians(45)
 RADIANS135 = radians(135)
 import numpy as np
+from numpy.linalg import pinv
 
 mRAD2STEP = 0.085693
 R = int(168/2) # (mm) Radius from the Robot_center to Wheel_center 
@@ -31,7 +32,8 @@ if system == "Darwin":
 elif system == "Linux":
     print("The operating system is Linux.")
     # DEVICENAME = '/dev/ttyUSB1'
-    DEVICENAME = '/dev/ttyUSB0'
+    DEVICENAME = '/dev/ttyUSB1'
+    # DEVICENAME = '/dev/usb_serial'
 
 DISABLE = 0
 ENABLE = 1
@@ -122,7 +124,8 @@ class DynamixelInterface:
         else:
             raise ValueError("Invalid size. Use 1 or 2")
             
-        if result != COMM_SUCCESS:
+        if result != COMM_SUCCESS or error != 0:
+        # if result != COMM_SUCCESS :
             print(f"Failed to read address {address}: {self.packetHandler.getTxRxResult(result)}")
         elif error != 0:
             print(f"Error reading address {address}: {self.packetHandler.getRxPacketError(error)}")
@@ -213,6 +216,11 @@ class DynamixelInterface:
         if int(speed) < 0: # if -ive
             return int(1024 - int(speed))
         return int(speed)
+    
+    def inv_tf_speed(self, speed):
+        if int(speed) > 1024:
+            return -int(speed)
+        return int(speed)
         
     def set_all_torque(self, torque=1023):
             self.set_torque(1, torque)
@@ -264,7 +272,45 @@ class DynamixelInterface:
     def set_all_moving_speeds(self, speeds):
         for dxl_id, speed in zip(self.motors_id, speeds):
             self.write_register_only(dxl_id, ADDR_MOVING_SPEED, speed, 2)
-            
+
+    def call_back(self):
+        velo_info = {}
+        for dxl_id in self.motors_id:
+            current_velo = int(self.read_register(dxl_id, 38))
+            # Filter out velocities that are too low or zero
+            if current_velo <= 2048:
+                velo_info[dxl_id] = current_velo
+            else:
+                pass
+        
+        # Check if the expected motor IDs are in the dictionary before accessing them
+        try:
+            # Ensure keys 1, 2, 3, 4 exist in the velo_info dictionary
+            xDot, yDot, thetaDot = self.inv_drive(
+                v1=self.inv_tf_speed(velo_info.get(4, 0)),  # Default to 0 if key is missing
+                v2=self.inv_tf_speed(velo_info.get(1, 0)),
+                v3=self.inv_tf_speed(velo_info.get(2, 0)),
+                v4=self.inv_tf_speed(velo_info.get(3, 0))
+            )
+            # print(f"v1={velo_info.get(4, 0)}, v2={velo_info.get(1, 0)}, v3={velo_info.get(2, 0)}, v4={velo_info.get(3, 0)}")
+        except KeyError as e:
+            print(f"Error: Motor ID {e} not found in velo_info")  # Handle missing motor IDs gracefully
+            return np.array([0, 0, 0])  # Return a default value in case of error
+
+        return np.array([xDot, yDot, thetaDot])
+        
+    def inv_drive(self, v1=0, v2=0, v3=0, v4=0):
+        V_motor = np.array([[v1], [v2], [v3], [v4]])
+        V_omega = V_motor / mRAD2STEP  # This converts back to rad/s or mm/s
+        V_omega = V_omega / 2000
+        inv_arcJ = pinv(np.array([[-sin((5*pi)/4),  cos((5*pi)/4),  R],
+                                [-sin((3*pi)/4),  cos((3*pi)/4),  R],
+                                [-sin(pi/4),      cos(pi/4),      R],
+                                [-sin((7*pi)/4),  cos((7*pi)/4),  R]]) / r)
+        Vin = np.dot(inv_arcJ, V_omega)  
+        Vin = Vin / 1000  # Adjust for units properly
+        return Vin[0], Vin[1], Vin[2]
+     
     def drive(self, xDot, yDot, thetaDot):
         # print("----")
         if (not(xDot) or not(yDot)):
@@ -296,6 +342,9 @@ class DynamixelInterface:
             V_motor_int_unsigned[idx] = (self.tf_speed(min(max(num,-STEP_LIMIT), STEP_LIMIT)))
         print(V_motor_int_unsigned)
         self.set_all_moving_speeds(V_motor_int_unsigned)
+        # time.sleep(0.1)
+        # self.call_back()
+        
     
     def anticlockwise(self, speed=DEFAULT_SPEED):
             self.set_moving_speed(1, 1024+speed,)
