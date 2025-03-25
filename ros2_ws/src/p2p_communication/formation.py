@@ -2,7 +2,6 @@ import math
 import json
 from rich.pretty import pprint
 
-
 class FormationMaster:
     def __init__(self, name, current_coords: dict, object_coords: tuple, obstacles: dict, radius=0.3, fineness=2, debug_level=0):
         """ 
