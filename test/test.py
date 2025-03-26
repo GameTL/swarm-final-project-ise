@@ -1,94 +1,59 @@
 import numpy as np
 import cv2
 import time
-
-ARUCO_DICT = {
-    "DICT_6X6_250": cv2.aruco.DICT_6X6_250
-    
-} 
+import threading
+import queue
+from aruco import Aruco
+from aruco_visual import ArucoVisual  # Assuming this uses `turtle`
 
 prev_frame_time = 0
-new_frame_time = 0
+cap = cv2.VideoCapture(0)  # Open the camera
+aruco = Aruco()
 
+# Thread-safe queue for communication between OpenCV and turtle
+data_queue = queue.Queue()
 
-def aruco_display(corners, ids, rejected, image):
-    if len(corners) > 0:
-        
-        ids = ids.flatten()
-        
-        for (markerCorner, markerID) in zip(corners, ids):
-            
-            corners = markerCorner.reshape((4, 2))
-            (topLeft, topRight, bottomRight, bottomLeft) = corners
-            
-            topRight = (int(topRight[0]), int(topRight[1]))
-            bottomRight = (int(bottomRight[0]), int(bottomRight[1]))
-            bottomLeft = (int(bottomLeft[0]), int(bottomLeft[1]))
-            topLeft = (int(topLeft[0]), int(topLeft[1]))
+# Function to update the turtle map in a separate thread
+def update_turtle_map():
+    global aruco_visual
+    aruco_visual = ArucoVisual(640, 480)  # Initialize in the thread
 
-            cv2.line(image, topLeft, topRight, (0, 255, 0), 2)
-            cv2.line(image, topRight, bottomRight, (0, 255, 0), 2)
-            cv2.line(image, bottomRight, bottomLeft, (0, 255, 0), 2)
-            cv2.line(image, bottomLeft, topLeft, (0, 255, 0), 2)
-            
-            cX = int((topLeft[0] + bottomRight[0]) / 2.0)
-            cY = int((topLeft[1] + bottomRight[1]) / 2.0)
-            cv2.circle(image, (cX, cY), 4, (0, 0, 255), -1)
-            
-            cv2.putText(image, str(markerID),(topLeft[0], topLeft[1] - 10), cv2.FONT_HERSHEY_SIMPLEX,
-                0.5, (0, 255, 0), 2)
-            print("[Inference] ArUco marker ID: {}".format(markerID))
-            
-    return image
+    while True:
+        try:
+            data = data_queue.get(timeout=1)  # Wait for new data
+            aruco_visual.update_map(data)  # Update turtle map
+        except queue.Empty:
+            pass  # No new data, continue looping
 
-# img = cv2.imread('./marker/marker_with_bg.png', 1) 
-
-cap = cv2.VideoCapture(0)  # Get the camera source
+# Start turtle thread
+turtle_thread = threading.Thread(target=update_turtle_map, daemon=True)
+turtle_thread.start()
 
 while True:
     ret, frame = cap.read()
+    if not ret:
+        continue  # Skip iteration if the frame is invalid
 
-<<<<<<< HEAD
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    detected_markers = aruco.aruco_detect(frame)
+    if detected_markers is None:
+        detected_markers = frame.copy()
 
-    aruco_type = ["DICT_6X6_250"]
-    for i in aruco_type:
-        arucoDict = cv2.aruco.getPredefinedDictionary(ARUCO_DICT[i])
+    # Send data to turtle thread
+    data_queue.put(aruco.current_data)
 
-        arucoParams = cv2.aruco.DetectorParameters()
+    # FPS Calculation
+    new_frame_time = time.time()
+    fps = 1 / (new_frame_time - prev_frame_time) if prev_frame_time else 0
+    prev_frame_time = new_frame_time
 
-        corners, ids, rejected = cv2.aruco.ArucoDetector(arucoDict, arucoParams).detectMarkers(gray)
+    # Overlay FPS text
+    cv2.putText(detected_markers, f"FPS: {int(fps)}", (7, 70), 
+                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
 
-        detected_markers = aruco_display(corners, ids, rejected, frame)
+    cv2.imshow("Aruco Detection", detected_markers)
 
-    new_frame_time = time.time() 
-    fps = 1/(new_frame_time-prev_frame_time) 
-    prev_frame_time = new_frame_time 
-  
-    # converting the fps into integer 
-    fps = int(fps) 
-  
-    # converting the fps to string so that we can display it on frame 
-    # by using putText function 
-    fps = str(fps) 
-  
-    # putting the FPS count on the frame 
-    cv2.putText(detected_markers, f"fps: {fps}", (7, 70), cv2.FONT_HERSHEY_SIMPLEX , 1, (0, 0, 0), 3, cv2.LINE_AA) 
-
-    cv2.imshow("Image", detected_markers)
-    
-    key = cv2.waitKey(3) & 0xFF
-    if key == ord('q'):  # Quit
-            break
-
+    if cv2.waitKey(3) & 0xFF == ord('q'):
+        break
 
 cap.release()
 cv2.destroyAllWindows()
-=======
-matrix_coefficients= [ 1.4109783873986503e+03, 0., 9.5874222351204332e+02, 0.,
-       1.4102028573625632e+03, 5.4948497502265627e+02, 0., 0., 1. ]
-distortion_coefficients= [ 3.9039330491598877e-02, -2.2797071348585993e-01,
-       -1.1703590104003828e-03, -1.6147474598345472e-04,
-       2.4035667750020775e-01 ]
-track(matrix_coefficients, distortion_coefficients)
->>>>>>> 117c196d66bce5dfc0c04f1f422a728b2df654aa
