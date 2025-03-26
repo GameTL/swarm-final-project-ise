@@ -104,13 +104,23 @@ def detect_yellow_cylinder(lidar_node):
                             valid_bbox_found = True  # Valid bounding box found
 
                 if valid_bbox_found and object_center_x is not None:
+                    #---------------------------------------------------------------------------------------
+
+                    #              status: "Object Found"
+                    #              then stop moving
+
+                    #---------------------------------------------------------------------------------------
                     relative_angle = ((object_center_x - frame_center_x) / frame_width) * horizontal_fov
                     angle_360 = (relative_angle + 360) % 360
                     lidar_angle_rad = map_cam_to_lidar(angle_360)
                     distance = lidar_node.get_distance(lidar_angle_rad)
-                    #width = np.round(cal_width(distance) * w,2)
-                    #width = w * distance / fx
                     width = np.round(find_width(node, distance, x, x+w),2)
+
+                    #---------------------------------------------------------------------------------------
+
+                    #              send info -> distance, width, relative_angle
+
+                    #---------------------------------------------------------------------------------------
 
                     # Display information
                     text = f"{distance:.2f}m, {lidar_angle_rad:.2f} rad, w: {width}m"

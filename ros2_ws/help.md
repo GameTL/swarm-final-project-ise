@@ -1,3 +1,5 @@
+# Information about this workspace 
+we are using [YASMIN](https://github.com/uleroboticsgroup/yasmin) for the finite state machine
 # Install the ros2_ws 
 1. Makes sure ROS2 Humble is install
 1. cd to `{your-dir}/swarm-final-project-ise/ros2_ws/`
@@ -6,7 +8,10 @@
 1. check with bringups
 
 # run 
+sudo rosdep init # get the dependancies
+rosdep update
 colcon build --symlink-install or colcon_build
+
 
 
 # how to make a package 

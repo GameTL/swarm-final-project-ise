@@ -58,5 +58,7 @@ hardware/Odrive/odrivetest.py
 *report.bbl-SAVE-ERROR*
 *report.blg*
 
+test/image/*.jpg
+
 temp_py_files/
 .env*

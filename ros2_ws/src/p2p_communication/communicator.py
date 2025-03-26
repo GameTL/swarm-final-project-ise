@@ -4,6 +4,7 @@ import socket
 import threading
 from collections import defaultdict
 from formation import FormationMaster
+from translator import Translator
 
 IDENTIFIER = "jetson1"
 HOST_FP = "./communication/hosts.json"
@@ -26,7 +27,7 @@ class Communicator:
         self.object_coords = () # Should know from lidar + camera
         
         # For movement
-        self.path = {}
+        self.command = []
 
         # Initialize host information and priority queue
         self.parse_json()
@@ -96,11 +97,11 @@ class Communicator:
                 print(f"Received the paths from {sender}: {content}")
 
                 try:
-                    paths = json.loads(content)
+                    commands = json.loads(content)
                     # For robots that receive paths (non-taskmaster)
-                    self.path = paths.get(self.identifier, [])
+                    self.command = commands.get(self.identifier, [])
 
-                    print(f"[PATH]({self.identifier}) Identified path: {self.path}")
+                    print(f"[PATH]({self.identifier}) Identified path: {self.command}")
 
                 except json.JSONDecodeError as e:
                     print(f"[ERROR] Failed to decode paths: {e}")
@@ -254,19 +255,24 @@ class Communicator:
         self.formation_master.calculate_target_coords()
         self.formation_master.plan_paths()
 
+        paths = self.formation_master.paths
+
+        # Convert paths to commands
+        translator = Translator()
+        translator.calculate_commands(paths)
+        commands = translator.commands
+
         # Get your own path
-        self.path = self.formation_master.paths[self.identifier]
+        self.command = commands[self.identifier]
+        print(f"[PATH]({self.identifier}) Taskmaster's command: {self.command}")
 
-        print(f"[PATH]({self.identifier}) Taskmaster's path: {self.path}")
-
-        # Broadcast paths to every robot
-        paths = json.dumps(self.formation_master.paths)
-        print(f"[DEBUG] {paths}")
-        self.broadcast("PATH", paths)
+        # Broadcast commmands to every robot
+        print(f"[DEBUG] {commands}")
+        self.broadcast("PATH", commands)
 
     def move(self):
         #! Clear computed path after moving (placeholder)
-        self.path = {}
+        self.command = []
 
 
 if __name__ == "__main__":
@@ -288,3 +294,4 @@ if __name__ == "__main__":
             break
 
     server_thread.join()
+    
