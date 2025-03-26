@@ -30,7 +30,7 @@ class TeleopPublisher(Node):
             elif direction == "stop":
                 twist.linear.x = 0.0
                 twist.linear.y = 0.0
-                steps = STOP_DURATION / STEP_DURATION
+                steps = int(STOP_DURATION / STEP_DURATION)
             
             self.get_logger().info(f"Publishing: {direction} for {steps} steps")
             # Publish velocity repeatedly for steps

@@ -1,0 +1,16 @@
+\chapter{Conclusion}
+
+\paragraph*{}
+The progress for implementing effective communication in the swarm is behind schedule due to the move from decentralized to centralized with respect to communication. This allows for more flexibility in the protocol we can use for communication, with socket communication and MQTT being two major contenders. Once the advantages and disadvantages have been thoroughly considered, communication implementation will be able to continue with the most viable protocol for our use case as the solution.
+
+\paragraph*{}
+Additionally, the object detection component remains on schedule, as the key aspects, including the detection model based on HSV and the extraction of distance measurements from the LiDAR, have been successfully completed. However, calibration and object occlusion handling will be implemented and tested once the necessary hardware is fully prepared for experimentation.
+
+\paragraph*{}
+For SLAM we will continue making our own graph SLAM but will work on SLAM Toolbox temporarily. For odometry, we will continue testing and publish results soon.
+
+\paragraph*{}
+Meanwhile, the development and testing of our holonomic X-Drive robot have progressed significantly. The robot’s base and structural components were 3D printed using PLA, but to improve durability and stability, key parts such as the baseplate, shaft, wheels, and flange coupler will be upgraded to acrylic and stainless steel. The robot utilizes Dynamixel AX-12W motors for enhanced back-drivability, controlled through a custom ROS 2 package that applies a Jacobian matrix transformation for motion control. Transitioning from the older Maxon BLDC motors has streamlined development, allowing us to focus on software for coordinated multi-robot operation. The successful integration of the teleop keyboard package in ROS 2 Humble has demonstrated holonomic movement, paving the way for further improvements in geometry and performance optimization.
+
+\paragraph*{}
+For the next phase of our project, we will complete the tasks that have yet to be completed during the previous iteration and move towards a complete swarm. This includes completing the hardware requirements, considering movement after gripping, as well as testing and evaluation. Additionally, we will proceed with other tasks as scheduled in the Gantt Chart to ensure all project milestones are met.
