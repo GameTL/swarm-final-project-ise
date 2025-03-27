@@ -1,22 +1,22 @@
-\chapter{Object Detection}
+\chapter{Object Detection using Computer Vision}
 
-\paragraph{}
+\paragraph*{}
 The object detection module consists of three main components: color-based detection using the HSV color space, sensor fusion, and the measurement of distance, angle, and object diameter. All three modules have been completed and are ready for integration into the robot for testing in the collaborative transport task.
 
-\paragraph{}
+\paragraph*{}
 Based on the progress outlined in the previous report, the experimental arena will contain only one cylinder to eliminate challenges related to object occlusion and the need for multiple object detection. The workflow involves stopping the robot once the center of a bounding box along the horizontal axis falls within a tolerance zone of ±7\% (equivalent to 600 pixels from both the left and right edges of the frame). Due to image distortion at the frame borders, the width of the bounding box increases significantly compared to the width measured at the center.
 
-\paragraph{}
+\paragraph*{}
 Once the center of the bounding box is within the tolerance zone and the detected object's color falls within the predefined range, the object detection status is set to \textit{Object Found}. At this point, the robot halts and begins measuring the distance from the LiDAR center to the surface of the cylinder, which is aligned with the horizontal center and perpendicular to the LiDAR sensor. The distance and angle between the sensors and the object are determined using the camera's field of view (FOV) to transform the angle from the camera space to the LiDAR space, ensuring accurate distance measurements in meters.
 
-\paragraph{}
+\paragraph*{}
 After determining the distance, the next step is to estimate the object's diameter using the bounding box width and distance. Despite restricting vision to the 7\% tolerance zone, some distortion still affects the bounding box width. The actual width of the object is computed using the following equation:
 
 \begin{equation}
 \text{Actual Width} = \tan\left(\frac{\text{Angle Difference}}{2}\right) \times \text{Distance}
 \end{equation}
 
-\paragraph{}
+\paragraph*{}
 The actual width varies by ±2 cm as the distance changes due to image distortion at different proximities to the camera. To mitigate this error, a variation factor function is introduced, multiplying it with the actual width calculation to maintain consistency across different distances. The updated equation is:
 
 \begin{equation}
@@ -30,14 +30,14 @@ The variation factor is computed for each distance-angle pair, followed by quadr
 y = ...
 \end{equation}
 
-\paragraph{}
+\paragraph*{}
 After obtaining the variation function, its accuracy is evaluated. The calculated metrics include a Mean Squared Error (MSE) of 0.005 and an R-squared value of 0.7957. Additionally, the MSE for the final model is XXX.
 
-\paragraph{}
+\paragraph*{}
 Testing was conducted through basic visual inspection by placing the object at various distances from the sensors. The observed error was ±0.7 cm, indicating a need for further model optimization. Potential sources of error include lighting conditions and insufficient data at certain distances.
 
-\paragraph{}
+\paragraph*{}
 For optimization, the current model is trained using data from cylinders with diameters of 20 cm and 23 cm. A dataset for a 16 cm diameter cylinder has been collected and preprocessed, but further regression analysis is required. Additionally, the training dataset should be balanced across different distances, ensuring an equal number of samples per distance. Another optimization step involves reducing the tolerance zone to enhance accuracy.
 
-\paragraph{}
+\paragraph*{}
 The next step is to conduct comprehensive testing under varying lighting conditions and distances (0.5 m, 1 m, 2 m, and 3 m). The experiments will be performed under eight different lighting conditions for all three cylinder sizes (16 cm, 20 cm, and 23 cm) and are scheduled to be completed within the first week of April.
