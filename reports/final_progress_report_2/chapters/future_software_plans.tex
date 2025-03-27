@@ -1,0 +1,14 @@
+\chapter{Future Software Plans}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth, angle=-90]{final_progress_report_2/assets/images/future_software_plans/Flow7AprilCompromise.drawio (1).png}
+    \caption{High Level flowchart}
+    \label{fig:gantt_chart}
+\end{figure}
+
+\newpage
+This flowchart provides a high-level overview of our project’s algorithm. Our goal by April 7 is to integrate all individual components into a unified state machine. The current simulation includes object detection by robots, coordinate communication, taskmaster selection, path planning, and object gripping. All of these elements will be incorporated into the state machine, operating within a known map for the time being.
+
+
+\vspace{\baselineskip}
+In parallel, we are also working on implementing collective transport and developing our own version of graph-based SLAM (GraphSLAM). While we already have succesfully implemented the SLAMToolbox ROS2 library in simulation, we chose to build our own implementation to better understand the underlying optimization techniques and to tailor the algorithm specifically to the constraints of our multi-robot system. This approach allows for tighter integration with our custom communication protocols and robot behaviors, while giving us more control over data association, loop closure, and pose graph construction.
