@@ -25,10 +25,16 @@ The experiment setting of the validation is done by placing the camera over the 
     \label{fig:aruco-tracker}
 \end{figure}
 
-After that, we can calculate the error on the basis of many factors and methods. One way we would like to propose is the root mean square error of the trajectory over time, where the Euclidean distance between the ideal robot position commanded from the server and the actual robot position on the map.
+After that, we can calculate the error on the basis of many factors and methods. One way we would like to propose is the root mean square error of the trajectory over time, where the Euclidean distance and angular error between the ideal robot position commanded from the server and the actual robot position on the map.
 
 \[
+RMSE = \sqrt{\frac{1}{N} \sum_{i=1}^{N} (d_i^2 + w_{\theta} \theta_{\text{error}, i}^2)}, \quad \text{where } w_{\theta} \text{ is the weight of angle error, and}
+\]
+\[
 \begin{array}{c c}
-RMSE = \sqrt{\frac{1}{N} \sum_{i=1}^{N} (d_i^2)} & d_i = \sqrt{(x_{\text{actual}} - x_{\text{ideal}})^2 + (y_{\text{actual}} - y_{\text{ideal}})^2}
+d_i = \sqrt{(x_{\text{actual}} - x_{\text{ideal}})^2 + (y_{\text{actual}} - y_{\text{ideal}})^2} & 
+\theta_{\text{error}} = \theta_{\text{actual}} - \theta_{\text{ideal}}
 \end{array}
 \]
+
+
