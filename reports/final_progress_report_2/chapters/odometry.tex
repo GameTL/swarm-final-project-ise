@@ -1,7 +1,7 @@
 \chapter{Odometry}
 
 \section*{Wheel odometry}
-{Write regarding wheel odometry here}
+We are currently able to receive odometry data from the wheels, but only at low speeds. The issue we encountered with the AX-12W motors is that they return invalid position values in the range between 330º and 350º. To work around this, we switched to using the Present Speed register instead. However, this approach requires the robot to operate at relatively low speeds to maintain accuracy.
 
 \section*{Odometry Validation}
 To ensure our odometry is accurate enough for use in SLAM, it must first be validated. Without accurate odometry, the SLAM-generated map may not align correctly with the real-world environment. One of the most effective ways to validate odometry is by using an overhead camera. This camera can track the robot’s movement in real-time and provide a ground-truth odometry reference. We will compare the camera-derived odometry with both wheel odometry and LiDAR-based odometry separately. By analyzing the deviations, we can determine which method is more accurate. If neither source is sufficiently reliable on its own, we will fuse the data from both using an Extended Kalman Filter (EKF) to improve overall accuracy.
