@@ -6,10 +6,11 @@ ARUCO_DICT = {
 } 
 
 class Aruco():
-    def __init__(self, aruco_dict = ARUCO_DICT):
+    def __init__(self, map_size , aruco_dict = ARUCO_DICT):
         self.aruco_dict = aruco_dict
         self.aruco_type = self.aruco_dict.keys()
         self.current_data = dict()
+        self.map_size = map_size
 
     def aruco_detect(self, frame):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -53,8 +54,12 @@ class Aruco():
                 
                 cv2.putText(image, str(markerID),(topLeft[0], topLeft[1] - 10), cv2.FONT_HERSHEY_SIMPLEX,
                     0.5, (0, 255, 0), 2)
-                print("[Inference] ArUco marker ID: {}".format(markerID))
-                self.current_data[str(markerID)] = (cX/image.shape[1], cY/image.shape[0], theta_deg)
+                x = cX/image.shape[1]
+                y = cY/image.shape[0]
+                x_map = (x-0.5)*self.map_size[0]
+                y_map = -(y-0.5)*self.map_size[0]
+                print(f"[Inference] ArUco marker ID: {markerID} @ ({x_map}, {y_map})")
+                self.current_data[str(markerID)] = (x, y, theta_deg)
                 
         return image
     

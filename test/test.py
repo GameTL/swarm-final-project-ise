@@ -6,9 +6,10 @@ import queue
 from aruco import Aruco
 from aruco_visual import ArucoVisual  # Assuming this uses `turtle`
 
+MAP_SIZE = (2, 2.1)
 prev_frame_time = 0
-cap = cv2.VideoCapture(0)  # Open the camera
-aruco = Aruco()
+cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)  # Open the camera
+aruco = Aruco(MAP_SIZE)
 
 # Thread-safe queue for communication between OpenCV and turtle
 data_queue = queue.Queue()
@@ -49,6 +50,7 @@ while True:
     # Overlay FPS text
     cv2.putText(detected_markers, f"FPS: {int(fps)}", (7, 70), 
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+    cv2.circle(detected_markers, (detected_markers.shape[1]//2,detected_markers.shape[0]//2), radius=5, color=(0, 0, 255), thickness=-1)
 
     cv2.imshow("Aruco Detection", detected_markers)
 
