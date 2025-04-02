@@ -1,3 +1,4 @@
+import math
 from rich.pretty import pprint
 
 from formation import FormationMaster # For running this file individually
@@ -6,7 +7,18 @@ class Translator:
     def __init__(self):
         self.commands = {}
 
+    def extract_orientation(self, paths):
+        self.orientation = paths["orientation"]
+        del paths["orientation"]
+
+        return paths
+
     def calculate_commands(self, paths):
+        paths = self.extract_orientation(paths)
+        
+        # print(self.orientation)
+        # print(paths)
+
         for jetson, path in paths.items():
             commands = []
             timestamps = sorted(path.keys(), key=int)
@@ -45,6 +57,12 @@ class Translator:
                 commands.append((prev_direction, step_count))
 
             self.commands[jetson] = commands
+
+            angle_rad = self.orientation[jetson]
+            if angle_rad > 0:
+                self.commands[jetson].append(("turn_ccw", angle_rad))
+            elif angle_rad < 0:
+                self.commands[jetson].append(("turn_cw", math.fabs(angle_rad)))
 
 if __name__ == "__main__":
     translator = Translator()

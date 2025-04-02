@@ -23,6 +23,8 @@ generate_temp_py_files:
 	@echo "Generating temporary Python files..."
 	@mkdir -p $(TEMP_PY_FILES_DIR)
 	@cp $(COMMUNICATION_FOLDER_PATH)/socket/formation.py $(TEMP_PY_FILES_DIR)/formation.py
+	@cp $(COMMUNICATION_FOLDER_PATH)/socket/translator.py $(TEMP_PY_FILES_DIR)/translator.py
+	@cp $(COMMUNICATION_FOLDER_PATH)/socket/teleop_publisher.py $(TEMP_PY_FILES_DIR)/teleop_publisher.py
 	@for identifier in $(shell jq -r 'keys[]' $(HOSTS_JSON)); do \
 		cp $(COMMUNICATOR_PY) $(TEMP_PY_FILES_DIR)/run_$$identifier.py; \
 		sed -i '' "s/IDENTIFIER = \".*\"/IDENTIFIER = \"$$identifier\"/" $(TEMP_PY_FILES_DIR)/run_$$identifier.py; \

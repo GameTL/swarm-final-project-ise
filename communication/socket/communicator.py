@@ -268,7 +268,7 @@ class Communicator:
 
         # Broadcast commmands to every robot
         print(f"[DEBUG] {commands}")
-        self.broadcast("PATH", commands)
+        self.broadcast("PATH", json.dumps(commands))
 
     def move(self):
         #! Clear computed path after moving (placeholder)

@@ -5,6 +5,7 @@ import time
 
 # Define constants
 SPEED = 0.5 # m/s
+TURN_SPEED = 0.5  # rad/s
 STEP_DURATION = 0.1 # Time per step - second(s)
 STOP_DURATION = 1.0 # second(s)
 
@@ -27,9 +28,14 @@ class TeleopPublisher(Node):
                 twist.linear.y = SPEED
             elif direction == "neg_y":
                 twist.linear.y = -SPEED
+            elif direction == "turn_ccw":
+                twist.angular.z = TURN_SPEED
+            elif direction == "turn_cw":
+                twist.angular.z = -TURN_SPEED
             elif direction == "stop":
                 twist.linear.x = 0.0
                 twist.linear.y = 0.0
+                twist.angular.z = 0.0
                 steps = int(STOP_DURATION / STEP_DURATION)
             
             self.get_logger().info(f"Publishing: {direction} for {steps} steps")
