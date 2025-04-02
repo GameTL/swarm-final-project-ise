@@ -95,7 +95,14 @@ class FormationMaster:
                     break
 
         for member, order in self.matches.items():
-            self.matches[member] = self.target_coords[order]
+            target_x, target_y = self.target_coords[order]
+            center_x, center_y = self.object_coords  # Center of the circle
+
+            # Compute orientation
+            theta = math.atan2(center_y - target_y, center_x - target_x)
+
+            # Store (x, y, theta) for each robot
+            self.matches[member] = (target_x, target_y, round(theta, self.fineness))
         
         print(f"Matches: {self.matches}")
 
@@ -110,6 +117,11 @@ class FormationMaster:
             path = self.path_planning_algorithm(start=start, end=end)
             
             self.paths[robot_id] = path
+            
+            # Add in orientation
+            orientation = {jetson: coords[2] for jetson, coords in self.matches.items()}
+            self.paths["orientation"] = orientation
+
 
     def movement_x(self, movement_options, current_coords, end):
         difference_x = end[0] - current_coords[0]

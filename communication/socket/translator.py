@@ -1,4 +1,3 @@
-import math
 from rich.pretty import pprint
 
 from formation import FormationMaster # For running this file individually
@@ -58,11 +57,9 @@ class Translator:
 
             self.commands[jetson] = commands
 
-            angle_rad = self.orientation[jetson]
-            if angle_rad > 0:
-                self.commands[jetson].append(("turn_ccw", angle_rad))
-            elif angle_rad < 0:
-                self.commands[jetson].append(("turn_cw", math.fabs(angle_rad)))
+            # Add orientation (in rad)
+            # 0 is rightward in 2D
+            self.commands[jetson].append(("turn", self.orientation[jetson]))
 
 if __name__ == "__main__":
     translator = Translator()

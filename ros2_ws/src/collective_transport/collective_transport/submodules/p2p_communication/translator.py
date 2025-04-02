@@ -6,7 +6,18 @@ class Translator:
     def __init__(self):
         self.commands = {}
 
+    def extract_orientation(self, paths):
+        self.orientation = paths["orientation"]
+        del paths["orientation"]
+
+        return paths
+
     def calculate_commands(self, paths):
+        paths = self.extract_orientation(paths)
+        
+        # print(self.orientation)
+        # print(paths)
+
         for jetson, path in paths.items():
             commands = []
             timestamps = sorted(path.keys(), key=int)
@@ -45,6 +56,10 @@ class Translator:
                 commands.append((prev_direction, step_count))
 
             self.commands[jetson] = commands
+
+            # Add orientation (in rad)
+            # 0 is rightward in 2D
+            self.commands[jetson].append(("turn", self.orientation[jetson]))
 
 if __name__ == "__main__":
     translator = Translator()
