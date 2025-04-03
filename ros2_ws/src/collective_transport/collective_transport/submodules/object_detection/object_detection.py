@@ -16,8 +16,6 @@ frame_center_x = frame_width // 2
 horizontal_fov = 78 #67.19710030243834
 fx = 918.297472
 
-#variation factor: 0.0344768746 * distance**2 + -0.1910787309*distance + 1.2288527891
-
 # LiDAR properties
 lidar_min_rad = -3.1241390705108643
 lidar_max_rad = 3.1415927410125732
@@ -61,7 +59,7 @@ def find_angle_diff(lidar_node, left, right):
  
 def find_width(lidar_node, distance, left, right):
     _, angle = find_angle_diff(lidar_node, left, right)
-    width = 2*( 0.0344768746 * distance**2 + -0.1910787309*distance + 1.2288527891 ) * np.tan(angle/2) * distance
+    width = 2*( 0.0310178270 * distance**2 + -0.1685466068*distance + 1.1966356720 ) * np.tan(angle/2) * distance
     return width
    
 def detect_yellow_cylinder(lidar_node):
