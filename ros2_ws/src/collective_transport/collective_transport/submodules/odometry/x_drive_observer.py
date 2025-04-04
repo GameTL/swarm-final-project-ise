@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
-from .submodules.dynamixel_class import DynamixelInterface  # Import motor interface
+from geometry_msgs.msg import Pose2D, Twist
+from .....x_drive_controller.x_drive_controller.submodules.dynamixel_class import DynamixelInterface  # Import motor interface
 import time
 import numpy as np
+import os
+
 
 class XDriveObserver(Node):
     """ 
@@ -24,11 +27,26 @@ class XDriveObserver(Node):
         self.timer2 = self.create_timer(1, self.update_status)
 
         self.robot_velo = np.array([0, 0, 0])
-        self.robot_position = np.array([0, 0, 0]) # initial position
+        robot_id = int(os.environ.get('ROBOT_ID'))
+        if robot_id == 1:
+            self.robot_position = np.array([0, 0, 0])
+        elif robot_id == 2:
+            self.robot_position = np.array([0, 0, 0]) 
+        elif robot_id == 3:
+            self.robot_position = np.array([0, 0, 0])
+        else:
+            self.robot_position = np.array([0, 0, 0])
+            
+        self.position_publisher = self.create_publisher(Pose2D, 'robot_pose', 10)
     
     def update_status(self):
         print(f"Current Velo X: {self.robot_velo[0]}, Current Velo Y: {self.robot_velo[1]}, Current Velo Theta: {self.robot_velo[2]}"
             f" \n Current Posi X: {self.robot_position[0]}, Current Posi Y: {self.robot_position[1]}, Current Posi Theta: {self.robot_position[2]}")
+        position_msg = Pose2D()
+        position_msg.x = float(self.robot_position[0])
+        position_msg.y = float(self.robot_position[1])
+        position_msg.theta = float(self.robot_position[2])
+        self.position_publisher.publish(position_msg)
         # self.robot_visual.update_position(self.robot_position[0], self.robot_position[1], self.robot_position[2])
 
     def refresh_odometry(self):

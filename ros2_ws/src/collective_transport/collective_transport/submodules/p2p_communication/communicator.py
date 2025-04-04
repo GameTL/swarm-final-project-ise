@@ -6,13 +6,18 @@ from collections import defaultdict
 from formation import FormationMaster
 from translator import Translator
 
-IDENTIFIER = "jetson1"
+IDENTIFIER = "jetson2"
 HOST_FP = "./communication/hosts.json"
 MAX_CONNECTIONS = 5
 TIMEOUT = 5
 MAX_RETRIES = 3
 
 class Communicator:
+    """
+        communicator.object_coords = [0.75, -0.25]
+        communicator.obstacle_coords = [[-1, -1.4], [0.6, 0.3], [0.1, 1.67]]
+    """
+
     def __init__(self, host_fp=HOST_FP, identifier=IDENTIFIER, max_connections=MAX_CONNECTIONS):
         # Initialize default attributes
         self.host_fp = host_fp

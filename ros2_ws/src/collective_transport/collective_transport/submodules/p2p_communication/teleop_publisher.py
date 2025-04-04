@@ -4,7 +4,7 @@ from geometry_msgs.msg import Twist
 import time
 
 # Define constants
-SPEED = 0.5 # m/s
+SPEED = 0.05 # m/s
 TURN_SPEED = 0.5  # rad/s
 STEP_DURATION = 0.1 # Time per step - second(s)
 STOP_DURATION = 1.0 # second(s)
