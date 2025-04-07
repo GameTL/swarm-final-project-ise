@@ -13,12 +13,13 @@ TIMEOUT = 5
 MAX_RETRIES = 3
 
 class Communicator:
-    def __init__(self, host_fp=HOST_FP, identifier=IDENTIFIER, max_connections=MAX_CONNECTIONS):
+    def __init__(self, host_fp=HOST_FP, identifier=IDENTIFIER, max_connections=MAX_CONNECTIONS, suppress_output=True):
         # Initialize default attributes
         self.host_fp = host_fp
         self.identifier = identifier
         self.max_connections = max_connections
         self.taskmaster_claims = []
+        self.suppress = suppress_output
 
         # For object detection and path planning
         self.current_coords = [0.0, 0.0]
@@ -28,6 +29,7 @@ class Communicator:
         
         # For movement
         self.command = []
+        self.orientation = 0.0
 
         # Initialize host information and priority queue
         self.parse_json()
@@ -94,14 +96,16 @@ class Communicator:
                     # Clear path planning params
                     self.coords_dict = {}
             elif header == "PATH":
-                print(f"Received the paths from {sender}: {content}")
+                if not self.suppress:
+                    print(f"[DEBUG] Received the paths from {sender}: {content}")
 
                 try:
                     commands = json.loads(content)
                     # For robots that receive paths (non-taskmaster)
-                    self.command = commands.get(self.identifier, [])
+                    self.command = commands["waypoints"].get(self.identifier, [])
+                    self.orientation = commands["orientation"].get(self.identifier, 0.0)
 
-                    print(f"[PATH]({self.identifier}) Identified path: {self.command}")
+                    print(f"[PATH]({self.identifier}) Identified path: {self.command}; Orientation: {self.orientation}")
 
                 except json.JSONDecodeError as e:
                     print(f"[ERROR] Failed to decode paths: {e}")
@@ -111,7 +115,7 @@ class Communicator:
 
             # Wait for SYNACK confirmation
             synack = client_fd.recv(1024).decode("utf-8")
-            if synack == "SYNACK":
+            if synack == "SYNACK" and not self.suppress:
                 print("[INFO] SYNACK received")
 
         except (json.JSONDecodeError, ConnectionError) as e:
@@ -146,7 +150,8 @@ class Communicator:
                     if ack == "ACK":
                         # Send SYNACK confirmation
                         client_fd.sendall("SYNACK".encode("utf-8"))
-                        print(f"[INFO] {peer} acknowledged the message.")
+                        if not self.suppress:
+                            print(f"[INFO] {peer} acknowledged the message.")
                         break
 
                 except (socket.timeout, ConnectionError):
@@ -241,7 +246,7 @@ class Communicator:
         communicator.broadcast("OBJECT_DETECTED", message) # TODO: Should be object and obstacle positions
 
     def path_planning(self, current_coords, object_coords, obstacle_coords, radius=0.3):
-        print(f"[DEBUG] Received this set of current_coords: {current_coords}")
+        print(f"[INFO] Received this set of current_coords: {current_coords}")
         
         # Initialize formation master
         self.formation_master = FormationMaster(
@@ -259,26 +264,35 @@ class Communicator:
 
         # Convert paths to commands
         translator = Translator()
-        translator.calculate_commands(paths)
-        commands = translator.commands
 
-        # Get your own path
-        self.command = commands[self.identifier]
-        print(f"[PATH]({self.identifier}) Taskmaster's command: {self.command}")
+        #! Deprecated -- leave there for now for potential rollback
+        # translator.calculate_commands(paths)
+        # commands = translator.commands
+
+        translator.sample_waypoints(paths)
+        commands = translator.waypoints
+
+        # Get your own path and orientation
+        self.command = commands["waypoints"].get(self.identifier, [])
+        self.orientation = commands["orientation"].get(self.identifier, 0.0)
+        print(f"[PATH]({self.identifier}) Taskmaster's command: {self.command}; Orientation: {self.orientation}")
 
         # Broadcast commmands to every robot
-        print(f"[DEBUG] {commands}")
+        if not self.suppress:
+            print(f"[DEBUG] {commands}")
         self.broadcast("PATH", json.dumps(commands))
 
-    def move(self):
+    def cleanup(self):
         #! Clear computed path after moving (placeholder)
         self.command = []
+        self.orientation = 0.0
 
 
 if __name__ == "__main__":
     communicator = Communicator()
 
     # For testing purpose
+    communicator.current_coords = [0, 0]
     communicator.object_coords = [0.75, -0.25]
     communicator.obstacle_coords = [[-1, -1.4], [0.6, 0.3], [0.1, 1.67]]
 
@@ -290,6 +304,7 @@ if __name__ == "__main__":
         user_input = input("Press 'S' to claim taskmaster role: ").strip().upper()
         if user_input == "S":
             communicator.object_detected()
+            communicator.cleanup() # To clear waypoints and orientation
         elif user_input == "Q":
             break
 
