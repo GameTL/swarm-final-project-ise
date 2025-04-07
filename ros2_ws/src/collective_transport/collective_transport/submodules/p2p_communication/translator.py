@@ -1,6 +1,6 @@
 from rich.pretty import pprint
 
-from formation import FormationMaster # For running this file individually
+from .formation import FormationMaster # For running this file individually
 
 class Translator:
     def __init__(self):

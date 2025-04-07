@@ -31,8 +31,8 @@ if system == "Darwin":
     DEVICENAME = '/dev/tty.usbserial-AB0NRMLW'  # Update this with your ports
 elif system == "Linux":
     print("The operating system is Linux.")
-    # DEVICENAME = '/dev/ttyUSB1'
     DEVICENAME = '/dev/ttyUSB1'
+    # DEVICENAME = '/dev/ttyUSB0'
     # DEVICENAME = '/dev/usb_serial'
 
 DISABLE = 0
@@ -42,8 +42,8 @@ DXL_MOVING_STATUS_THRESHOLD = 20    # Dynamixel moving status threshold
 index = 0
 dxl_goal_speed = [300, 800]         # Goal position
 
-MAX_LINEAR_STEP = 330
-MAX_ANGULAR_STEP = 163
+MAX_LINEAR_STEP = 200
+MAX_ANGULAR_STEP = 20
 STEP_LIMIT = MAX_LINEAR_STEP # MOVING SPEED LIMIT
 
 #********* DYNAMIXEL Model definition *********
@@ -86,6 +86,7 @@ class DynamixelInterface:
         else:
             print("Failed to change the baudrate")
             quit()
+        print("XDRIVECONTROLLER ONLINE")
 
     def write_register_only(self, dxl_id, address, value, size=2):
         if size == 1:

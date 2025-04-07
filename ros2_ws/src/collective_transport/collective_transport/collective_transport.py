@@ -386,7 +386,7 @@ class PathFollowing(State):
         """
         yasmin.YASMIN_LOG_INFO("Executing state PathFollowing")
         
-        #* [path_planning](jetson2) Assigning jetson1 [1.78, -1.05] -> (1.05, -0.25, 3.14)
+        #* [path_planning](jetson2) Assigning jetson1 [1.78, -1.05] -> (1.05, -0.tele25, 3.14)
         
         twist_msg = Twist()
         

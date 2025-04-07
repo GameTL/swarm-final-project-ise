@@ -3,8 +3,8 @@ import time
 import socket
 import threading
 from collections import defaultdict
-from formation import FormationMaster
-from translator import Translator
+from .formation import FormationMaster
+from .translator import Translator
 
 IDENTIFIER = "jetson1"
 HOST_FP = "./communication/hosts.json"
