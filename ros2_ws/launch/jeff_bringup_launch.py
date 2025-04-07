@@ -13,7 +13,7 @@ def generate_launch_description():
     
     mux_params_file_arg = DeclareLaunchArgument(
         'mux_params_file',
-        default_value="./config/twist_mux.yaml"
+        default_value="./config/twist_mux.yaml",
         description='path to parameter file for twist_mux, from telop_keyboard, nav2'
     )
 
@@ -39,21 +39,21 @@ def generate_launch_description():
             output='screen'
         ),
         # telop keyboard (Twist) node
-        Node(
-            package='teleop_twist_keyboard',
-            executable='teleop_twist_keyboard',
-            name='teleop_twist_keyboard',
-            # remapping=[('/cmd_vel','/cmd_vel_keyboard')]
-            output='screen' # make this node visable on terminal
-        ),
+        # Node(
+        #     package='teleop_twist_keyboard',
+        #     executable='teleop_twist_keyboard',
+        #     name='teleop_twist_keyboard',
+        #     # remapping=[('/cmd_vel','/cmd_vel_keyboard')],
+        #     output='screen' # make this node visable on terminal
+        # ),
         # Twist mux (Twist) node
         Node(
-            # ros2 run twist_mux twist_mux --ros-args --params-file ./config/twist_mux.yaml -r cmd_vel_out:=diff_cont/cmd_vel_unstamped
+            # ros2 run twist_mux twist_mux --ros-args --params-file ./config/twist_mux.yaml -r cmd_vel_out:=diff_cont/cmd_vel
             package='twist_mux',
             executable='twist_mux',
             name='twist_mux',
             parameters=[LaunchConfiguration('mux_params_file')],
-            remapping=('cmd_vel_out','cmd_vel')
+            remapping=('cmd_vel_out','cmd_vel'),
             output='screen' # make this node visable on terminal
         ),
         # Dyanmixel controller node

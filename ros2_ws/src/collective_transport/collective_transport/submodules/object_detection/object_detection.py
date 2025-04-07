@@ -11,32 +11,38 @@ window_title = "Yellow Cylinder Detection"
 camera_id = "/dev/video0"
 
 # Camera properties
-frame_width = 1280
-frame_center_x = frame_width // 2
-horizontal_fov = 78 #67.19710030243834
-fx = 918.297472
+# frame_width = 1280
+# frame_center_x = frame_width // 2
+# horizontal_fov = 78 #67.19710030243834
+# fx = 918.297472
 
 # LiDAR properties
-lidar_min_rad = -3.1241390705108643
-lidar_max_rad = 3.1415927410125732
-angle_increment = 0.0019344649044796824
+# lidar_min_rad = -3.1241390705108643
+# lidar_max_rad = 3.1415927410125732
+# angle_increment = 0.0019344649044796824
 
 video_capture = cv2.VideoCapture(camera_id, cv2.CAP_V4L2)
 video_capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
-video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, frame_width)
+video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
 video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 video_capture.set(cv2.CAP_PROP_FPS, 30)
 
-def map_cam_to_lidar(angle_360):
+def map_cam_to_lidar(angle_360, lidar_min_rad = -3.1241390705108643, lidar_max_rad = 3.1415927410125732):
     lidar_angle_rad = lidar_max_rad - (angle_360 / 360) * (lidar_max_rad - lidar_min_rad)
     return lidar_angle_rad
 
-def get_data(node, distance, center_x, bbox_width, x, w):
+def get_data(node, distance, center_x, bbox_width, x, w, frame_width = 1280):
     real_object_width = 0.2  # Example width in meters, you can modify this based on your needs
     raw_angle_diff, angle_diff = find_angle_diff(node, x, x+w)
     return [frame_width, distance, center_x, w, x, raw_angle_diff, angle_diff, bbox_width, real_object_width]  
 
-def find_angle_diff(lidar_node, left, right):
+def find_angle_diff(lidar_node, 
+                    left, 
+                    right,
+                    horizontal_fov = 78, #67.19710030243834
+                    frame_width = 1280
+                    ):
+    frame_center_x = frame_width // 2
     relative_left = ((left - frame_center_x) / frame_width) * horizontal_fov
     left_360 = (relative_left + 360) % 360
      
@@ -62,7 +68,10 @@ def find_width(lidar_node, distance, left, right):
     width = 2*( 0.0310178270 * distance**2 + -0.1685466068*distance + 1.1966356720 ) * np.tan(angle/2) * distance
     return width
    
-def detect_yellow_cylinder(lidar_node):
+def detect_yellow_cylinder(video_capture, lidar_node,                     
+                           horizontal_fov = 78, #67.19710030243834
+                            frame_width = 1280, pub=False):
+    frame_center_x = frame_width // 2
     if video_capture.isOpened():
         try:
             cv2.namedWindow(window_title, cv2.WINDOW_AUTOSIZE)
@@ -117,7 +126,10 @@ def detect_yellow_cylinder(lidar_node):
                     #---------------------------------------------------------------------------------------
 
                     #              send info -> distance, width, relative_angle
-
+                    if pub:
+                        return {"relative_angle": relative_angle, 
+                                "distance": distance, 
+                                "width": width}
                     #---------------------------------------------------------------------------------------
 
                     # Display information

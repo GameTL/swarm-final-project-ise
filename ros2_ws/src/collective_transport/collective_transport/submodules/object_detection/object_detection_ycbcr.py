@@ -151,27 +151,27 @@ def detect_yellow_cylinder(lidar_node):
                             valid_bbox_found = True  # Valid bounding box found
 
                 if valid_bbox_found and object_center_x is not None :
-                  '''
-                  --------------------------------------------------------------------------------------------------------------------------
-                  status  ->  ObjectFound()
-                  stop motor  -> stop moving for 1-2 sec, make sure the robot is completely stationary
-                  then start measurement
-                  --------------------------------------------------------------------------------------------------------------------------
-                  '''
+                    '''
+                    --------------------------------------------------------------------------------------------------------------------------
+                    status  ->  ObjectFound()
+                    stop motor  -> stop moving for 1-2 sec, make sure the robot is completely stationary
+                    then start measurement
+                    --------------------------------------------------------------------------------------------------------------------------
+                    '''
                     relative_angle = ((object_center_x - frame_center_x) / frame_width) * horizontal_fov
                     angle_360 = (relative_angle + 360) % 360
                     lidar_angle_rad = map_cam_to_lidar(angle_360)
                     distance = lidar_node.get_distance(lidar_angle_rad)
                     width = np.round(find_width(node, distance, x, x+w),2)
-                  
-                  '''
-                  --------------------------------------------------------------------------------------------------------------------------
-                  send out
-                  -> angle_360
-                  -> width
-                  -> distance
-                  --------------------------------------------------------------------------------------------------------------------------
-                  '''
+
+                    '''
+                    --------------------------------------------------------------------------------------------------------------------------
+                    send out
+                    -> angle_360
+                    -> width
+                    -> distance
+                    --------------------------------------------------------------------------------------------------------------------------
+                    '''
                     
                     '''
                     #node, distance, center_x, bbox_width, x, w

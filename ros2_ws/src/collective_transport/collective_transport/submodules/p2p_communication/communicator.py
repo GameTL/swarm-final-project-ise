@@ -24,6 +24,7 @@ class Communicator:
         self.identifier = identifier
         self.max_connections = max_connections
         self.taskmaster_claims = []
+        self.header = '' # so the state machine can keep track of the state it should be in
 
         # For object detection and path planning
         self.current_coords = [0.0, 0.0]
@@ -77,6 +78,7 @@ class Communicator:
             header = data.get("header", "")
             sender = data.get("sender", "")
             content = data.get("content", "")
+            self.header = header # so the state machine can keep track of the state it should be in
 
             if header == "OBJECT_DETECTED":
                 print("[INFO] Object detected, stopping.") # TODO Replace with actual functionality
