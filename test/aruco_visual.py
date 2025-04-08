@@ -14,7 +14,29 @@ class ArucoVisual():
         self.turtle_dict = {}  # Stores robots
         self.text_turtle_dict = {}  # Stores text turtles
 
+        self.reset_map_status = False
+    
+    def reset_map(self):
+        self.reset_map_status = True
+
+    def clear_map(self):
+        for robot in self.turtle_dict.values():
+            robot.clear()
+            robot.hideturtle()
+            del robot
+        self.turtle_dict.clear()
+
+        # Clear and remove all text turtles
+        for text_turtle in self.text_turtle_dict.values():
+            text_turtle.clear()
+            text_turtle.hideturtle()
+            del text_turtle
+        self.text_turtle_dict.clear()
+        self.reset_map_status = False
+
     def update_map(self, current_data):
+        if self.reset_map_status:
+            self.clear_map()
         if not current_data:
             return
 
