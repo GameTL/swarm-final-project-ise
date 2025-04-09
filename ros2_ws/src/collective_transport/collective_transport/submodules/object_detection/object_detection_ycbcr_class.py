@@ -6,7 +6,14 @@ import rclpy
 import threading
 import csv
 import os
-from .utils.lidar_reader import LidarReader
+try:
+    from .utils.lidar_reader import LidarReader
+except:
+    pass
+try:
+    from utils.lidar_reader import LidarReader
+except:
+    pass
 
 window_title = "Yellow Cylinder Detection"
 
