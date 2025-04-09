@@ -1,3 +1,8 @@
+# Git Clone 
+git clone https://github.com/Slamtec/sllidar_ros2.git
+git clone https://github.com/Adlink-ROS/rf2o_laser_odometry.git
+git clone https://github.com/uleroboticsgroup/yasmin.git
+
 # Information about this workspace 
 we are using [YASMIN](https://github.com/uleroboticsgroup/yasmin) for the finite state machine
 # Install the ros2_ws 

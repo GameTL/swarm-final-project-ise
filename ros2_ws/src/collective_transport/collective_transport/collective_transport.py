@@ -7,6 +7,8 @@ import time
 import threading 
 import traceback
 import math
+import numpy as np
+
 # from .submodules.dynamixel_class import DynamixelInterface
 import os
 import cv2
@@ -21,6 +23,18 @@ from geometry_msgs.msg import Pose2D, Twist
 from submodules.p2p_communication.communicator import Communicator
 
 from submodules.object_detection import object_detection
+class bcolors:
+    RED_FAIL       = '\033[91m'
+    GRAY_OK        = '\033[90m'
+    GREEN_OK       = '\033[92m'
+    YELLOW_WARNING = '\033[93m'
+    BLUE_OK        = '\033[94m'
+    MAGENTA_OK     = '\033[95m'
+    CYAN_OK        = '\033[96m'
+    ENDC           = '\033[0m'
+    BOLD           = '\033[1m'
+    ITALIC         = '\033[3m'
+    UNDERLINE      = '\033[4m'
 # Get the environment variable
 ROBOT_ID: int = int(os.environ.get('ROBOT_ID'))
 """ Location of the robot in the arena
@@ -48,16 +62,15 @@ class Init(State):
         counter (int): Counter to track the number of executions of this state.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, ros_manager) -> None:
         """
         Outcomes:
             outcome1: Indicates the state should continue to the Bar state.
             outcome2: Indicates the state should finish execution and return.
         """
-        super().__init__(["outcome1", "outcome2"])
+        super().__init__(["outcome1", "end"])
+        self.ros_manager = ros_manager
         self.counter = 0
-        self.publisher_ = self.create_publisher(Pose2D, 'topic', 10)
-
 
     def execute(self, blackboard: Blackboard) -> str:
         """
@@ -66,7 +79,7 @@ class Init(State):
         Returns: str: The outcome of the execution, which can be "outcome1" or "outcome2".
         Raises: Exception: May raise exceptions related to state execution.
         """
-        yasmin.YASMIN_LOG_INFO("Executing state Init")
+        yasmin.YASMIN_LOG_INFO(bcolors.YELLOW_WARNING + f"Executing state Init" + bcolors.ENDC)
         yasmin.YASMIN_LOG_INFO(f"Robot ID: {str(ROBOT_ID)}")
         time.sleep(1) 
         
@@ -84,29 +97,16 @@ class MoveStartPos(State):
         counter (int): Counter to track the number of executions of this state.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, ros_manager) -> None:
         """
         Outcomes:
             outcome1: Indicates the state should continue to the Bar state.
             outcome2: Indicates the state should finish execution and return.
         """
-        super().__init__(["outcome1", "outcome2"])
-        self.lastest_robot_pose = []
+        super().__init__(["outcome1", "end"])
+        self.ros_manager = ros_manager
         self.goal_reached = False
-        
-        self.robot_pose_sub = rclpy.node.create_subscription(
-            Pose2D,                   # Message type
-            'robot_pose',                  # Topic name
-            self.robot_pose_callback,      # Callback function
-            10)                            # QoS profile (queue size)
-            # Create publisher for velocity commands
-        self.cmd_vel_pub = rclpy.node.create_publisher(
-            Twist,                         # Message type
-            'cmd_vel_nav',                     # Topic name
-            10)                            # QoS profile
-            
-    def robot_pose_callback(self, msg):
-        self.lastest_robot_pose = msg.pose
+        self.linear_kp = 1
 
     def execute(self, blackboard: Blackboard) -> str:
         """
@@ -115,23 +115,30 @@ class MoveStartPos(State):
         Returns: str: The outcome of the execution, which can be "outcome1" or "outcome2".
         Raises: Exception: May raise exceptions related to state execution.
         """
-        yasmin.YASMIN_LOG_INFO("Executing state MoveStartPos")
+        yasmin.YASMIN_LOG_INFO(bcolors.YELLOW_WARNING + f"Executing state MoveStartPos" + bcolors.ENDC)
+        
+        # print(self.ros_manager.get_latest_pose())
         
         if ROBOT_ID == 1:
             # sub to robot_pos
-            goal_pose = [self.lastest_robot_pose.x + 0.5, 
-                         self.lastest_robot_pose.y + 0.5,
-                         self.lastest_robot_pose.theta + 0]
+            rob_pose = self.ros_manager.get_latest_pose()
+            goal_pose = np.array([rob_pose.x + 0.5, 
+                         rob_pose.y + 0.5,
+                         rob_pose.theta + 0])
+            yasmin.YASMIN_LOG_INFO(f"{goal_pose=}, {rob_pose=}")
             while True:
-                err_pose = self.lastest_robot_pose - goal_pose
+                rob_pose = self.ros_manager.get_latest_pose()
+                
+                # print(f'{rob_pose=}')
+                err_pose = np.array([rob_pose.x, rob_pose.y, 0]) - goal_pose
                 if (err_pose[0]**2 + err_pose[1]**2) > 0.005:
                     vel = [
-                        self.kp * err_pose[0],
-                        self.kp * err_pose[1]
+                        self.linear_kp * err_pose[0],
+                        self.linear_kp * err_pose[1]
                     ]
                     twist_msg = Twist()
                     [twist_msg.linear.x, twist_msg.linear.y] = vel
-                    self.cmd_vel_pub.publish(twist_msg)
+                    self.ros_manager.publish_cmd_vel(twist_msg)
                 else:
                     break
         return "outcome1"
@@ -148,8 +155,9 @@ class AtStartPos(State):
         counter (int): Counter to track the number of executions of this state.
     """
 
-    def __init__(self) -> None:
-        super().__init__(["outcome1", "outcome2"])
+    def __init__(self, ros_manager) -> None:
+        super().__init__(["outcome1", "end"])
+        self.ros_manager = ros_manager
         self.counter = 0
 
     def execute(self, blackboard: Blackboard) -> str:
@@ -159,7 +167,7 @@ class AtStartPos(State):
         Returns: str: The outcome of the execution, which can be "outcome1" or "outcome2".
         Raises: Exception: May raise exceptions related to state execution.
         """
-        yasmin.YASMIN_LOG_INFO("Executing state AtStartPos")
+        yasmin.YASMIN_LOG_INFO(bcolors.YELLOW_WARNING + f"Executing state AtStartPos" + bcolors.ENDC)
         # TODO check other robot if at the place 
         #* for testing 1 robot ---> bypass
         return "outcome1"
@@ -175,13 +183,10 @@ class SeekObject(State):
         counter (int): Counter to track the number of executions of this state.
     """
 
-    def __init__(self) -> None:
-        def detection_worker():
-            # containst
-            self.cylinder_detection = object_detection.detect_yellow_cylinder(self.lidar_reader_node, pub=True)
-            #baaaaa
+    def __init__(self, ros_manager) -> None:
             
-        super().__init__(["outcome1", "outcome2"])
+        super().__init__(["outcome1", "end"])
+        self.ros_manager = ros_manager
         camera_id = "/dev/video0"
         video_capture = cv2.VideoCapture(camera_id, cv2.CAP_V4L2)
         video_capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
@@ -190,18 +195,12 @@ class SeekObject(State):
         video_capture.set(cv2.CAP_PROP_FPS, 30)
         self.counter = 0
         self.lidar_reader_node = object_detection.LidarReader()
-        self.lidar_thread = threading.Thread(target=rclpy.spin, args=(self.node), daemon=True)
-        
-        
+        self.lidar_thread = threading.Thread(target=rclpy.spin, args=(self.lidar_reader_node), daemon=True)
+        def detection_worker():
+            self.cylinder_detection = object_detection.detect_yellow_cylinder(self.lidar_reader_node, pub=True)
+            
         self.detection_thread = threading.Thread(target=detection_worker)
         self.detection_thread.daemon = True
-        self.robot_pose_sub = rclpy.node.create_subscription(
-            Pose2D,                   # Message type
-            'robot_pose',                  # Topic name
-            self.robot_pose_callback,      # Callback function
-            10)                            # QoS profile (queue size)
-    def robot_pose_callback(self, msg):
-        self.lastest_robot_pose = msg.pose
 
     def execute(self, blackboard: Blackboard) -> str:
         """
@@ -210,7 +209,7 @@ class SeekObject(State):
         Returns: str: The outcome of the execution, which can be "outcome1" or "outcome2".
         Raises: Exception: May raise exceptions related to state execution.
         """
-        yasmin.YASMIN_LOG_INFO("Executing state SeekObject")
+        yasmin.YASMIN_LOG_INFO(bcolors.YELLOW_WARNING + f"Executing state SeekObject" + bcolors.ENDC)
         
         # TODO Sub to the object detection
         # TODO Pub twist msg to keep rotating. 
@@ -228,21 +227,21 @@ class SeekObject(State):
                 twist_msg.angular.x = 0.0
                 twist_msg.angular.y = 0.0
                 twist_msg.angular.z = 0.001
-                self.cmd_vel_pub.publish(twist_msg)
+                self.ros_manager.publish_cmd_vel(twist_msg)
                 time.sleep(0.1) # around 10hz
                 break
         # send stop twist
         twist_msg = Twist()
-        self.cmd_vel_pub.publish(twist_msg)
+        self.ros_manager.publish_cmd_vel(twist_msg)
         detection_info = self.cylinder_detection # do smth
         object_theta = float(detection_info["relative_angle"] )
         object_d= float(detection_info["distance"])
         object_w= float(detection_info["width"])
         
-        detection_info = self.lastest_robot_pose
-        last_pose =[self.lastest_robot_pose.x, 
-        self.lastest_robot_pose.y,
-        self.lastest_robot_pose.theta + 0]
+        detection_info = self.ros_manager.get_latest_pose
+        last_pose =[self.ros_manager.get_latest_pose.x, 
+        self.ros_manager.get_latest_pose.y,
+        self.ros_manager.get_latest_pose.theta + 0]
         # communicator.object_coords = [0.0, 0.0] # assume
         # communicator.obstacle_coords = [[-1, -1.4], [0.6, 0.3], [0.1, 1.67]] # assume
         
@@ -257,83 +256,6 @@ class SeekObject(State):
         self.lidar_thread.join()
         return "outcome1" #FoundObjectHost
         
-        
-
-# class FoundObjectHost(State):
-#     """
-#     - Motor     : Rotating Stationary, slow speed
-#     - CV        : On
-#     - Lidar     : Off
-#     - Odometry  : Check Wheel Movement (Threading)
-    
-#     Attributes:
-#         counter (int): Counter to track the number of executions of this state.
-#     """
-
-#     def __init__(self) -> None:
-#         """
-#         Outcomes:
-#             outcome1: Indicates the state should continue to the Bar state.
-#             outcome2: Indicates the state should finish execution and return.
-#         """
-#         super().__init__(["outcome1", "outcome2"])
-
-#     def execute(self, blackboard: Blackboard) -> str:
-#         """
-#         Executes the logic for the Foo state.
-#         Args: blackboard (Blackboard): The shared data structure for states.
-#         Returns: str: The outcome of the execution, which can be "outcome1" or "outcome2".
-#         Raises: Exception: May raise exceptions related to state execution.
-#         """
-#         yasmin.YASMIN_LOG_INFO("Executing state ")
-#         # time.sleep(3)  # Simulate work by sleeping
-
-#         #  TODO rotate the robot untill the cylinder is centered
-#         communicator.object_coords = [0.75, -0.25] # assume
-#         communicator.obstacle_coords = [[-1, -1.4], [0.6, 0.3], [0.1, 1.67]] # assume
-        
-#         communicator.object_detected() # activate consensus send to all with master nomination. check if master. 
-#         # communicator would broadcast PATH
-#         return "outcome1"
-        
-        
-
-# class IdleSlave(State):
-#     """
-#     - Motor     : Stop, On
-#     - CV        : Off
-#     - Lidar     : Off
-#     - Odometry  : Check Wheel Movement (Threading)
-    
-#     Attributes:
-#         counter (int): Counter to track the number of executions of this state.
-#     """
-
-#     def __init__(self) -> None:
-#         """
-#         Outcomes:
-#             outcome1: Indicates the state should continue to the Bar state.
-#             outcome2: Indicates the state should finish execution and return.
-#         """
-#         super().__init__(["outcome1", "outcome2"])
-#         self.counter = 0
-
-#     def execute(self, blackboard: Blackboard) -> str:
-#         """
-#         Executes the logic for the Foo state.
-#         Args: blackboard (Blackboard): The shared data structure for states.
-#         Returns: str: The outcome of the execution, which can be "outcome1" or "outcome2".
-#         Raises: Exception: May raise exceptions related to state execution.
-#         """
-#         yasmin.YASMIN_LOG_INFO("Executing state FOO")
-#         # time.sleep(3)  # Simulate work by sleeping
-
-#         if self.counter < 3:
-#             self.counter += 1
-#             blackboard["foo_str"] = f"Counter: {self.counter}"
-#             return "outcome1"
-#         else:
-#             return "outcome2"
 
 class PathFollowing(State):
     """
@@ -346,13 +268,14 @@ class PathFollowing(State):
         counter (int): Counter to track the number of executions of this state.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, ros_manager) -> None:
         """
         Outcomes:
-            outcome1: Indicates the state should continue to the Bar state.
+            outcome: Indicates the state should continue to the Bar state.
             outcome2: Indicates the state should finish execution and return.
         """
-        super().__init__(["outcome1", "outcome2"])
+        super().__init__(["outcome1", "end"])
+        self.ros_manager = ros_manager
         self.counter = 0
         
         self.linear_kp = 1
@@ -364,19 +287,6 @@ class PathFollowing(State):
         self.angular_kd = 0
 
         
-        self.robot_pose_sub = rclpy.node.create_subscription(
-            Pose2D,                   # Message type
-            'robot_pose',                  # Topic name
-            self.robot_pose_callback,      # Callback function
-            10)                            # QoS profile (queue size)
-        self.cmd_vel_pub = rclpy.node.create_publisher(
-            Twist,                         # Message type
-            'cmd_vel_nav',                     # Topic name
-            10)                            # QoS profile
-            
-    def robot_pose_callback(self, msg):
-        self.lastest_robot_pose = msg.pose
-        
     def execute(self, blackboard: Blackboard) -> str:
         """
         Executes the logic for the Foo state.
@@ -384,7 +294,7 @@ class PathFollowing(State):
         Returns: str: The outcome of the execution, which can be "outcome1" or "outcome2".
         Raises: Exception: May raise exceptions related to state execution.
         """
-        yasmin.YASMIN_LOG_INFO("Executing state PathFollowing")
+        yasmin.YASMIN_LOG_INFO(bcolors.YELLOW_WARNING + f"Executing state PathFollowing" + bcolors.ENDC)
         
         #* [path_planning](jetson2) Assigning jetson1 [1.78, -1.05] -> (1.05, -0.tele25, 3.14)
         
@@ -403,7 +313,7 @@ class PathFollowing(State):
             prev_t = time.time_ns()
             # path following to th point
             while True:
-                err_pose = self.lastest_robot_pose - path
+                err_pose = self.ros_manager.get_lastest_pose - path
                 if (err_pose[0]**2 + err_pose[1]**2) > 0.005:
                     t = time.time_ns()
                     delta_t = (t-prev_t)*10**9
@@ -417,7 +327,7 @@ class PathFollowing(State):
                     ]
                     [twist_msg.linear.x, twist_msg.linear.y] = vel
                     yasmin.YASMIN_LOG_INFO(f"\terr_pose {err_pose}\n\ttwist_pose {vel}")
-                    self.cmd_vel_pub.publish(twist_msg)
+                    self.ros_manager.publish_cmd_vel(twist_msg)
                 else:
                     break
             
@@ -430,7 +340,7 @@ class PathFollowing(State):
         # path following to th point
         angle = 45
         while True:
-            err_angle = self.lastest_robot_pose[2] - angle
+            err_angle = self.ros_manager.get_lastest_pose[2] - angle
             if (err_angle**2) > 0.005:
                 t = time.time_ns()
                 delta_t = (t-prev_t)*10**9
@@ -441,7 +351,7 @@ class PathFollowing(State):
                 vel = self.linear_kp * err_angle + self.linear_ki * sum_e + self.linear_kd * de_dt,
                 [twist_msg.linear.x, twist_msg.linear.y, twist_msg.angular.z] = [0,0,vel]
                 yasmin.YASMIN_LOG_INFO(f"\terr_angle {err_angle}\n\ttwist_pose {vel}")
-                self.cmd_vel_pub.publish(twist_msg)
+                self.ros_manager.publish_cmd_vel(twist_msg)
             else:
                 break
 
@@ -452,41 +362,82 @@ class PathFollowing(State):
         # ]
         
         return "outcome1"
+
+# Create a class to manage shared ROS subscribers and publishers
+class ROSManager(Node):
+    def __init__(self, node_name='state_machine_node'):
+        super().__init__('minimal_subscriber')
+
+        self.latest_robot_pose = Pose2D() # Continously update the lastest prosition
         
+        self.robot_pose_sub = self.create_subscription(
+            Pose2D,                   # Message type
+            'robot_pose',             # Topic name
+            self.robot_pose_callback,  # Callback function
+            10)                       # QoS profile (queue size)
+            
+        self.robot_pose_sub  # prevent unused variable warning
+        # Set up publishers 
+        self.cmd_vel_pub = self.create_publisher(Twist, 'cmd_vel_nav', 10)
         
+        # Start a non-blocking spin in a separate thread
+        self.spin_thread = threading.Thread(target=self._spin_node)
+        self.spin_thread.daemon = True
+        self.spin_thread.start()
+        
+    def _spin_node(self):
+        while rclpy.ok():
+            rclpy.spin_once(self, timeout_sec=0.1)
+    
+            
+    def robot_pose_callback(self, msg):
+        self.latest_robot_pose = msg
+        print(f"new {msg}")
+        
+    def get_latest_pose(self):
+        return self.latest_robot_pose
+        
+    def publish_cmd_vel(self, twist_msg):
+        self.cmd_vel_pub.publish(twist_msg)
+        
+    def shutdown(self):
+        self.node.destroy_node()
+              
 def main(args=None):
-    yasmin.YASMIN_LOG_INFO("yasmin_frfr")
     
 
-    
+    yasmin.YASMIN_LOG_INFO("yasmin_frfr")
     rclpy.init(args=args)
+    ros_manager = ROSManager()
+    
     # Set ROS 2 loggers
     set_ros_loggers()
+    
     # Create a finite state machine (FSM)
     sm = StateMachine(outcomes=["outcome4"])
 
     # Add states to the FSM
-    sm.add_state("Init", Init(), transitions={"outcome1": "MoveStartPos","end": "outcome4"})
-    sm.add_state("MoveStartPos", MoveStartPos(), transitions={"outcome1": "AtStartPos","end": "outcome4"})
-    sm.add_state("AtStartPos", AtStartPos(), transitions={"outcome1": "SeekObject","end": "outcome4"})
+    sm.add_state("Init", Init(ros_manager), transitions={"outcome1": "MoveStartPos","end": "outcome4"})
+    sm.add_state("MoveStartPos", MoveStartPos(ros_manager), transitions={"outcome1": "AtStartPos","end": "outcome4"})
+    sm.add_state("AtStartPos", AtStartPos(ros_manager), transitions={"outcome1": "SeekObject","end": "outcome4"})
     
-    sm.add_state("SeekObject", SeekObject(), transitions={"outcome1": "FoundObject","outcome2": "IdleSlave","end": "outcome4"})
+    sm.add_state("SeekObject", SeekObject(ros_manager), transitions={"outcome1": "PathFollowing","end": "outcome4"})
     # sm.add_state("IdleSlave", IdleSlave(), transitions={"outcome1": "BAR","end": "outcome4"}) # TaskMaster
     # sm.add_state("FoundObject", FoundObject(), transitions={"outcome1": "BAR","end": "outcome4"}) #Slave
     # sm.add_state("PathPlanning", PathPlanning(), transitions={"outcome1": "BAR","end": "outcome4"}) #Slave
     
-    sm.add_state("PathFollowing", PathFollowing(), transitions={"outcome1": "AtObject","end": "outcome4"}) #Slave
+    sm.add_state("PathFollowing", PathFollowing(ros_manager), transitions={"outcome1": "AtObject","end": "outcome4"}) #Slave
     
-    sm.add_state("AtObject", AtStartPos(), transitions={"outcome1": "outcome4","end": "outcome4"})
+    sm.add_state("AtObject", AtStartPos(ros_manager), transitions={"outcome1": "outcome4","end": "outcome4"})
 
     YasminViewerPub("yasmin_demo", sm)
     
-
     # Start listening thread
     server_thread = threading.Thread(target=communicator.comm_thread_spawner, daemon=True)
     server_thread.start()
 
     try:
+        yasmin.YASMIN_LOG_INFO("State Machine starting")
         outcome = sm()
         yasmin.YASMIN_LOG_INFO(outcome)
     except KeyboardInterrupt:
