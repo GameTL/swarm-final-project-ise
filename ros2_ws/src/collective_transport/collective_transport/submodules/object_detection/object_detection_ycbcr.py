@@ -4,7 +4,7 @@ import rclpy
 import threading
 import csv
 import os
-from utils import LidarReader
+from utils.lidar_reader import LidarReader
 
 window_title = "Yellow Cylinder Detection"
 
@@ -218,3 +218,11 @@ if __name__ == "__main__":
         node.destroy_node()
         rclpy.shutdown()
         
+        
+        
+        
+""" 
+                        result = CylinderDetection(distance, width, angle_360)
+                        print(f'{result=}')
+                        self.cylinder_detection = result
+                        """

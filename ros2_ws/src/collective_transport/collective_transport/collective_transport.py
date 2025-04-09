@@ -11,7 +11,6 @@ import numpy as np
 
 # from .submodules.dynamixel_class import DynamixelInterface
 import os
-import cv2
 import yasmin
 from yasmin import State
 from yasmin import Blackboard
@@ -21,8 +20,7 @@ from yasmin_viewer import YasminViewerPub
 from geometry_msgs.msg import Pose2D, Twist
 
 from submodules.p2p_communication.communicator import Communicator
-
-from submodules.object_detection import object_detection
+from submodules.object_detection.object_detection_ycbcr_class import CVMeasure
 class bcolors:
     RED_FAIL       = '\033[91m'
     GRAY_OK        = '\033[90m'
@@ -81,7 +79,7 @@ class Init(State):
         """
         yasmin.YASMIN_LOG_INFO(bcolors.YELLOW_WARNING + f"Executing state Init" + bcolors.ENDC)
         yasmin.YASMIN_LOG_INFO(f"Robot ID: {str(ROBOT_ID)}")
-        time.sleep(1) 
+        # time.sleep(1) 
         
         yasmin.YASMIN_LOG_INFO("Assuming the theta = 0 globally")
         return "outcome1"
@@ -187,20 +185,6 @@ class SeekObject(State):
             
         super().__init__(["outcome1", "end"])
         self.ros_manager = ros_manager
-        camera_id = "/dev/video0"
-        video_capture = cv2.VideoCapture(camera_id, cv2.CAP_V4L2)
-        video_capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
-        video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-        video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-        video_capture.set(cv2.CAP_PROP_FPS, 30)
-        self.counter = 0
-        self.lidar_reader_node = object_detection.LidarReader()
-        self.lidar_thread = threading.Thread(target=rclpy.spin, args=(self.lidar_reader_node), daemon=True)
-        def detection_worker():
-            self.cylinder_detection = object_detection.detect_yellow_cylinder(self.lidar_reader_node, pub=True)
-            
-        self.detection_thread = threading.Thread(target=detection_worker)
-        self.detection_thread.daemon = True
 
     def execute(self, blackboard: Blackboard) -> str:
         """
@@ -209,51 +193,54 @@ class SeekObject(State):
         Returns: str: The outcome of the execution, which can be "outcome1" or "outcome2".
         Raises: Exception: May raise exceptions related to state execution.
         """
+        # if not hasattr(self, "cv_class"):/
+        self.cv_class = CVMeasure(cv_window=True)
         yasmin.YASMIN_LOG_INFO(bcolors.YELLOW_WARNING + f"Executing state SeekObject" + bcolors.ENDC)
         
         # TODO Sub to the object detection
         # TODO Pub twist msg to keep rotating. 
-        self.lidar_thread.start()
-        self.detection_thread.start()
+        yasmin.YASMIN_LOG_INFO(f"{self.cv_class.cylinder_detection=}")
         
-        while self.cylinder_detection == None: # 
-                if communicator.header == "PATH": # received the path from master
-                    self.lidar_reader_node.destroy_node()
-                    return "outcome2" # IdleSlave
-                twist_msg = Twist()
-                twist_msg.angular.x = 0.0
-                twist_msg.angular.y = 0.0
-                twist_msg.angular.z = 0.0
-                twist_msg.angular.x = 0.0
-                twist_msg.angular.y = 0.0
-                twist_msg.angular.z = 0.001
-                self.ros_manager.publish_cmd_vel(twist_msg)
-                time.sleep(0.1) # around 10hz
-                break
+        while self.cv_class.cylinder_detection is None:
+            yasmin.YASMIN_LOG_INFO(f"{self.cv_class.cylinder_detection=}")
+            if communicator.header == "PATH": # received the path from master
+                # self.lidar_reader_node.destroy_node()
+                return "outcome2" # IdleSlave
+            # twist_msg = Twist()
+            # twist_msg.angular.x = 0.0
+            # twist_msg.angular.y = 0.0
+            # twist_msg.angular.z = 0.0
+            # twist_msg.angular.x = 0.0
+            # twist_msg.angular.y = 0.0
+            # twist_msg.angular.z = 0.001
+            # self.ros_manager.publish_cmd_vel(twist_msg)
+            yasmin.YASMIN_LOG_INFO(f"sending rotating twist msg")
+            time.sleep(0.1) # around 10hz
         # send stop twist
+        # print("BITHC WHY YOU")
+        detection_info = self.cv_class.cylinder_detection # do smth
+        yasmin.YASMIN_LOG_INFO(bcolors.BLUE_OK + f"Found a Detection at {detection_info=}" + bcolors.ENDC)
         twist_msg = Twist()
-        self.ros_manager.publish_cmd_vel(twist_msg)
-        detection_info = self.cylinder_detection # do smth
-        object_theta = float(detection_info["relative_angle"] )
-        object_d= float(detection_info["distance"])
-        object_w= float(detection_info["width"])
+        
+        # self.ros_manager.publish_cmd_vel(twist_msg)
+        object_theta = float(detection_info.angle360 )
+        object_d= float(detection_info.distance)
+        object_w= float(detection_info.width)
         
         detection_info = self.ros_manager.get_latest_pose
-        last_pose =[self.ros_manager.get_latest_pose.x, 
-        self.ros_manager.get_latest_pose.y,
-        self.ros_manager.get_latest_pose.theta + 0]
+        rob_pose = self.ros_manager.get_latest_pose()
         # communicator.object_coords = [0.0, 0.0] # assume
-        # communicator.obstacle_coords = [[-1, -1.4], [0.6, 0.3], [0.1, 1.67]] # assume
+        # communicator.obstacle_coords = [[-1, -1.4], [0.6, 0.3], [0.1, 1.67]] # w
         
         object_pose = [ # robot pose  + the distance xy of the object relative to robot pose
-            last_pose[0] + (object_d+object_w/2)*math.cos(math.radians(last_pose[2] + object_theta)),
-            last_pose[1] + (object_d+object_w/2)*math.sin(math.radians(last_pose[2] + object_theta))
+            rob_pose.x + (object_d+object_w/2)*math.cos(math.radians(rob_pose.theta + object_theta)),
+            rob_pose.y + (object_d+object_w/2)*math.sin(math.radians(rob_pose.theta + object_theta))
         ]
         communicator.object_coords = object_pose
-        yasmin.YASMIN_LOG_INFO(f"Object Calculated: \n\trobot_pose {last_pose}\n\tobject_pose {object_pose}")
+        yasmin.YASMIN_LOG_INFO(bcolors.BLUE_OK + f"Object Calculated: \n\trobot_pose {rob_pose}\n\tobject_pose {object_pose}" + bcolors.ENDC)
         communicator.obstacle_coords = [] # assume
-        self.lidar_reader_node.destroy_node()
-        self.lidar_thread.join()
+        # self.lidar_reader_node.destroy_node()
+        # self.lidar_thread.join()
         return "outcome1" #FoundObjectHost
         
 
@@ -313,7 +300,7 @@ class PathFollowing(State):
             prev_t = time.time_ns()
             # path following to th point
             while True:
-                err_pose = self.ros_manager.get_lastest_pose - path
+                err_pose = self.ros_manager.get_latest_pose - path
                 if (err_pose[0]**2 + err_pose[1]**2) > 0.005:
                     t = time.time_ns()
                     delta_t = (t-prev_t)*10**9
@@ -340,7 +327,7 @@ class PathFollowing(State):
         # path following to th point
         angle = 45
         while True:
-            err_angle = self.ros_manager.get_lastest_pose[2] - angle
+            err_angle = self.ros_manager.get_latest_pose[2] - angle
             if (err_angle**2) > 0.005:
                 t = time.time_ns()
                 delta_t = (t-prev_t)*10**9
@@ -407,7 +394,10 @@ def main(args=None):
     
 
     yasmin.YASMIN_LOG_INFO("yasmin_frfr")
-    rclpy.init(args=args)
+    if not rclpy.ok():
+        rclpy.init(args=args)
+    
+
     ros_manager = ROSManager()
     
     # Set ROS 2 loggers

@@ -33,6 +33,7 @@ class Communicator:
 
         # Initialize host information and priority queue
         self.parse_json()
+        self.header = ""
 
     def parse_json(self):
         try:
@@ -72,6 +73,7 @@ class Communicator:
 
             data = json.loads(message)
             header = data.get("header", "")
+            self.header = header # don't delete State machine needs this
             sender = data.get("sender", "")
             content = data.get("content", "")
 
