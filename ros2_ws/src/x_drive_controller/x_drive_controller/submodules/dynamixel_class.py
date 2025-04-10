@@ -31,8 +31,8 @@ if system == "Darwin":
     DEVICENAME = '/dev/tty.usbserial-AB0NRMLW'  # Update this with your ports
 elif system == "Linux":
     print("The operating system is Linux.")
-    DEVICENAME = '/dev/ttyUSB1'
-    # DEVICENAME = '/dev/ttyUSB0'
+    # DEVICENAME = '/dev/ttyUSB1'
+    DEVICENAME = '/dev/ttyUSB0'
     # DEVICENAME = '/dev/usb_serial'
 
 DISABLE = 0
