@@ -73,7 +73,7 @@ def generate_launch_description():
             name='x_drive_controller',
             output='screen' # make this node visable on terminal
         ),
-        
+
         #* RPLIDAR LAUNCH PART
         DeclareLaunchArgument(
             'channel_type',

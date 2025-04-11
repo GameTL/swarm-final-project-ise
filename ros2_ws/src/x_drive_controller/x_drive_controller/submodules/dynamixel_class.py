@@ -42,7 +42,7 @@ DXL_MOVING_STATUS_THRESHOLD = 20    # Dynamixel moving status threshold
 index = 0
 dxl_goal_speed = [300, 800]         # Goal position
 
-MAX_LINEAR_STEP = 200
+MAX_LINEAR_STEP = 300
 MAX_ANGULAR_STEP = 20
 STEP_LIMIT = MAX_LINEAR_STEP # MOVING SPEED LIMIT
 
