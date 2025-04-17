@@ -26,6 +26,7 @@ class Communicator:
         self.coords_dict = {}
         self.obstacle_coords = [] # Should know from lidar
         self.object_coords = () # Should know from lidar + camera
+        self.taskmaster = ""
         
         # For movement
         self.command = []
@@ -83,20 +84,24 @@ class Communicator:
             # elif header == "CONSENSUS_REACHED":
             #     print(f"[INFO] Consensus reached, taskmaster is {content}")
             elif header == "COORDINATES":
-                print(f"[INFO] Received {content} from {sender}")
+                # print(f"[INFO] Received {content} from {sender}")
                 self.coords_dict[sender] = content
+                self.coords_dict[self.identifier] = self.current_coords # Add its own coords
 
-                if len(self.coords_dict) == len(self.priority_queue) - 1:
-                    self.coords_dict[self.identifier] = self.current_coords # Add its own coords
+                if len(self.coords_dict) == len(self.priority_queue):
+                    # print(f"({self.identifier}) {self.taskmaster}")
+                    if self.identifier == self.taskmaster:
+                        self.path_planning(
+                            current_coords=self.coords_dict,
+                            object_coords=self.object_coords,
+                            obstacle_coords=self.obstacle_coords
+                        )
+                        self.taskmaster = ""
+
+                        # Clear path planning params
+                        # self.coords_dict = {}
                     
-                    self.path_planning(
-                        current_coords=self.coords_dict,
-                        object_coords=self.object_coords,
-                        obstacle_coords=self.obstacle_coords
-                    )
-
-                    # Clear path planning params
-                    self.coords_dict = {}
+                    print(f"[COORDS] Current coords: {self.coords_dict}")
             elif header == "PATH":
                 if not self.suppress:
                     print(f"[DEBUG] Received the paths from {sender}: {content}")
@@ -245,6 +250,7 @@ class Communicator:
         """
         Utility function for robot to call when object is detected
         """
+        self.consensus(self.identifier)
         communicator.broadcast("OBJECT_DETECTED", message) # TODO: Should be object and obstacle positions
 
     def path_planning(self, current_coords, object_coords, obstacle_coords, radius=0.3):
@@ -289,18 +295,32 @@ class Communicator:
         self.command = []
         self.orientation = 0.0
 
+    def start_periodic_broadcast(self, interval_sec=2):
+        def broadcast_loop():
+            last_time = time.time()
+            while True:
+                current_time = time.time()
+                if current_time - last_time >= interval_sec:
+                    # print("[COORDS] Broadcasting coordinates")
+                    self.broadcast("COORDINATES", self.current_coords)
+                    last_time = current_time
+                time.sleep(0.05) # Light delay to avoid busy loop
+
+        threading.Thread(target=broadcast_loop, daemon=True).start()
 
 if __name__ == "__main__":
     communicator = Communicator()
 
     # For testing purpose
-    communicator.current_coords = [0, 0]
+    communicator.current_coords = [1.78, -1.05]
     communicator.object_coords = [0.75, -0.25]
     communicator.obstacle_coords = [[-1, -1.4], [0.6, 0.3], [0.1, 1.67]]
 
     # Start listening thread
     server_thread = threading.Thread(target=communicator.comm_thread_spawner, daemon=True)
     server_thread.start()
+
+    communicator.start_periodic_broadcast(interval_sec=4)
 
     while True:
         user_input = input("Press 'S' to claim taskmaster role: ").strip().upper()
@@ -309,6 +329,9 @@ if __name__ == "__main__":
             communicator.cleanup() # To clear waypoints and orientation
         elif user_input == "Q":
             break
+        else:
+            communicator.current_coords[0] += 0.1 # Simulate robots moving in x-direction
+            print(f"[DEBUG] Current position updated to: {communicator.current_coords}")
 
     server_thread.join()
     
