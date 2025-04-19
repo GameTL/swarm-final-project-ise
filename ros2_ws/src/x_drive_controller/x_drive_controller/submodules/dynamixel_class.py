@@ -8,7 +8,7 @@ RADIANS135 = radians(135)
 import numpy as np
 from numpy.linalg import pinv
 
-mRAD2STEP = 0.085693
+RAD2STEP = 0085.693
 R = int(168/2) # (mm) Radius from the Robot_center to Wheel_center 
 r = int(68/2) # (mm) Radius from the Robot_center to Wheel_center
 V_motor_int_unsigned = [0,0,0,0]
@@ -42,8 +42,9 @@ DXL_MOVING_STATUS_THRESHOLD = 20    # Dynamixel moving status threshold
 index = 0
 dxl_goal_speed = [300, 800]         # Goal position
 
-MAX_LINEAR_STEP = 300
-MAX_ANGULAR_STEP = 20
+MAX_LINEAR_STEP = 250
+MAX_ANGULAR_STEP = 5
+MAX_ANGULAR_SPEED = 2*(3.14)/8 # Rad/s
 STEP_LIMIT = MAX_LINEAR_STEP # MOVING SPEED LIMIT
 
 #********* DYNAMIXEL Model definition *********
@@ -302,8 +303,8 @@ class DynamixelInterface:
         
     def inv_drive(self, v1=0, v2=0, v3=0, v4=0):
         V_motor = np.array([[v1], [v2], [v3], [v4]])
-        V_omega = V_motor / mRAD2STEP  # This converts back to rad/s or mm/s
-        V_omega = V_omega / 2000
+        V_omega = V_motor / RAD2STEP  # This converts back to rad/s or mm/s
+        V_omega = V_omega
         inv_arcJ = pinv(np.array([[-sin((5*pi)/4),  cos((5*pi)/4),  R],
                                 [-sin((3*pi)/4),  cos((3*pi)/4),  R],
                                 [-sin(pi/4),      cos(pi/4),      R],
@@ -313,6 +314,7 @@ class DynamixelInterface:
         return Vin[0], Vin[1], Vin[2]
      
     def drive(self, xDot, yDot, thetaDot):
+        thetaDot = min(max(thetaDot,-MAX_ANGULAR_SPEED), MAX_ANGULAR_SPEED)
         # print("----")
         if (not(xDot) or not(yDot)):
             magnitude_reducer = 1
@@ -326,15 +328,15 @@ class DynamixelInterface:
         # print("----")
         xDot       /= magnitude_reducer # (m/s)
         yDot       /= magnitude_reducer # (m/s) 
-        Vin = np.array([[xDot],             # (mm/s)
-                        [yDot],             # (mm/s)
-                        [thetaDot]])*1000   # (mrad/s)
+        Vin = np.array([[xDot*1000],             # (m/s)
+                        [yDot*1000],             # (m/s)
+                        [thetaDot]])   # (rad/s)
         arcJ = np.array([[-sin((5*pi)/4),  cos((5*pi)/4),  R],
                          [-sin((3*pi)/4),  cos((3*pi)/4),  R],
                          [-sin(pi/4),      cos(pi/4),      R],
                          [-sin((7*pi)/4),  cos((7*pi)/4),  R]]) / r
-        Vomega = np.dot(arcJ,Vin)*2000 # (mrad/s)
-        V_motor = Vomega*mRAD2STEP
+        Vomega = np.dot(arcJ,Vin) # (rad/s)
+        V_motor = Vomega*RAD2STEP
         # V_motor_int = V_motor.astype
         
         for idx,num in enumerate(V_motor):

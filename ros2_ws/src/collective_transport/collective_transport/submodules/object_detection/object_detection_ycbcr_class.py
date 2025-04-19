@@ -202,7 +202,7 @@ class CVMeasure:
                             -> distance
                             --------------------------------------------------------------------------------------------------------------------------
                             '''
-                            result = CylinderDetection(distance, width, angle360)
+                            result = [distance, width, angle360]
                             self.cylinder_detection = result
                             # print(f'{self.cylinder_detection=}')
                             '''
