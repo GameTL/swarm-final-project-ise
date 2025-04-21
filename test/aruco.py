@@ -1,18 +1,27 @@
 import cv2
 import numpy as np
 import pandas as pd
+from communication.socket.communicator import Communicator
+import json
 
 ARUCO_DICT = {
     "DICT_4X4_50": cv2.aruco.DICT_4X4_50
 } 
 
 class Aruco():
-    def __init__(self, map_size , aruco_dict = ARUCO_DICT):
+    def __init__(self, map_size , my_marker_id, aruco_dict = ARUCO_DICT):
         self.aruco_dict = aruco_dict
         self.aruco_type = self.aruco_dict.keys()
         self.current_data = dict()
         self.map_size = map_size
+        self.my_marker_id = my_marker_id #for the robot to know which marker id belongs to it
         self.testing_data = pd.DataFrame(columns=["id", "timestamp", "x", "y", "theta"])
+        self.communicator = Communicator() #create communicator object
+        with open("../ros2_ws/src/collective_transport/collective_transport/collective_transport/submodules/p2p_communication/hosts.json", "r") as f:
+            hosts_data = json.load(f)
+        self.marker_to_robot = {
+            int(key): value for key, value in hosts_data.items() if key.isdigit()
+        } #maps my_marker_id to robot_address
         
     def aruco_detect(self, frame, current_timestamp):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -69,6 +78,10 @@ class Aruco():
                 y_map = -(y-0.5)*self.map_size[0]
                 print(f"[Inference] ArUco marker ID: {markerID} @ ({round(x_map, 4)}m, {round(y_map, 4)}m, {actual_theta_deg} degree)")
                 self.current_data[str(markerID)] = (x, y, display_theta_deg) 
+                # robot_name = self.marker_to_robot[int(markerID)]  #if want to turn current_coord into dict
+                # self.communicator.current_coords[robot_name] = [x_map, y_map] 
+                if int(markerID) == self.my_marker_id:  # Only if this marker is "me"
+                    self.communicator.current_coords = [x_map, y_map]
                 self.testing_data.loc[len(self.testing_data)] =  {
                     "id": str(markerID),
                     "timestamp": current_timestamp,
