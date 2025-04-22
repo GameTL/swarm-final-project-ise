@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 import pandas as pd
-from communication.socket.communicator import Communicator
 import json
 
 ARUCO_DICT = {
@@ -9,19 +8,20 @@ ARUCO_DICT = {
 } 
 
 class Aruco():
-    def __init__(self, map_size , my_marker_id, aruco_dict = ARUCO_DICT):
+    def __init__(self, map_size, aruco_dict = ARUCO_DICT):
         self.aruco_dict = aruco_dict
         self.aruco_type = self.aruco_dict.keys()
         self.current_data = dict()
         self.map_size = map_size
-        self.my_marker_id = my_marker_id #for the robot to know which marker id belongs to it
         self.testing_data = pd.DataFrame(columns=["id", "timestamp", "x", "y", "theta"])
+        '''
         self.communicator = Communicator() #create communicator object
         with open("../ros2_ws/src/collective_transport/collective_transport/collective_transport/submodules/p2p_communication/hosts.json", "r") as f:
             hosts_data = json.load(f)
         self.marker_to_robot = {
             int(key): value for key, value in hosts_data.items() if key.isdigit()
         } #maps my_marker_id to robot_address
+        '''
         
     def aruco_detect(self, frame, current_timestamp):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
