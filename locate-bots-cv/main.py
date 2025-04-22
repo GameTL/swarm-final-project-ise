@@ -6,8 +6,11 @@ import queue
 from aruco import Aruco
 from aruco_visual import ArucoVisual  # Assuming this uses `turtle`
 import datetime as dt
+from aruco_server import latest_data
 
-MAP_SIZE = (2, 2.1)
+#insert the size of the frame here
+MAP_SIZE = (1.45, 1.07)
+
 prev_frame_time = 0
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)  # Open the camera
 aruco = Aruco(MAP_SIZE)
@@ -50,7 +53,7 @@ while True:
     if not ret:
         continue  # Skip iteration if the frame is invalid
 
-    detected_markers = aruco.aruco_detect(frame, current_timestamp)
+    detected_markers, recorded_data = aruco.aruco_detect(frame, current_timestamp)
     if detected_markers is None:
         detected_markers = frame.copy()
 
@@ -73,6 +76,10 @@ while True:
         break
     if cv2.waitKey(3) & 0xFF == ord('r'):
         aruco_visual.reset_map()
+
+    if recorded_data is not None:
+        latest_data.clear()
+        latest_data.update(recorded_data)
 
 cap.release()
 cv2.destroyAllWindows()

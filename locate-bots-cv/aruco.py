@@ -22,10 +22,11 @@ class Aruco():
             arucoParams = cv2.aruco.DetectorParameters()
 
             corners, ids, rejected = cv2.aruco.ArucoDetector(arucoDict, arucoParams).detectMarkers(gray)
-            detected_markers = self.aruco_display(corners, ids, rejected, frame, current_timestamp)
-        return detected_markers
+            detected_markers, recorded_data = self.aruco_display(corners, ids, rejected, frame, current_timestamp)
+        return detected_markers, recorded_data
 
     def aruco_display(self, corners, ids, rejected, image, current_timestamp):
+        recorded_data = None
         if len(corners) > 0:
             ids = ids.flatten()
             for (markerCorner, markerID) in zip(corners, ids):
@@ -50,7 +51,7 @@ class Aruco():
                 display_theta_deg = np.degrees(display_theta_rad)-90 # Convert to degrees
 
                 actual_theta_rad = np.arctan2(dx, dy)
-                actual_theta_deg = np.degrees(display_theta_rad)+180
+                actual_theta_deg = 360-(np.degrees(display_theta_rad)+180)
                 
                 cX = int((topLeft[0] + bottomRight[0]) / 2.0)
                 cY = int((topLeft[1] + bottomRight[1]) / 2.0)
@@ -69,6 +70,12 @@ class Aruco():
                 y_map = -(y-0.5)*self.map_size[0]
                 print(f"[Inference] ArUco marker ID: {markerID} @ ({round(x_map, 4)}m, {round(y_map, 4)}m, {actual_theta_deg} degree)")
                 self.current_data[str(markerID)] = (x, y, display_theta_deg) 
+                recorded_data = {
+                    "id": str(markerID),
+                    "x":x,
+                    "y": y,
+                    "theta": actual_theta_deg
+                }
                 self.testing_data.loc[len(self.testing_data)] =  {
                     "id": str(markerID),
                     "timestamp": current_timestamp,
@@ -76,7 +83,7 @@ class Aruco():
                     "y": y,
                     "theta": actual_theta_deg
                 }
-        return image
+        return image, recorded_data
     
 if __name__ == "__main__":
     aruco = Aruco()
