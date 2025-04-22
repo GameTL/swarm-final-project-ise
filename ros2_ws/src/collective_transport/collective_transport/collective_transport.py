@@ -117,28 +117,29 @@ class MoveStartPos(State):
         
         # print(self.ros_manager.get_latest_pose())
         
-        if ROBOT_ID == 1:
-            # sub to robot_pos
+        # sub to robot_pos
+        _distance = 0
+        # _distance = 0.5
+        rob_pose = self.ros_manager.get_latest_pose()
+        goal_pose = np.array([rob_pose.x + _distance, 
+                        rob_pose.y + _distance,
+                        rob_pose.theta + 0])
+        yasmin.YASMIN_LOG_INFO(f"{goal_pose=}, {rob_pose=}")
+        while True:
             rob_pose = self.ros_manager.get_latest_pose()
-            goal_pose = np.array([rob_pose.x + 0.5, 
-                         rob_pose.y + 0.5,
-                         rob_pose.theta + 0])
-            yasmin.YASMIN_LOG_INFO(f"{goal_pose=}, {rob_pose=}")
-            while True:
-                rob_pose = self.ros_manager.get_latest_pose()
-                
-                # print(f'{rob_pose=}')
-                err_pose = np.array([rob_pose.x, rob_pose.y, 0]) - goal_pose
-                if (err_pose[0]**2 + err_pose[1]**2) > 0.005:
-                    vel = [
-                        self.linear_kp * err_pose[0],
-                        self.linear_kp * err_pose[1]
-                    ]
-                    twist_msg = Twist()
-                    [twist_msg.linear.x, twist_msg.linear.y] = vel
-                    self.ros_manager.publish_cmd_vel(twist_msg)
-                else:
-                    break
+            
+            # print(f'{rob_pose=}')
+            err_pose = np.array([rob_pose.x, rob_pose.y, 0]) - goal_pose
+            if (err_pose[0]**2 + err_pose[1]**2) > 0.005:
+                vel = [
+                    self.linear_kp * err_pose[0],
+                    self.linear_kp * err_pose[1]
+                ]
+                twist_msg = Twist()
+                [twist_msg.linear.x, twist_msg.linear.y] = vel
+                self.ros_manager.publish_cmd_vel(twist_msg)
+            else:
+                break
         return "outcome1"
 
 class AtStartPos(State):
@@ -155,8 +156,8 @@ class AtStartPos(State):
 
     def __init__(self, ros_manager) -> None:
         super().__init__(["outcome1", "end"])
-        self.ros_manager = ros_manager
-        self.counter = 0
+        # self.ros_manager = ros_manager
+        # self.counter = 0
 
     def execute(self, blackboard: Blackboard) -> str:
         """
@@ -168,6 +169,7 @@ class AtStartPos(State):
         yasmin.YASMIN_LOG_INFO(bcolors.YELLOW_WARNING + f"Executing state AtStartPos" + bcolors.ENDC)
         # TODO check other robot if at the place 
         #* for testing 1 robot ---> bypass
+        # return "end"
         return "outcome1"
         
 class SeekObject(State):
@@ -184,7 +186,7 @@ class SeekObject(State):
     def __init__(self, ros_manager) -> None:
             
         super().__init__(["outcome1", "end"])
-        self.ros_manager = ros_manager
+        # self.ros_manager = ros_manager
 
     def execute(self, blackboard: Blackboard) -> str:
         """
@@ -194,7 +196,13 @@ class SeekObject(State):
         Raises: Exception: May raise exceptions related to state execution.
         """
         # if not hasattr(self, "cv_class"):/
-        self.cv_class = CVMeasure(cv_window=True)
+        try:
+            self.cv_class = CVMeasure(cv_window=True)
+        except Exception as e:
+            yasmin.YASMIN_LOG_INFO(bcolors.RED_FAIL + f"{e}" + bcolors.ENDC)
+            quit()
+            
+            
         yasmin.YASMIN_LOG_INFO(bcolors.YELLOW_WARNING + f"Executing state SeekObject" + bcolors.ENDC)
         
         # TODO Sub to the object detection
@@ -218,6 +226,7 @@ class SeekObject(State):
             time.sleep(0.1) # around 10hz
         # send stop twist
         # print("BITHC WHY YOU")
+        input()
         detection_info = self.cv_class.cylinder_detection # do smth
         yasmin.YASMIN_LOG_INFO(bcolors.BLUE_OK + f"Found a Detection at {detection_info=}" + bcolors.ENDC)
         twist_msg = Twist()
