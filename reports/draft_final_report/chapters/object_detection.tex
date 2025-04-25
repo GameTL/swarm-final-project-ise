@@ -175,4 +175,10 @@ Measurements for each cylinder under all lighting conditions are presented in Ap
 After applying a variation factor to optimize the accuracy of width measurements, the model's performance improved significantly. The prediction error was reduced from 4 centimeters to approximately 1 centimeter for cylinders with diameters of 20 cm and 16 cm, which are the objects intended for use in the actual test environment. In contrast, the 12 cm diameter cylinder exhibited a higher prediction error of up to 2 centimeters.
 
 \paragraph*{}
+Two major challenges were identified: camera distortion and hardware-related issues. Firstly, camera distortion significantly hindered the accurate determination of the target's diameter. Lens distortion caused the image to expand both horizontally and vertically, resulting in inaccurate distance and width measurements, with a predicted width error of 4 centimeters. To mitigate this issue, limiting the tolerance zone to a specific range in the center of the frame effectively eliminated distortion on both sides.
+
+\paragraph*{}
+Another challenge was hardware-related. The original CSI camera could not be utilized due to a firmware update on the Jetson Nano, which lacked support for this type of camera. Additionally, the camera occasionally failed to auto-focus, causing blurred images and inaccurate measurements, or no results at all. This issue occurred when objects were very close to the lens, specifically within 30 centimeters. To address this, the status will not be set as "FoundObject" if the distance is less than 30 centimeters.
+
+\paragraph*{}
 To further enhance the model's flexibility and accuracy, it is recommended to incorporate data from the 12 cm cylinder into the determination of the variation factor function. Ultimately, to generalize the model for different cylinder sizes or even other geometric shapes, the variation factor should be defined as a function of intrinsic and extrinsic camera parameters, which can be accurately obtained through OpenCV camera calibration.
