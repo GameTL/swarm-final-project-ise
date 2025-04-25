@@ -1,0 +1,166 @@
+\documentclass{report}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{caption}
+\usepackage{float} % for [H] placement
+\geometry{margin=1in}
+
+\begin{document}
+
+\appendix
+\chapter{Object Detection Model Testing Result}
+
+\begin{table}[t]
+    \centering
+    \caption{Predicted diameter under different lighting conditions of 20 cm diameter cylinder, placed at actual relative angle of 0 degree.}
+    \label{tab:20cm}
+    \begin{tabular}{cccc}
+    \toprule
+    \textbf{Lighting Condition} & \textbf{Distance (m)} & \textbf{Angle (°)} & \textbf{Predicted Width (m)} \\
+    \midrule
+    1 & 0.5 & 0.21 & 0.20 \\
+    2 & 0.5 & 0.21 & 0.20 \\
+    3 & 0.5 & 0.21 & 0.20 \\
+    4 & 0.5 & 0.21 & 0.20 \\
+    5 & 0.5 & 0.28 & 0.20 \\
+    6 & 0.5 & 0.28 & 0.20 \\
+    7 & 0.5 & 0.13 & 0.20 \\
+    8 & 0.5 & 0.21 & 0.20 \\
+    9 & 0.5 & 0.21 & 0.21 \\
+    \cmidrule(lr){1-4}
+    1 & 1.00 & 0.37 & 0.20 \\
+    2 & 1.01 & 0.43 & 0.20 \\
+    3 & 1.00 & 0.43 & 0.20 \\
+    4 & 1.00 & 0.37 & 0.20 \\
+    5 & 1.00 & 0.43 & 0.20 \\
+    6 & 1.00 & 0.31 & 0.20 \\
+    7 & 1.00 & 0.29 & 0.20 \\
+    8 & 1.00 & 0.33 & 0.20 \\
+    9 & 1.00 & 0.33 & 0.20 \\
+    \cmidrule(lr){1-4}
+    1 & 2.00 & 0.18 & 0.20 \\
+    2 & 1.99 & 0.18 & 0.20 \\
+    3 & 2.00 & 0.18 & 0.20 \\
+    4 & 2.00 & 0.18 & 0.20 \\
+    5 & 2.00 & 0.18 & 0.20 \\
+    6 & 1.99 & 0.18 & 0.20 \\
+    7 & 2.00 & 0.18 & 0.20 \\
+    8 & 2.00 & 0.18 & 0.20 \\
+    9 & 2.00 & 0.18 & 0.20 \\
+    \cmidrule(lr){1-4}
+    1 & 3.00 & 0.35 & 0.20 \\
+    2 & 3.00 & 0.29 & 0.20 \\
+    3 & 3.00 & 0.29 & 0.20 \\
+    4 & 2.99 & 0.29 & 0.20 \\
+    5 & 3.00 & 0.29 & 0.20 \\
+    6 & 3.00 & 0.29 & 0.20 \\
+    7 & 3.01 & 0.35 & 0.19 \\
+    8 & 3.00 & 0.29 & 0.20 \\
+    9 & 3.00 & 0.29 & 0.20 \\
+    \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Predicted diameter under different lighting conditions of 16 cm diameter cylinder, placed at actual relative angle of 0 degree.}
+\label{tab:16cm}
+\begin{tabular}{cccc}
+\toprule
+\textbf{Lighting Condition} & \textbf{Distance (m)} & \textbf{Angle (°)} & \textbf{Predicted Width (m)} \\
+\midrule
+1 & 0.5 & 358.11 & 0.16 \\
+2 & 0.5 & 358.11 & 0.16 \\
+3 & 0.5 & 358.11 & 0.16 \\
+4 & 0.5 & 358.05 & 0.16 \\
+5 & 0.5 & 358.11 & 0.16 \\
+6 & 0.5 & 358.11 & 0.16 \\
+7 & 0.5 & 358.11 & 0.16 \\
+8 & 0.5 & 358.11 & 0.16 \\
+9 & 0.5 & 358.11 & 0.16 \\
+\cmidrule(lr){1-4}
+1 & 1.00 & 0.18 & 0.16 \\
+2 & 1.00 & 0.18 & 0.16 \\
+3 & 1.00 & 0.18 & 0.16 \\
+4 & 1.00 & 0.18 & 0.16 \\
+5 & 1.00 & 0.12 & 0.16 \\
+6 & 1.00 & 0.18 & 0.16 \\
+7 & 1.00 & 0.12 & 0.16 \\
+8 & 1.00 & 0.18 & 0.16 \\
+9 & 1.00 & 0.18 & 0.16 \\
+\cmidrule(lr){1-4}
+1 & 2.00 & 0.55 & 0.16 \\
+2 & 2.00 & 0.61 & 0.16 \\
+3 & 2.00 & 0.61 & 0.16 \\
+4 & 2.00 & 0.61 & 0.16 \\
+5 & 2.00 & 0.55 & 0.16 \\
+6 & 2.00 & 0.55 & 0.16 \\
+7 & 2.00 & 0.55 & 0.16 \\
+8 & 2.00 & 0.55 & 0.16 \\
+9 & 2.00 & 0.55 & 0.16 \\
+\cmidrule(lr){1-4}
+1 & 3.00 & 0.22 & 0.16 \\
+2 & 3.01 & 0.28 & 0.16 \\
+3 & 3.00 & 0.28 & 0.16 \\
+4 & 3.00 & 0.22 & 0.17 \\
+5 & 3.00 & 0.28 & 0.16 \\
+6 & 3.00 & 0.28 & 0.16 \\
+7 & 3.00 & 0.28 & 0.17 \\
+8 & 3.00 & 0.28 & 0.16 \\
+9 & 3.00 & 0.28 & 0.16 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Predicted diameter under different lighting conditions of 12 cm diameter cylinder, placed at actual relative angles of 2, 0, 1.5, and 0 degrees.}
+\label{tab:12cm}
+\begin{tabular}{cccc}
+\toprule
+\textbf{Lighting Condition} & \textbf{Distance (m)} & \textbf{Angle (°)} & \textbf{Predicted Width (m)} \\
+\midrule
+1 & 0.5 & 2.01 & 0.13 \\
+2 & 0.5 & 2.01 & 0.13 \\
+3 & 0.5 & 2.01 & 0.12 \\
+4 & 0.5 & 2.00 & 0.14 \\
+5 & 0.5 & 2.01 & 0.13 \\
+6 & 0.5 & 2.01 & 0.12 \\
+7 & 0.5 & 2.02 & 0.13 \\
+8 & 0.5 & 2.01 & 0.14 \\
+9 & 0.5 & 2.01 & 0.13 \\
+\cmidrule(lr){1-4}
+1 & 1.00 & 0.21 & 0.12 \\
+2 & 1.00 & 0.21 & 0.13 \\
+3 & 1.00 & 0.20 & 0.13 \\
+4 & 1.00 & 0.21 & 0.12 \\
+5 & 1.00 & 0.21 & 0.12 \\
+6 & 1.01 & 0.23 & 0.14 \\
+7 & 1.00 & 0.21 & 0.12 \\
+8 & 1.00 & 0.23 & 0.13 \\
+9 & 1.00 & 0.21 & 0.13 \\
+\cmidrule(lr){1-4}
+1 & 2.00 & 1.65 & 0.12 \\
+2 & 2.00 & 1.65 & 0.12 \\
+3 & 2.01 & 1.68 & 0.12 \\
+4 & 2.00 & 1.65 & 0.13 \\
+5 & 2.00 & 1.68 & 0.13 \\
+6 & 2.00 & 1.65 & 0.12 \\
+7 & 2.00 & 1.65 & 0.12 \\
+8 & 1.99 & 1.68 & 0.14 \\
+9 & 2.00 & 1.68 & 0.14 \\
+\cmidrule(lr){1-4}
+1 & 3.00 & 0.05 & 0.12 \\
+2 & 3.00 & 0.05 & 0.12 \\
+3 & 3.00 & 0.05 & 0.14 \\
+4 & 3.01 & 0.05 & 0.12 \\
+5 & 3.00 & 0.05 & 0.14 \\
+6 & 3.00 & 0.05 & 0.13 \\
+7 & 3.00 & 0.05 & 0.12 \\
+8 & 3.00 & 0.05 & 0.13 \\
+9 & 3.00 & 0.05 & 0.12 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\end{document}
