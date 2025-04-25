@@ -1,0 +1,36 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"name": "Jeff-Control-STM32",
+			"path": "../../../Documents/PlatformIO/Projects/Jeff-Control-STM32"
+		}
+	],
+	"settings": {
+		"terminal.integrated.defaultProfile.osx": "zsh",
+		"terminal.integrated.profiles.osx": {
+			"zsh": {
+				"path": "zsh",
+				"args": [
+					"-l",
+					"-c",
+					"source /Users/game/esp/esp-idf/export.sh; zsh"
+				]
+			}
+		},
+		"files.associations": {
+			"string.h": "c",
+			"task.h": "c",
+			"__node_handle": "c",
+			"regex": "c",
+			"complex": "c",
+			"ios": "c",
+			"stdio.h": "c",
+			"rotary_encoder.h": "c",
+			"ledc.h": "c",
+			"freertos.h": "c"
+		}
+	}
+}
