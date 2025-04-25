@@ -63,3 +63,6 @@ test/image/*.jpg
 temp_py_files/
 .env*
 data20_near_2.csv
+
+# Allow ISE logo
+!*ise_logo.png
