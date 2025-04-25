@@ -435,6 +435,8 @@ def main(args=None):
     server_thread = threading.Thread(target=communicator.comm_thread_spawner, daemon=True)
     server_thread.start()
 
+    communicator.current_coords = data # (x, y)
+
     try:
         yasmin.YASMIN_LOG_INFO("State Machine starting")
         outcome = sm()
