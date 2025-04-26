@@ -7,7 +7,7 @@ from .formation import FormationMaster
 from .translator import Translator
 
 IDENTIFIER = "jetson1"
-HOST_FP = "./communication/hosts.json"
+HOST_FP ="./submodules/p2p_communication/hosts.json"
 MAX_CONNECTIONS = 5
 TIMEOUT = 5
 MAX_RETRIES = 3
