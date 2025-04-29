@@ -1,3 +1,4 @@
+# PLESAE USE PYTHON 3.11 [dont work on 3.9 or 3.12]
 import numpy as np
 import cv2
 import time
