@@ -1,0 +1,166 @@
+\chapter{Literature Survey and Review}
+
+\section{Coordination}
+
+\paragraph*{}
+Swarm robotics solution is a design architecture that obtains inspirations from biological interactions; thus, they should operate autonomously to solve problems rather than relying on a central authority\cite{turkler2022usage}. This decentralised approach is also crucial to achieve increased resilience and flexibility given a complex environment of deployment\cite{das2024bio}.
+
+\paragraph*{}
+Communication protocols can be categorised into two principal types depending on the nature of information transmission: Direct communication and Indirect communication\cite{das2024bio}. Direct communication refers to robotic agents that are able to coordinate via networked communication. Direct communication use cases are highlighted in many studies.
+
+\paragraph*{}
+Ibrahim et al. \cite{ibrahim2024enhancing} studied direct communication to determine the optimal distance for robotic agents to achieve consensus. Three strategies were tested within a 50 cm range: Close-neighbour, Far-neighbour, and Rand-neighbour. Close-neighbour excels in stable environments but performs poorly in complex ones. Both Close-neighbour and Far-neighbour introduce bias, reducing accuracy. Rand-neighbour, which randomly selects swarm members for communication, proved superior due to efficient information flow and minimal bias. This strategy can be one of our key designs for swarm communication in this project.
+
+\paragraph*{}
+Ayari and Bouamama\cite{ayari2023evolutionary} and Perera et al.\cite{perera2022integrating}, S et al.\cite{sr2023control} and Z. Wang et al.\cite{wang2024decentralized} conducted studies to promote robots’ actions based on their sensory observations and objectives. S et al.\cite{sr2023control} proposed a Multi-Agent Deep Deterministic Policy Gradient (MA-DDPG), an observation-based decision making flow with an architectural twist, where there is a central swarm manager that evaluates decentralized agents' reinforcement learning for optimal rewards. Z. Wang et al.\cite{wang2024decentralized} proposed increasing sensory inputs from both visual data and communication for redundancy, which highly aligns with the proposed swarm system.
+
+\paragraph*{}
+Yasser et al.\cite{yasser2024optimized} expanded more on Clustered Dynamic Task Allocation (CDTA), an approach to dynamically assign tasks based on swarm state and the environment \cite{nedjah2021communication}, for the purpose of increasing the velocity of swarm communication. They proposed CDTA-CL (Centralized Loop) and CDTA-DL (Dual Loop). CDTA-CL sends information to the leader for computation, while CDTA-DL compares information before sending it to the leader. CDTA-DL outperformed CDTA-CL, increasing speed by 75.976\% compared to 54.4\%. CDTA-DL will be considered as a design pillar for this project.
+
+\paragraph*{}
+In addition to direct communication improvements, indirect communication, known as Stigmergy, also plays a significant role in swarm intelligence. This concept involves individual robot actions modifying the environment, impacting the decision-making of other robots. For example, construction robots can leave blocks and materials to signal ongoing work\cite{das2024bio}. This is an intriguing notion to consider in the interaction of the swarm system.
+
+\paragraph*{}
+For effective communication, especially in interdependent tasks, robots need to be aware of each other and task requirements. Semantic communication, where contextually relevant data is prioritized, is necessary\cite{beck2023swarm}. The balance between communication and context must align with task demands. High sensory data tasks require reliable, real-time communication, while tasks with lower communication demands can prioritize contextually relevant information\cite{zhang2021cooperative}.
+
+\section{Object Detection}
+
+\paragraph*{} 
+Object detection is an essential component of this project, enabling each member of the swarm to perceive their environment and effectively interact with various targets. Traditional 2D object detection methods face challenges in dynamic and complex settings, where accurate estimation of size, distance, and position is critical \cite{hybridframework2023}. To address these issues, integrating a camera sensor with a LiDAR system offers a reliable solution for 3D object detection \cite{janai2020}, enabling precise measurement of the distance to the target as well as its dimensions.
+
+\paragraph*{} 
+Object detection algorithms are typically classified into three categories based on the sensors utilised: camera-based algorithms, LiDAR-based algorithms, and LiDAR-camera fusion algorithms. The first category involves the use of a monocular camera for detection. Object detection with monocular cameras can be achieved through either traditional methods or deep learning-based approaches.
+
+\paragraph*{} 
+Traditional methods, such as the Scale-Invariant Feature Transform (SIFT), identify key points in images that are invariant to rotation and scaling, making them suitable for recognising objects under various transformations \cite{lowe2004distinctive}. Another widely used traditional approach is the Histogram of Oriented Gradients (HOG), which captures the distribution of gradient orientations within an image \cite{dalal2005histograms}. Both SIFT and HOG have been instrumental in earlier object detection tasks due to their effectiveness in identifying salient features.
+
+\paragraph*{} 
+In contrast, deep learning-based approaches have revolutionised object detection by surpassing traditional methods in terms of accuracy and adaptability. Prominent algorithms such as YOLO (You Only Look Once), SSD (Single Shot MultiBox Detector), and Faster R-CNN offer unique advantages and trade-offs \cite{sachan2019object}. YOLO is renowned for its real-time processing capabilities, making it well-suited for applications requiring high-speed detection without significant compromises in accuracy \cite{redmon2016you}. Faster R-CNN employs a two-stage process that prioritises detection accuracy, although at the cost of slower inference speeds, making it ideal for tasks where precision is critical \cite{ren2015faster}. Meanwhile, SSD strikes a balance between speed and accuracy by using a single-shot detection mechanism with moderate computational requirements \cite{liu2016ssd}.
+
+\paragraph*{} 
+A comparison of these three models is shown in Table \ref{tab:performance_metrics}, focusing on their speed, precision, and adaptability. The evaluation results demonstrate that YOLOv8 excels in multi-object detection, combining high accuracy with balanced speed and efficiency. This makes it a preferred choice for real-time applications due to its lower hardware demands \cite{kaliappan2023real}.
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{| p{3.5cm} | p{3cm} | p{4cm} | p{3.5cm} |}
+        \hline
+        Algorithms  & Recall Value  & Mean Average Precision (mAP@0.5)  & Precision \\ \hline
+        YOLOv8  & 1.00  & 98.7\%  & 96.77\% \\ \hline
+        SSD  & 0.65  & 77\%  & 89\% \\ \hline
+        Faster R-CNN  & 0.67  & 59\%  & 77\% \\ \hline
+    \end{tabular}
+    \caption{A comparative analysis of YOLOv8, SSD, and Faster R-CNN based on key performance metrics, including Recall Value, Mean Average Precision (mAP@0.5), and Precision \cite{kaliappan2023performance}.}
+    \label{tab:performance_metrics}
+\end{table}
+
+\paragraph*{} 
+Monocular camera-based object detection relies solely on 2D image data to identify objects and approximate their depth and location using visual cues. While such cameras are effective in detecting colour and texture, estimating depth accurately often requires stereo vision or additional sensors.
+
+\paragraph*{} 
+LiDAR-based object detection algorithms provide precise spatial and depth information in the form of 3D point clouds, making them highly effective for localising objects in complex environments, particularly under poor lighting conditions where cameras may struggle \cite{geiger2013vision}. LiDAR-based approaches can be broadly categorised into point-based and voxel-based methods.
+
+\paragraph*{} 
+Point-based methods operate directly on raw 3D point clouds, leveraging their inherent spatial accuracy without converting the data into grids or images. For example, PointNet employs a shared Multi-Layer Perceptron (MLP) to extract features from individual points and aggregates these using max-pooling to capture global context \cite{qi2017pointnet}. PointNet++ enhances this approach by introducing hierarchical feature extraction to capture local geometric features, enabling better performance in cluttered or large-scale environments \cite{qi2017pointnet++}.
+
+\paragraph*{} 
+Conversely, voxel-based methods transform raw point clouds into structured voxel grids, allowing for efficient feature extraction using 3D convolutional neural networks (CNNs). A notable example is VoxelNet, which divides the 3D space into voxels and extracts features using PointNet-inspired architectures, followed by 3D CNNs for detection \cite{zhou2018voxelnet}. Advances such as SECOND improve computational efficiency by optimising voxel representations and employing sparse convolutions \cite{yan2018second}.
+
+\paragraph*{} 
+While LiDAR provides unparalleled depth and spatial accuracy, it lacks the rich texture and colour information necessary for tasks such as object classification and semantic segmentation. LiDAR-camera fusion addresses these limitations by combining the strengths of both sensors. Models such as Frustum PointNet project 2D image proposals onto LiDAR point clouds, improving object localisation and classification \cite{qi2018frustumpointnet}. Frameworks like MV3D and AVOD demonstrate how fusing RGB images and LiDAR data achieves significant performance improvements \cite{ku2018mv3d}.
+
+\paragraph*{} 
+The integration strategy for LiDAR-camera fusion is crucial and can be classified into three categories:
+
+\begin{itemize}
+    \item \textbf{Early Fusion}: Aligns raw LiDAR point clouds with camera frames for unified processing \cite{ku2018mv3d}.
+    \item \textbf{Mid-Level Fusion}: Merges features extracted separately from LiDAR and camera data \cite{chen2017avod}.
+    \item \textbf{Late Fusion}: Combines decisions made by independent LiDAR and camera models \cite{qi2018frustumpointnet}.
+\end{itemize}
+
+\paragraph*{} 
+Another critical task in object detection is determining the position and orientation of objects in the environment. Accurate pose estimation enables robots to interact effectively with their surroundings for tasks such as navigation, manipulation, and object placement \cite{paul2021object}. Pose estimation methods are broadly categorised into model-based approaches, such as Iterative Closest Point (ICP) \cite{yuan2023accurate}, and learning-based methods, including PoseNet \cite{kendall2015posenet} and PVNet \cite{peng2019pvnet}.
+
+\paragraph*{} 
+Common benchmarks for evaluating pose estimation algorithms include datasets such as LINEMOD and YCB-Video, which offer annotated images and depth maps under varying poses and lighting conditions. However, challenges such as dynamic environments, real-time constraints, and robust performance under occlusions remain areas for further research \cite{chen2022occlusion}.
+
+\section{SLAM}
+
+\paragraph*{}
+SLAM, or Simultaneous Localization and Mapping, is a widely spread algorithm for navigation in the field of mobile robotics because of the exponential improvement in computer processing speed and the accessibility of sensors such as cameras and LiDAR \cite{barbadekar2023exploring}. Using SLAM, a mobile robot can construct an internal environment map while simultaneously using the map to estimate its location without needing predefined knowledge of area \cite{durrant2006simultaneous}.
+
+\paragraph*{}
+Environment mapping is one of the vital techniques in SLAM. The algorithm consists of building a mathematical model for the spatial information of an actual environment, which encapsulates the necessary information for navigation and interaction. However, as for the SLAM technique, additional requirements are needed; the mathematical model must be able to represent the robot’s state and the position of landmarks relative to the robot’s location \cite{durrant2006simultaneous}. Hence, the challenge with the requirements is that the robot must perform the localization and the mapping simultaneously.
+
+\paragraph*{}
+Given these complexities, the backbone of all principal SLAM methods is the utilization of these SLAM frameworks consisting of odometry, landmark prediction, landmark prediction, landmark extraction, data association, and matching, pose estimation, and map update \cite{chong2015sensor}.
+
+\paragraph*{}
+Building on this, situational awareness becomes an extreme component of SLAM, the precision and accuracy of the robot's perception play a huge role in defining the characteristics of other variations of the SLAM implementation. Therefore, a thorough understanding of advantages and disadvantages of each common perception device is an imperative concept not just for the robot’s components but also the structure of the SLAM’s backend algorithm. 
+
+\paragraph*{}
+Firstly, acoustic sensors are widely used across the preliminary stage of SLAM implementations to minimize the pose drift with time, with most of the sensors being SONAR, or Sound Navigation and Ranging \cite{udugama2023evolution}. These sensors are well operated in dark environments, as well as dusty and humid, due to their insensitivity towards illumination and opaqueness \cite{sahoo2019advancements}. 
+
+\paragraph*{}
+Secondly, LiDAR, or Light Detection and Ranging Sensor, is relatively similar to an ultrasonic sensor in terms of functionality \cite{udugama2023evolution}. However, LiDAR uses electromagnetic waves as a radiation reference instead of acoustic waves. A LiDAR renders a 3-dimensional representation of its surroundings known as the Point Cloud \cite{bisheng2017progress}. The strength of LiDAR is that the sensor can provide 360 degrees of perception with high precision \cite{cadena2016past}.
+
+\paragraph*{}
+Thirdly, depth cameras' mechanism works based on the illumination of the site with infrared light and measures the time-of-flight \cite{langmann2012depth}. Comparing the range of measurement and accuracy, a depth camera performs poorer than a 3D LiDAR scanner because the depth camera can only acquire data within a limited range of field of view; moreover, environmental factors may affect the accuracy of the depth camera; for example, the depth camera’s output is susceptible to certain materials of surfaces, such as reflective or transparent materials \cite{peng2023depth}. However, a depth camera is still a popular option for SLAM as it's a relatively economical device compared to its relatives, 3-D LiDAR, for instance.
+
+\paragraph*{}
+Ultimately, event-based cameras present the local bitmap-level motion alterations to an event that took place, which is different from conventional framing-based cameras \cite{udugama2023evolution}. The new technique has gained popularity more recently in the field of SLAM as an event-based camera yields more efficient computational performance and better overall accuracy \cite{huang2023event}.
+
+\paragraph*{}
+After reviewing the different sensors and addressing technological advancements available in today’s world, it is crucial to understand how researchers have implemented those ideas to different variations of SLAM. This understanding helps in overcoming challenges and limitations that their predecessors had faced and set new standards for new research frontiers. Moreover, it becomes essential to effectively classify those SLAM variations under different criteria.
+
+\paragraph*{}
+Li et al.\cite{li2024object} perfectly encapsulated how SLAM techniques can be classified: 
+
+\paragraph*{}
+Simultaneous Localization and Mapping (SLAM) techniques can be categorized by using different factors. Firstly, they can be divided into categories based on the type of sensors employed. They may include vision-based SLAM using cameras, LIDAR-based SLAM using LIDAR sensors, and RGB-D SLAM, which combines RGB cameras with depth sensors. Secondly, feature-based SLAM, which tracks distinguishing characteristics and direct SLAM, which executes mapping intensity or depth directly can be considered as different categories. Thirdly, the estimated approach, such as filter-based SLAM, which uses filters such as Particle Filter and graph-based SLAM, which is formulated as a graph optimization problem, provides another classification criterion. Finally, SLAM can be categorized based on time synchronization, with offline SLAM processing data in batches after collection and online SLAM estimating pose and map incrementally in real-time.
+
+\paragraph*{} 
+LiDAR-based SLAM is one of the most widely used variations of SLAM, leveraging LiDAR sensors to accurately localize itself while simultaneously building a map of its surroundings. This approach uses registration algorithms, such as Iterative Closest Point (ICP), to estimate relative transformations between point clouds during operation \cite{gu2020review}. Feature-based algorithms, such as LiDAR Odometry and Mapping (LOAM), further enhance this process by representing 2D or 3D point cloud maps as grid maps \cite{zhang2014loam}. LiDAR’s ability to function reliably in diverse lighting conditions and environments makes it particularly suitable for SLAM applications in challenging scenarios.
+
+\paragraph*{} 
+An evolution of SLAM techniques is the use of graph-based SLAM, which focuses on optimizing a graph representation of the robot's trajectory and surrounding environment. In graph SLAM, nodes represent robot poses or landmarks, while edges denote constraints, such as relative transformations obtained from sensors like LiDAR or odometry \cite{grisetti2010tutorial}. The optimization of this graph structure, often performed using techniques like the Gauss-Newton method, allows for accurate loop closure and global consistency \cite{kummerle2011g2o}.
+
+\paragraph*{} 
+Another emerging trend in SLAM is the integration of multi-sensor data to overcome the limitations of individual sensing modalities. For example, algorithms such as FAST-LIO combine LiDAR data with inertial measurements from IMUs to improve robustness and accuracy \cite{xu2021fast}. Multi-sensor approaches ensure better adaptability to real-world conditions, enabling more precise localization and mapping.
+
+\paragraph*{} 
+Cartographer is a versatile open-source SLAM library developed by Google, designed to handle 2D and 3D SLAM applications. It is particularly known for its robust pose graph optimization and real-time performance, leveraging submapping techniques to efficiently manage computational resources. Cartographer uses LiDAR, IMU, and odometry data to create globally consistent maps by detecting and correcting loop closures, making it suitable for indoor and outdoor mapping tasks \cite{hess2016real}. Its modular architecture allows seamless integration into various robotic platforms, making it a popular choice for research and industry applications.
+
+\paragraph*{} 
+Another noteworthy SLAM framework is the SLAM Toolbox, an advanced open-source library tailored for ROS 2. It provides tools for lifelong mapping, localization, and pose-graph optimization. SLAM Toolbox supports features like merging maps, multi-session mapping, and robust handling of large-scale environments. Its loop closure detection and optimization capabilities enhance global consistency, ensuring accurate localization in dynamic and complex settings \cite{macenski2021slamtoolbox}. This makes SLAM Toolbox ideal for applications that require long-term operation in evolving environments, such as warehouses and public spaces.
+
+\section{Collective Movement}
+
+\paragraph*{}
+In the domain of swarm robotics, collective movement coordination and dynamic role assignment are crucial for enabling robots to work together efficiently. Research on coordinated motion in swarms often emphasises the need for algorithms that allow robots to adapt their roles and behaviours in real-time. For example, the study on "Efficient Strategies for Coordinated Motion and Tracking in Swarm Robotics" is a comprehensive overview of various coordination algorithms, contrasting different techniques for multi-robot collaboration. 
+
+\paragraph*{}
+The first coordination algorithm mentioned is the leader-follower model. This algorithm is rather straightforward in the sense that one or more robots are designated to guide the swarm while the other robots adjust their positions. The leader can be pre-programmed or autonomously chosen depending on the path while the followers maintain a set distance and set angle. This model as mentioned before is simple to apply while also being centralised providing clear direction for the followers. Additionally, the followers do not need the full knowledge of the environment meaning that this model can be scalable. However, this swarm being centralised means that it is prone to a single point of failure and having reduced flexibility \cite{mehta2024robust}. This model would only work well for a simple structured environment with predefined paths which unfortunately does not match with our objectives.
+
+\paragraph*{}
+Another coordination algorithm is the potential fields algorithm. This algorithm is based on virtual forces with each robot in the swarm being treated as a particle that is influenced by virtual forces exerted by other robots, obstacles and targets. These forces can attract or repel each other. The object is for the robot to be “pulled” towards the goal while avoiding collisions. This model has a couple advantages; namely: Decentralised control as each robot moves autonomously based on the forces acting on it, and smooth movements. However a couple of challenges come with it as well. One challenge is the possibility of the robot being stuck in a local minimum where virtual forces cancel each other out. Secondly, proper fine tuning of the force parameters is required to prevent the robot from oscillating \cite{martinez2023swarm}. Overall this approach could be useful for environments with many obstacles where smooth and continuous navigation can be important.  The third algorithm offered is the virtual force algorithm which is similar to the potential fields algorithm but with more constraints thereby being ineffectual to our project \cite{udugama2023evolution}. 
+
+\paragraph*{}
+When comparing these three algorithms above, potential field algorithm and virtual force algorithm are decentralised while the leader-follower model is centralised. While the leader-follower model offers a simple, scalable nature, it introduces a single point of failure. In contrast, the potential fields algorithm offers a more decentralised approach, which is better suited for dynamic environments but requires careful turning to avoid local minima.
+
+\paragraph*{}
+In swarm robotics, dynamic role assignment plays a crucial role in enabling robots to adapt their behaviours and tasks in real-time. One common method is insect-inspired behaviour, which mimics the role distribution seen in social insect colonies \cite{bonabeau1997adaptive}. In this approach, robots assume roles based on simple, local rules, such as task demand or proximity to a target, without centralised control. This method offers high scalability and robustness, as robots can seamlessly take on different tasks as needed, making it suitable for large swarms. However, its reliance on local information can sometimes lead to suboptimal task assignments, particularly in complex environments where global awareness might be needed.
+
+\paragraph*{}
+On the other hand, market-based approaches \cite{brambilla2012property} use a more structured mechanism where robots bid for tasks based on their capabilities and availability. This ensures that tasks are allocated to the most suitable robots, leading to more efficient task execution. However, the bidding process requires communication between robots, which may introduce delays and increase system complexity. While market-based approaches tend to be more optimal for task allocation, they may not scale as easily as insect-inspired methods, especially in large or dynamic environments where constant communication is challenging.
+
+\paragraph*{}
+Decentralised control in swarm robotics offers several key advantages, particularly in terms of scalability, robustness, and adaptability \cite{st-onge2023swarm}. In decentralised systems, each robot operates autonomously, relying on local information and interactions with neighbouring robots, which eliminates the need for a central controller. This allows the swarm to scale more easily, as adding more robots does not increase the computational or communication burden on a single entity. Additionally, decentralised systems are more robust, as the failure of one or more robots does not compromise the entire system; each robot can continue functioning independently. This is particularly advantageous in dynamic or unpredictable environments, where flexibility and fault tolerance are critical.
+
+\paragraph*{}
+In contrast, centralised control systems rely on a single controller to manage all robots, which creates a bottleneck as the number of robots increases. Centralised systems can suffer from single points of failure—if the controller fails, the entire system may halt. Moreover, communication delays and computational limits can hinder real-time performance in larger systems. While centralised control offers more efficient coordination in smaller, simpler environments, decentralised control is better suited for real-world applications where scalability and resilience are essential for handling complex and dynamic tasks.
+
+\paragraph*{}
+Despite significant advancements in swarm robotics and coordination algorithms, there remain notable gaps in applying these methods to practical, real-world environments such as cleaning tasks. Most research on algorithms like potential fields, leader-follower models, and market-based role assignment has focused on simulations or controlled environments, which often lack the complexity and unpredictability found in real-world scenarios. For instance, limited work has been done on integrating these algorithms with sensor-rich, dynamic settings where robots must navigate cluttered spaces, identify and manipulate diverse objects, and coordinate in real-time without centralised control. Additionally, the scalability of these systems is often not tested in practical, large-scale environments, such as a commercial building cleaning system, where communication constraints, battery life, and real-time decision-making are crucial factors.
+
+\paragraph*{}
+Our project aims to address these gaps by developing a swarm of cleaning robots that leverages C-SLAM for real-time mapping and localization, along with a hybrid role assignment approach that adapts based on task proximity and robot capabilities. By testing in realistic environments with obstacles, diverse object types, and multiple robots working simultaneously, our project will not only explore the robustness of these algorithms but also refine them for practical deployment in domestic and commercial cleaning. This will bridge the gap between theoretical research and real-world application, offering a scalable and adaptive solution for multi-robot systems.

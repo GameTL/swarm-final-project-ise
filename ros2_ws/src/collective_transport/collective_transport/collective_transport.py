@@ -227,8 +227,8 @@ class AtStartPos(State):
 
     def __init__(self, ros_manager: ROSManager) -> None:
         super().__init__(["outcome1", "end"])
-        self.ros_manager = ros_manager
-        self.counter = 0
+        # self.ros_manager = ros_manager
+        # self.counter = 0
 
     def execute(self, blackboard: Blackboard) -> str:
         """
@@ -240,6 +240,7 @@ class AtStartPos(State):
         yasmin.YASMIN_LOG_INFO(bcolors.YELLOW_WARNING + f"Executing state AtStartPos" + bcolors.ENDC)
         # TODO check other robot if at the place 
         #* for testing 1 robot ---> bypass
+        # return "end"
         return "outcome1"
         
 class SeekObject(State):
@@ -576,6 +577,8 @@ def main(args=None):
     # Start listening thread
     server_thread = threading.Thread(target=communicator.comm_thread_spawner, daemon=True)
     server_thread.start()
+
+    communicator.current_coords = data # (x, y)
 
     try:
         yasmin.YASMIN_LOG_INFO("State Machine starting")

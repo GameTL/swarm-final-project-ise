@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Default config file for twist_mux -->
+  <arg name="config_topics" default="../config/twist_mux.yaml"/>
+
+  <!-- RPLIDAR arguments -->
+  <arg name="channel_type" default="serial"/>
+  <arg name="serial_port_dynamixel" default="/dev/ttyUSB1"/>
+  <arg name="serial_port_lidar" default="/dev/ttyUSB0"/>
+  <arg name="serial_baudrate" default="1000000"/>
+  <arg name="frame_id" default="laser"/>
+  <arg name="inverted" default="false"/>
+  <arg name="angle_compensate" default="true"/>
+  <arg name="scan_mode" default="DenseBoost"/>
+
+  <!-- X-drive controller node -->
+  <node pkg="x_drive_controller" exec="x_drive_controller" name="x_drive_controller" output="screen">
+    <param name="serial_port" value="$(var serial_port_dynamixel)"/>
+  </node>
+
+  <!-- RPLIDAR node -->
+  <node pkg="sllidar_ros2" exec="sllidar_node" name="sllidar_node" output="screen">
+    <param name="channel_type" value="$(var channel_type)"/>
+    <param name="serial_port" value="$(var serial_port_lidar)"/>
+    <param name="serial_baudrate" value="$(var serial_baudrate)"/>
+    <param name="frame_id" value="$(var frame_id)"/>
+    <param name="inverted" value="$(var inverted)"/>
+    <param name="angle_compensate" value="$(var angle_compensate)"/>
+    <param name="scan_mode" value="$(var scan_mode)"/>
+  </node>
+
+  <!-- 
+  Commented nodes from the original Python file:
+  
+  SLLIDAR S3 node
+  <node pkg="sllidar_ros2" exec="sllidar_s3_launch" name="sllidar_launch" output="screen">
+    <param name="serial_port" value="$(var serial_port)"/>
+  </node>
+  
+  RF2O laser odometry node
+  <node pkg="rf2o_laser_odometry" exec="rf2o_laser_odometry_node" name="rf2o_laser_odometry" output="screen"/>
+  
+  Teleop keyboard node
+  <node pkg="teleop_twist_keyboard" exec="teleop_twist_keyboard" name="teleop_twist_keyboard" output="screen"/>
+  
+  Twist mux node
+  <node pkg="twist_mux" exec="twist_mux" name="twist_mux" output="screen">
+    <param from="$(var config_topics)"/>
+  </node>
+  -->
+
+</launch>
