@@ -64,7 +64,7 @@ class Aruco():
                 display_theta_deg = np.degrees(display_theta_rad)-90 # Convert to degrees
 
                 actual_theta_rad = np.arctan2(dx, dy)
-                actual_theta_deg = 360-(np.degrees(display_theta_rad)+180)
+                actual_theta_deg = round(float(360-(np.degrees(display_theta_rad)+180)), 4)
                 
                 cX = int((topLeft[0] + bottomRight[0]) / 2.0)
                 cY = int((topLeft[1] + bottomRight[1]) / 2.0)
@@ -77,8 +77,8 @@ class Aruco():
                 
                 cv2.putText(image, str(markerID),(topLeft[0], topLeft[1] - 10), cv2.FONT_HERSHEY_SIMPLEX,
                     0.5, (0, 0, 0), 2)
-                x = cX/image.shape[1]
-                y = cY/image.shape[0]
+                x = round(cX/image.shape[1], 4)
+                y = round(cY/image.shape[0], 4)
                 x_map = (x-0.5)*self.map_size[0]
                 y_map = -(y-0.5)*self.map_size[0]
 
@@ -100,7 +100,7 @@ class Aruco():
                 }
         return image, recorded_data
     
-    def check_diff(self, prev, curr, pos_threshold=0.01, angle_threshold=0.1):
+    def check_diff(self, prev, curr, pos_threshold=0.01, angle_threshold=0.5):
         if prev is not None and curr is not None:
             # Avoid divide by zero by using max(prev, ε)
             px = max(abs(prev[0]), 1e-6)

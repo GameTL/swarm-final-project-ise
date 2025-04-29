@@ -90,6 +90,9 @@ while True:
         print(f"[Notification] new data incoming:{recorded_data}")
         latest_data.clear()
         latest_data.update(recorded_data)
+    else:
+        latest_data.clear()
+
     counter += 1
 
 cap.release()
