@@ -80,6 +80,7 @@ while True:
         aruco_visual.reset_map()
 
     if recorded_data is not None:
+        print(f"[Notification] new data incoming:{recorded_data}")
         latest_data.clear()
         latest_data.update(recorded_data)
 

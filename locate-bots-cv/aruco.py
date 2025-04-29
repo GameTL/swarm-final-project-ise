@@ -82,10 +82,10 @@ class Aruco():
                 x_map = (x-0.5)*self.map_size[0]
                 y_map = -(y-0.5)*self.map_size[0]
 
-                print(f"[Inference] ArUco marker ID: {markerID} @ ({round(x_map, 4)}m, {round(y_map, 4)}m, {actual_theta_deg} degree)")
+                # print(f"[Inference] ArUco marker ID: {markerID} @ ({round(x_map, 4)}m, {round(y_map, 4)}m, {actual_theta_deg} degree)")
                 self.current_data[str(markerID)] = (x, y, display_theta_deg) 
 
-                if self.check_diff(previous_data, (x, y, display_theta_deg)):
+                if self.check_diff(previous_data, (x, y, display_theta_deg)) or return_data:
                     recorded_data = {
                         "id": str(markerID),
                         "x":x,
@@ -99,7 +99,6 @@ class Aruco():
                     "y": y,
                     "theta": actual_theta_deg
                 }
-            print("recorded data", recorded_data)
         return image, recorded_data
     
     def check_diff(self, prev, curr, pos_threshold=0.01, angle_threshold=0.1):
@@ -115,7 +114,7 @@ class Aruco():
 
             dtheta = abs((prev[2] - curr[2] + 180) % 360 - 180) / pt
 
-            print(f"[DIFF] Δpos={dpos:.4f}, Δθ={dtheta:.4f}")
+            # print(f"[DIFF] Δpos={dpos:.4f}, Δθ={dtheta:.4f}")
             return dpos > pos_threshold or dtheta > angle_threshold
 
         return False
