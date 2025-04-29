@@ -10,7 +10,7 @@ import datetime as dt
 from aruco_server import latest_data
 
 #insert the size of the frame here
-MAP_SIZE = (2.0, 1.45)
+MAP_SIZE = (1.45, 1.07)
 
 prev_frame_time = 0
 #* WINDOWS
@@ -19,9 +19,7 @@ prev_frame_time = 0
 cap = cv2.VideoCapture(3, cv2.CAP_V4L2)      # ← new: V4L2 backend on Linux
 if not cap.isOpened():                       #     bail out early if it fails
     raise RuntimeError("Could not open /dev/video0 – check index & permissions")
-
 aruco = Aruco(MAP_SIZE)
-save_data = False
 
 # Thread-safe queue for communication between OpenCV and turtle
 data_queue = queue.Queue()
@@ -54,9 +52,8 @@ def record_data(df, timestemp):
 # Start turtle thread
 turtle_thread = threading.Thread(target=update_turtle_map, daemon=True)
 turtle_thread.start()
-counter = 1
+
 while True:
-    # print(f"loop: {counter}")
     ret, frame = cap.read()
     current_timestamp = dt.datetime.now()
     if not ret:
@@ -87,15 +84,12 @@ while True:
         aruco_visual.reset_map()
 
     if len(recorded_data) != 0:
-        print(f"[Notification] new data incoming:{recorded_data}")
+        print(recorded_data)
         latest_data.clear()
         latest_data.update(recorded_data)
-    counter += 1
 
 cap.release()
 cv2.destroyAllWindows()
-
-if len(aruco.testing_data)!=0 & save_data:
+if len(aruco.testing_data)!=0:
     print("saving data...")
     aruco.testing_data.to_csv(f"./result/{dt.datetime.today().strftime('%Y-%m-%d')}.csv", index=False)
-
