@@ -36,10 +36,14 @@ class Aruco():
 
     def aruco_display(self, corners, ids, rejected, image, current_timestamp):
         recorded_data = None
+        return_data = False
         if len(corners) > 0:
             ids = ids.flatten()
             for (markerCorner, markerID) in zip(corners, ids):
-                
+                previous_data = None
+                previous_data = self.current_data.get(str(markerID))
+                if previous_data is None:
+                    return_data = True
                 corners = markerCorner.reshape((4, 2))
                 (topLeft, topRight, bottomRight, bottomLeft) = corners
                 
@@ -77,14 +81,17 @@ class Aruco():
                 y = cY/image.shape[0]
                 x_map = (x-0.5)*self.map_size[0]
                 y_map = -(y-0.5)*self.map_size[0]
+
                 print(f"[Inference] ArUco marker ID: {markerID} @ ({round(x_map, 4)}m, {round(y_map, 4)}m, {actual_theta_deg} degree)")
                 self.current_data[str(markerID)] = (x, y, display_theta_deg) 
-                recorded_data = {
-                    "id": str(markerID),
-                    "x":x,
-                    "y": y,
-                    "theta": actual_theta_deg
-                }
+
+                if self.check_diff(previous_data, (x, y, display_theta_deg)):
+                    recorded_data = {
+                        "id": str(markerID),
+                        "x":x,
+                        "y": y,
+                        "theta": actual_theta_deg
+                    }
                 self.testing_data.loc[len(self.testing_data)] =  {
                     "id": str(markerID),
                     "timestamp": current_timestamp,
@@ -92,7 +99,26 @@ class Aruco():
                     "y": y,
                     "theta": actual_theta_deg
                 }
+            print("recorded data", recorded_data)
         return image, recorded_data
     
+    def check_diff(self, prev, curr, pos_threshold=0.01, angle_threshold=0.1):
+        if prev is not None and curr is not None:
+            # Avoid divide by zero by using max(prev, ε)
+            px = max(abs(prev[0]), 1e-6)
+            py = max(abs(prev[1]), 1e-6)
+            pt = max(abs(prev[2]), 1e-6)
+
+            dx = abs(prev[0] - curr[0]) / px
+            dy = abs(prev[1] - curr[1]) / py
+            dpos = (dx**2 + dy**2)**0.5  # Euclidean distance in percent
+
+            dtheta = abs((prev[2] - curr[2] + 180) % 360 - 180) / pt
+
+            print(f"[DIFF] Δpos={dpos:.4f}, Δθ={dtheta:.4f}")
+            return dpos > pos_threshold or dtheta > angle_threshold
+
+        return False
+
 if __name__ == "__main__":
     aruco = Aruco()

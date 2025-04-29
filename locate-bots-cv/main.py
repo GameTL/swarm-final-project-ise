@@ -14,6 +14,7 @@ MAP_SIZE = (1.45, 1.07)
 prev_frame_time = 0
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)  # Open the camera
 aruco = Aruco(MAP_SIZE)
+save_data = False
 
 # Thread-safe queue for communication between OpenCV and turtle
 data_queue = queue.Queue()
@@ -83,6 +84,6 @@ while True:
 
 cap.release()
 cv2.destroyAllWindows()
-if len(aruco.testing_data)!=0:
+if len(aruco.testing_data)!=0 & save_data:
     print("saving data...")
     aruco.testing_data.to_csv(f"./result/{dt.datetime.today().strftime('%Y-%m-%d')}.csv", index=False)
