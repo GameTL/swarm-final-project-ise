@@ -388,7 +388,7 @@ if __name__ == "__main__":
             # self.circular_clockwise(200, 200) 
             # self.drive(45, 200)
             # self.forward(int(input("inspeed: ")))
-            interface.forward()
+            interface.forward(100)
             # self.right()
             # time.sleep(1)
             # self.backward() 
@@ -398,8 +398,10 @@ if __name__ == "__main__":
             # self.anticlockwise()
             # time.sleep(1)
             # self.clockwise()
-            # time.sleep(1)
+            time.sleep(1)
     except KeyboardInterrupt:
+        interface.forward(0)
+        time.sleep(0.1)
         interface.disable_all_motors()
         
 

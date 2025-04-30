@@ -66,6 +66,13 @@ def generate_launch_description():
         #     # remapping=('cmd_vel_out','cmd_vel'),
         #     output='screen' # make this node visable on terminal
         # ),
+        # Camera Odometry Client Node
+        # Node(
+        #     package='cam_odom',
+        #     executable='client',
+        #     name='cam_odom_client',
+        #     output='screen' # make this node visable on terminal
+        # ),
         # Dyanmixel controller node
         Node(
             package='x_drive_controller',

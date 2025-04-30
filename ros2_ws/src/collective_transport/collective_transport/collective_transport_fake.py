@@ -267,8 +267,8 @@ class SeekObject(State):
         Raises: Exception: May raise exceptions related to state execution.
         """
         # if not hasattr(self, "cv_class"):/
+        self.cv_class = CVMeasure(cv_window=True)
         # self.cv_class = CVMeasure(cv_window=False)
-        self.cv_class = CVMeasure(cv_window=False)
         yasmin.YASMIN_LOG_INFO(bcolors.YELLOW_WARNING + f"Executing state SeekObject" + bcolors.ENDC)
         
         # TODO Sub to the object detection
@@ -577,8 +577,6 @@ def main(args=None):
     # Start listening thread
     server_thread = threading.Thread(target=communicator.comm_thread_spawner, daemon=True)
     server_thread.start()
-
-    communicator.current_coords = data # (x, y)
 
     try:
         yasmin.YASMIN_LOG_INFO("State Machine starting")

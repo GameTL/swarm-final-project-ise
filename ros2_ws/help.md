@@ -30,7 +30,6 @@ ros2 run teleop_twist_keyboard teleop_twist_keyboard
 sudo apt-get install ros-humble-teleop-twist-keyboard
 sudo apt install ros-humble-twist-mux
 
-
 ## LiDAR
 For setting rf2o using CMAKE. First go the the CMakeLists.txt folder then run the following commands:
 ```bash

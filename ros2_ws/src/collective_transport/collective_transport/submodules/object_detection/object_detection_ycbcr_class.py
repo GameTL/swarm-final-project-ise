@@ -241,7 +241,7 @@ class CVMeasure:
             print("Unable to open camera")
 
 if __name__ == "__main__":
-    cv_class = CVMeasure(cv_window=False)
+    cv_class = CVMeasure(cv_window=True)
     
     try:
         cv_class.detect_yellow_cylinder()

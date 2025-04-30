@@ -35,10 +35,7 @@ class CamOdomClient:
         self.debug = debug
 
     def connect(self):
-        try:
-            self.client.connect((self.server_ip, self.port))
-        except OSError as e:
-            raise ConnectionError(f"Failed to connect: {e}") from e
+        self.client.connect((self.server_ip, self.port))
         print("[CLIENT] Connected to position server")
         self._running = True
         threading.Thread(target=self._receive_loop, daemon=True).start()
@@ -75,10 +72,44 @@ class CamOdomClient:
         self.client.close()
 
 
+
+
+class MinimalPublisher(Node):
+    def __init__(self):
+        super().__init__('cam_odom_client')
+        self.topic = '/robot_pose'
+        self.publisher_ = self.create_publisher(Pose2D, self.topic, 10)
+        timer_period = 0.05  # seconds
+        self.timer = self.create_timer(timer_period, self.timer_callback)
+        self.i = 0
+        self.x = CamOdomClient(robot_id=3, debug=False)
+        self.x.connect()
+        self.msg = Pose2D()
+        
+        
+
+    def timer_callback(self):
+        # print(self.x.current_position)
+        self.msg.x       = self.x.current_position["x"]
+        self.msg.y       = self.x.current_position["y"]
+        self.msg.theta   = self.x.current_position["theta"] 
+        self.publisher_.publish(self.msg)
+        self.get_logger().info('[%s|id:%s], x:%.2f, y:%.2f, theta:%.2f' % ('/robot_pose', self.x.robot_id,  self.msg.x,  self.msg.y,  self.msg.theta))
+        self.i += 1
+
+
 def main(args=None):
-    x = CamOdomClient(robot_id=3, debug=False)
-    x.connect()
-    x.current_position
+    rclpy.init(args=args)
+
+    minimal_publisher = MinimalPublisher()
+
+    rclpy.spin(minimal_publisher)
+
+    # Destroy the node explicitly
+    # (optional - otherwise it will be done automatically
+    # when the garbage collector destroys the node object)
+    minimal_publisher.destroy_node()
+    rclpy.shutdown()
 
 
 if __name__ == '__main__':
