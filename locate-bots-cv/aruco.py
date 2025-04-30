@@ -2,6 +2,9 @@ import cv2
 import numpy as np
 import pandas as pd
 import json
+#########################
+printout = False
+#########################
 
 ARUCO_DICT = {
     "DICT_4X4_50": cv2.aruco.DICT_4X4_50
@@ -72,12 +75,13 @@ class Aruco():
                 cv2.line(image, (cX, cY), middleRight, (0, 255, 0), 2)
                 
                 cv2.putText(image, str(markerID),(topLeft[0], topLeft[1] - 10), cv2.FONT_HERSHEY_SIMPLEX,
-                    0.5, (0, 0, 0), 2)
+                    0.5, (255, 0, 255), 2)
                 x = cX/image.shape[1]
                 y = cY/image.shape[0]
                 x_map = (x-0.5)*self.map_size[0]
                 y_map = -(y-0.5)*self.map_size[0]
-                print(f"[Inference] ArUco marker ID: {markerID} @ ({round(x_map, 4)}m, {round(y_map, 4)}m, {actual_theta_deg} degree)")
+                if printout:
+                    print(f"[Inference] ArUco marker ID: {markerID} @ ({round(x_map, 4)}m, {round(y_map, 4)}m, {actual_theta_deg} degree)")
                 self.current_data[str(markerID)] = (x, y, display_theta_deg) 
                 recorded_data[str(markerID)] = {
                     "x":x,

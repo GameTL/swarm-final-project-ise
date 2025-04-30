@@ -8,7 +8,14 @@ from aruco import Aruco
 from aruco_visual import ArucoVisual  # Assuming this uses `turtle`
 import datetime as dt
 from aruco_server import latest_data
+import sys
 
+#########################
+# gui = True
+gui = False
+printout = True
+# printout = False
+#########################
 #insert the size of the frame here
 MAP_SIZE = (1.45, 1.07)
 
@@ -16,7 +23,7 @@ prev_frame_time = 0
 #* WINDOWS
 # cap = cv2.VideoCapture(2, cv2.CAP_DSHOW)  # Open the camera
 #* LINUX
-cap = cv2.VideoCapture(3, cv2.CAP_V4L2)      # ← new: V4L2 backend on Linux
+cap = cv2.VideoCapture(2, cv2.CAP_V4L2)      # ← new: V4L2 backend on Linux
 if not cap.isOpened():                       #     bail out early if it fails
     raise RuntimeError("Could not open /dev/video0 – check index & permissions")
 aruco = Aruco(MAP_SIZE)
@@ -50,10 +57,14 @@ def record_data(df, timestemp):
         df.loc[-1] = data
 
 # Start turtle thread
-turtle_thread = threading.Thread(target=update_turtle_map, daemon=True)
-turtle_thread.start()
+if gui:
+    turtle_thread = threading.Thread(target=update_turtle_map, daemon=True)
+    turtle_thread.start()
 
-while True:
+counter = 0
+fps = 0
+while True: 
+    # NEW  – overwrites the same line every pass (⏎ is carriage-return)
     ret, frame = cap.read()
     current_timestamp = dt.datetime.now()
     if not ret:
@@ -69,14 +80,15 @@ while True:
     # FPS Calculation
     new_frame_time = time.time()
     fps = 1 / (new_frame_time - prev_frame_time) if prev_frame_time else 0
+    print(f"\rFrames: {counter:<10}, FPS: {str(int(fps)):<3}", end='', flush=True)
     prev_frame_time = new_frame_time
 
     # Overlay FPS text
-    cv2.putText(frame, f"FPS: {int(fps)}", (7, 70), 
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
-    cv2.circle(frame, (frame.shape[1]//2,frame.shape[0]//2), radius=5, color=(0, 0, 255), thickness=-1)
-
-    cv2.imshow("Aruco Detection", frame)
+    if gui:
+        cv2.putText(frame, f"FPS: {int(fps)}", (7, 70), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+        cv2.circle(frame, (frame.shape[1]//2,frame.shape[0]//2), radius=5, color=(0, 0, 255), thickness=-1)
+        cv2.imshow("Aruco Detection", frame)
 
     if cv2.waitKey(3) & 0xFF == ord('q'):
         break
@@ -84,9 +96,15 @@ while True:
         aruco_visual.reset_map()
 
     if len(recorded_data) != 0:
-        print(recorded_data)
+        if printout:
+            id = str(3)
+            x_str     = f"{recorded_data[id]['x']:.2f}"
+            y_str     = f"{recorded_data[id]['y']:.2f}"
+            theta_str = f"{recorded_data[id]['theta']:.2f}"
+            print(f" id:{id}, x:{x_str:<5}, y:{y_str:<3}, theta:{theta_str:<3}", end='', flush=True)
         latest_data.clear()
         latest_data.update(recorded_data)
+    counter += 1
 
 cap.release()
 cv2.destroyAllWindows()

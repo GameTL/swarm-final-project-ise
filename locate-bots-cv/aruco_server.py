@@ -2,7 +2,9 @@ import socket
 import threading
 import json
 from aruco import Aruco
-
+#########################
+printout = False
+#########################
 HOST = '0.0.0.0'  # Listen on all interfaces
 PORT = 12345      # Arbitrary non-privileged port
 
@@ -14,7 +16,8 @@ def client_handler(conn, addr):
         try:
             # Send the latest data to this client
             if latest_data:
-                print(f"[Sending]{latest_data}")
+                if printout:
+                    print(f"[Sending]{latest_data}")
                 conn.sendall((json.dumps(latest_data) + '\n').encode())
         except:
             print(f"[WARNING] Connection to {addr} lost.")
@@ -23,10 +26,15 @@ def client_handler(conn, addr):
             break
 
 def start_server():
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind((HOST, PORT))
-    server.listen()
-    print(f"[SERVER] Listening on {HOST}:{PORT}")
+    try:
+        
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.bind((HOST, PORT))
+        server.listen()
+        print(f"[SERVER] Listening on {HOST}:{PORT}")
+    except OSError as e:
+        print(e)
+        quit()
     while True:
         conn, addr = server.accept()
         clients.append(conn)
