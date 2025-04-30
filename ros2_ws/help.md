@@ -57,3 +57,13 @@ ros2 run rf2o_laser_odometry rf2o_laser_odometry_node
 
 ## Twist Mux
 ros2 run twist_mux twist_mux --ros-args --params-file ./config/twist_mux.yaml -r cmd_vel_out:=diff_cont/cmd_vel_unstamped
+
+
+# Run Basic centering of the robot
+## Macbook/Aruco server for camera odomentry 
+Terminal 1: `aruco` // runs the aruco server
+
+## Jetson client
+Terminal 1: `teleopkeyboard` // manual control of the robot
+Terminal 2: `bringupjeff` // run the motors
+Terminal 3: `ctcamodom` // run state machine for collective transport using camera odom
