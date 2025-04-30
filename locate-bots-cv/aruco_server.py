@@ -14,7 +14,7 @@ def client_handler(conn, addr):
         try:
             # Send the latest data to this client
             if latest_data:
-                print(latest_data)
+                print(f"[Sending]{latest_data}")
                 conn.sendall((json.dumps(latest_data) + '\n').encode())
         except:
             print(f"[WARNING] Connection to {addr} lost.")

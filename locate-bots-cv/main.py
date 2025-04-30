@@ -13,7 +13,12 @@ from aruco_server import latest_data
 MAP_SIZE = (1.45, 1.07)
 
 prev_frame_time = 0
-cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)  # Open the camera
+#* WINDOWS
+# cap = cv2.VideoCapture(2, cv2.CAP_DSHOW)  # Open the camera
+#* LINUX
+cap = cv2.VideoCapture(3, cv2.CAP_V4L2)      # ← new: V4L2 backend on Linux
+if not cap.isOpened():                       #     bail out early if it fails
+    raise RuntimeError("Could not open /dev/video0 – check index & permissions")
 aruco = Aruco(MAP_SIZE)
 
 # Thread-safe queue for communication between OpenCV and turtle
@@ -78,7 +83,8 @@ while True:
     if cv2.waitKey(3) & 0xFF == ord('r'):
         aruco_visual.reset_map()
 
-    if recorded_data is not None:
+    if len(recorded_data) != 0:
+        print(recorded_data)
         latest_data.clear()
         latest_data.update(recorded_data)
 

@@ -35,7 +35,7 @@ class Aruco():
         return detected_markers, recorded_data
 
     def aruco_display(self, corners, ids, rejected, image, current_timestamp):
-        recorded_data = None
+        recorded_data = dict()
         if len(corners) > 0:
             ids = ids.flatten()
             for (markerCorner, markerID) in zip(corners, ids):
@@ -79,8 +79,7 @@ class Aruco():
                 y_map = -(y-0.5)*self.map_size[0]
                 print(f"[Inference] ArUco marker ID: {markerID} @ ({round(x_map, 4)}m, {round(y_map, 4)}m, {actual_theta_deg} degree)")
                 self.current_data[str(markerID)] = (x, y, display_theta_deg) 
-                recorded_data = {
-                    "id": str(markerID),
+                recorded_data[str(markerID)] = {
                     "x":x,
                     "y": y,
                     "theta": actual_theta_deg
