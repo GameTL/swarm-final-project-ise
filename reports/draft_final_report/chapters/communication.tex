@@ -1,9 +1,77 @@
 \chapter{Communication in the Swarm}
 
 \paragraph*{}
-Swarm communication has been successfully implemented using a \textbf{peer-to-peer socket communication model}, where each robot can directly exchange data with others without relying on a centralized server. This architecture was chosen for its low-latency characteristics, which are crucial for real-time robotic coordination. While raw socket communication is common, the peer-to-peer topology enables direct robot-to-robot interaction, reducing delays caused by intermediaries. To improve reliability, our implementation includes connection checks, retry logic, and structured messaging formats to ensure data integrity. Within the swarm, this communication setup allows continuous exchange of positional data for effective self-collision avoidance and enables robots to relay relevant information to the designated taskmaster for path planning. The overall communication flow is illustrated in Figure \ref{fig:communication-flow}.
+Swarm communication has been successfully implemented using a \textbf{peer-to-peer socket communication model}, where each robot can directly exchange data with others without relying on a centralized server. This architecture was chosen for its low-latency characteristics, which are crucial for real-time robotic coordination. While raw socket communication is common, the peer-to-peer topology enables direct robot-to-robot interaction, reducing delays caused by intermediaries. To improve reliability, our implementation includes:
 
-\begin{figure}
+\begin{enumerate}
+    \item Connection checks with configurable retry intervals and timeouts triggered only when broadcasting (Algorithm \ref{alg:connection-check})
+    \begin{algorithm} [H]
+        \caption{Connection Check and Reconnection}
+        \label{alg:connection-check}
+        \begin{algorithmic} [1]
+            \STATE \textbf{Input:} \textit{target\_robot\_ip}, \textit{message}
+            \IF{\textit{message} is ready to be broadcast}
+                \IF{not connected to target\_robot}
+                    \FOR{attempt = 1 to MAX\_RETRIES}
+                        \STATE Try to connect to \textit{target\_robot\_ip}
+                        \IF{connected}
+                            \STATE break
+                        \ELSE
+                            \STATE wait for RETRY\_INTERVAL
+                        \ENDIF
+                    \ENDFOR
+                \ENDIF
+                \IF{connected}
+                    \STATE Broadcast \textit{message}
+                \ENDIF
+            \ENDIF
+        \end{algorithmic}
+    \end{algorithm}
+    
+    \item Retry logic inspired by a three-way handshake (ACK/SYNACK) (Algorithm \ref{alg:retry-logic})
+    \begin{algorithm} [H]
+        \caption{Three-Way Handshake Inspired Message Broadcast and Retry Logic}
+        \label{alg:retry-logic}
+        \begin{algorithmic} [1]
+            \STATE \textbf{Input:} \textit{message}, \textit{target\_robot}
+            \STATE Send \textit{message} to \textit{target\_robot}
+            \STATE Start ACK\_timer
+            \WHILE{ACK not received and ACK\_timer not expired}
+                \IF{ACK or SYNACK received}
+                    \STATE Confirm delivery
+                    \STATE \textbf{break}
+                \ENDIF
+            \ENDWHILE
+            \IF{ACK not received}
+                \STATE Retry or log transmission failure
+            \ENDIF
+        \end{algorithmic}
+    \end{algorithm}
+
+    \item Structured message formats with headers for message categorization and handling (Algorithm \ref{alg:message-parsing})
+    \begin{algorithm} [H]
+        \caption{Message Parsing and Handling}
+        \label{alg:message-parsing}
+        \begin{algorithmic} [1]
+            \STATE \textbf{Input:} \textit{received\_message}
+            \STATE Extract header from \textit{received\_message}
+            \IF{header.type is ``COORDINATES``}
+                \STATE Update robot coordinates
+            \ELSIF{header.type is ``OBJECT\_DETECTED``}
+                \STATE Trigger task assignment handler
+            \ELSIF{header.type is ``PATH``}
+                \STATE Extract path and orientation from \textit{received\_message}
+            \ELSE
+                \STATE Ignore or log unrecognized message
+            \ENDIF
+        \end{algorithmic}
+    \end{algorithm}
+\end{enumerate}
+
+\paragraph*{}
+Within the swarm, this communication setup allows continuous exchange of positional data for effective self-collision avoidance and enables robots to relay relevant information to the designated taskmaster for path planning. The overall communication flow is illustrated in Figure \ref{fig:communication-flow}.
+
+\begin{figure} [H]
     \centering
     \includegraphics[width=1\linewidth]{assets/images/communication/communication-flow.png}
     \caption{Communication in the Swarm Detailed Flow}
