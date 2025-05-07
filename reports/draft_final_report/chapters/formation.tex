@@ -1,7 +1,7 @@
 \chapter{Coordination and Formation}
 
 \paragraph*{}
-This chapter presents the implementation of a swarm path planning system designed to form a coordinated structure around a target object. The formation algorithm computes collision-free trajectories based on the positional data received from each robot, assigning optimized paths, typically the shortest feasible route, to individual swarm members. These paths are then converted into discrete waypoints, a format well-suited for execution by the swarm’s motion controllers, ensuring accurate and efficient formation around the object. The flow for formation planning is illustrated in Figure \ref{}
+This chapter presents the implementation of a swarm path planning system designed to form a coordinated structure around a target object. The formation algorithm computes collision-free trajectories based on the positional data received from each robot, assigning optimized paths, typically the shortest feasible route, to individual swarm members. These paths are then converted into discrete waypoints, a format well-suited for execution by the swarm’s motion controllers, ensuring accurate and efficient formation around the object. The flow for formation planning is illustrated in Figure \ref{fig:path-planning-flow}.
 
 \begin{figure} [H]
     \centering
@@ -69,11 +69,17 @@ The other case for obstacle appearance can be considered as one where it coincid
 \end{figure}
 
 \paragraph*{}
-Once the appropriate paths have been generated, they are translated into discrete waypoints, a format compatible with the swarm’s low-level motion controller. An example runtime of the path waypoints is displayed in Figure \ref{fig:path-waypoint}. These waypoint sequences are then transmitted to the respective robots via socket communication. Upon receipt, each robot follows its assigned trajectory under the guidance of the swarm controller, enabling coordinated and collision-free movement toward the formation objective.
+Once the appropriate paths have been computed, there are two essential considerations remaining, namely, formatting them to be compatible with communication and motion controller, and covering actions after arriving at the destinations such as orientations of the robots to grip the objects. An illustration of how these two considerations are tackled is displayed in Figure \ref{fig:path-waypoint}.
 
 \begin{figure} [H]
     \centering
-    \includegraphics[width=1\linewidth]{assets/images/formation/path-waypoint.png}
-    \caption{Path Waypoint Example}
+    \includegraphics[width=0.7\linewidth]{assets/images/formation/path-waypoint.png}
+    \caption{Path Waypoint}
     \label{fig:path-waypoint}
 \end{figure}
+
+\paragraph*{}
+The computed paths originally lists all coordinates along the paths with a miniscule interval; for long paths, these coordinates can easily reach over a thousand. Considering this with the potential of scalability of swarm systems of numerous robots, this is a glaring weakness. Thus, the paths are translated to discrete waypoints, only recording significant coordinates such as corners for turning, and a repeat of coordinates for momentarily stopping, in case the robot has to wait for another to move past to avoid colliding. This can translate a thousand-long list of coordinates into potentially several tens of them, dependent on the number of corners the robots have to take, making the structure more efficient.
+
+\paragraph*{}
+For appropriate path planning, it is also essential to consider the subsequent actions after robots arrive at their destinations in the equilateral formation around the object. In this case, the orientation of the robots have to be considered. Transmitting the final orientations of the robots will allow them to position themselves with the gripper facing toward the detected object, completing the formation and allowing them to move the object. The swarm can also surround the object in a higher actual radius than the object's, position themselves according to the final orientation, and move in to form a sufficient hold. 
