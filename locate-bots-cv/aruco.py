@@ -63,7 +63,8 @@ class Aruco():
                 display_theta_deg = np.degrees(display_theta_rad)-90 # Convert to degrees
 
                 actual_theta_rad = np.arctan2(dx, dy)
-                actual_theta_deg = 360-(np.degrees(display_theta_rad)+180)
+                # actual_theta_deg = 360-(np.degrees(display_theta_rad)+180)
+                actual_theta_deg = np.degrees(display_theta_rad)+180
                 
                 cX = int((topLeft[0] + bottomRight[0]) / 2.0)
                 cY = int((topLeft[1] + bottomRight[1]) / 2.0)
@@ -76,8 +77,8 @@ class Aruco():
                 
                 cv2.putText(image, str(markerID),(topLeft[0], topLeft[1] - 10), cv2.FONT_HERSHEY_SIMPLEX,
                     0.5, (255, 0, 255), 2)
-                x = cX/image.shape[1]
-                y = cY/image.shape[0]
+                y = cX/image.shape[1]
+                x = cY/image.shape[0]
                 x_map = (x-0.5)*self.map_size[0]
                 y_map = -(y-0.5)*self.map_size[0]
                 if printout:

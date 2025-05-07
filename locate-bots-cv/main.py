@@ -63,51 +63,60 @@ if gui:
 
 counter = 0
 fps = 0
-while True: 
-    # NEW  – overwrites the same line every pass (⏎ is carriage-return)
-    ret, frame = cap.read()
-    current_timestamp = dt.datetime.now()
-    if not ret:
-        continue  # Skip iteration if the frame is invalid
+try:
+    while True: 
+        # NEW  – overwrites the same line every pass (⏎ is carriage-return)
+        ret, frame = cap.read()
+        current_timestamp = dt.datetime.now()
+        if not ret:
+            continue  # Skip iteration if the frame is invalid
 
-    detected_markers, recorded_data = aruco.aruco_detect(frame, current_timestamp)
-    if detected_markers is None:
-        detected_markers = frame.copy()
+        detected_markers, recorded_data = aruco.aruco_detect(frame, current_timestamp)
+        if detected_markers is None:
+            detected_markers = frame.copy()
 
-    # Send data to turtle thread
-    data_queue.put(aruco.current_data)
+        # Send data to turtle thread
+        data_queue.put(aruco.current_data)
 
-    # FPS Calculation
-    new_frame_time = time.time()
-    fps = 1 / (new_frame_time - prev_frame_time) if prev_frame_time else 0
-    print(f"\rFrames: {counter:<10}, FPS: {str(int(fps)):<3}", end='', flush=True)
-    prev_frame_time = new_frame_time
+        # FPS Calculation
+        new_frame_time = time.time()
+        fps = 1 / (new_frame_time - prev_frame_time) if prev_frame_time else 0
+        print(f"\rFrames: {counter:<10}, FPS: {str(int(fps)):<3}", end='', flush=True)
+        prev_frame_time = new_frame_time
 
-    # Overlay FPS text
-    if gui:
-        cv2.putText(frame, f"FPS: {int(fps)}", (7, 70), 
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
-        cv2.circle(frame, (frame.shape[1]//2,frame.shape[0]//2), radius=5, color=(0, 0, 255), thickness=-1)
-        cv2.imshow("Aruco Detection", frame)
+        # Overlay FPS text
+        if gui:
+            cv2.putText(frame, f"FPS: {int(fps)}", (7, 70), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+            cv2.circle(frame, (frame.shape[1]//2,frame.shape[0]//2), radius=5, color=(0, 0, 255), thickness=-1)
+            cv2.imshow("Aruco Detection", frame)
 
-    if cv2.waitKey(3) & 0xFF == ord('q'):
-        break
-    if cv2.waitKey(3) & 0xFF == ord('r'):
-        aruco_visual.reset_map()
+        if cv2.waitKey(3) & 0xFF == ord('q'):
+            break
+        if cv2.waitKey(3) & 0xFF == ord('r'):
+            aruco_visual.reset_map()
 
-    if len(recorded_data) != 0:
-        if printout:
-            id = str(3)
-            x_str     = f"{recorded_data[id]['x']:.2f}"
-            y_str     = f"{recorded_data[id]['y']:.2f}"
-            theta_str = f"{recorded_data[id]['theta']:.2f}"
-            print(f" id:{id}, x:{x_str:<5}, y:{y_str:<3}, theta:{theta_str:<3}", end='', flush=True)
-        latest_data.clear()
-        latest_data.update(recorded_data)
-    counter += 1
+        if len(recorded_data) != 0:
+            if printout:
+                y = ""
+                for _id in recorded_data.keys():
+                    
+                    x_str     = f"{recorded_data[_id]['x']:.2f}"
+                    y_str     = f"{recorded_data[_id]['y']:.2f}"
+                    theta_str = f"{recorded_data[_id]['theta']:.2f}"
+                    y += f"\tid:{_id}, x:{x_str:<5}, y:{y_str:<3}, theta:{theta_str:<5};"
+                print(y, end='', flush=True)
+            latest_data.clear()
+            latest_data.update(recorded_data)
+        counter += 1
 
-cap.release()
-cv2.destroyAllWindows()
-if len(aruco.testing_data)!=0:
-    print("saving data...")
-    aruco.testing_data.to_csv(f"./result/{dt.datetime.today().strftime('%Y-%m-%d')}.csv", index=False)
+    cap.release()
+    cv2.destroyAllWindows()
+    if len(aruco.testing_data)!=0:
+        print("saving data...")
+        aruco.testing_data.to_csv(f"./result/{dt.datetime.today().strftime('%Y-%m-%d')}.csv", index=False)
+except KeyboardInterrupt:
+    print("\nInterrupted by user, shutting down gracefully.")
+finally:
+    cap.release()
+    cv2.destroyAllWindows()
