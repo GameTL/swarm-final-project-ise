@@ -2,27 +2,29 @@ import json
 import time
 import socket
 import threading
+import os
 from collections import defaultdict
 from .formation import FormationMaster
 from .translator import Translator
 
 IDENTIFIER = "jetson1"
-HOST_FP ="./submodules/p2p_communication/hosts.json"
+HOST_FP = f"{os.path.dirname(os.path.realpath(__file__))}/hosts.json" # from the same location this file find host.json
 MAX_CONNECTIONS = 5
 TIMEOUT = 5
 MAX_RETRIES = 3
 
 class Communicator:
-    def __init__(self, host_fp=HOST_FP, identifier=IDENTIFIER, max_connections=MAX_CONNECTIONS, suppress_output=True):
+    def __init__(self, host_fp=HOST_FP, identifier=IDENTIFIER, max_connections=MAX_CONNECTIONS, suppress_output=True, odom_obj=None):
         # Initialize default attributes
         self.host_fp = host_fp
         self.identifier = identifier
         self.max_connections = max_connections
         self.taskmaster_claims = []
         self.suppress = suppress_output
+        self.odom_obj = odom_obj
 
         # For object detection and path planning
-        self.current_coords = [0.0, 0.0]
+        self.current_coords = [ self.odom_obj.current_position["x"],self.odom_obj.current_position["y"] ]
         self.coords_dict = {}
         self.obstacle_coords = [] # Should know from lidar
         self.object_coords = () # Should know from lidar + camera

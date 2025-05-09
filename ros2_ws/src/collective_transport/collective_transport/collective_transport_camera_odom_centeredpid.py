@@ -82,13 +82,13 @@ _____________
 """
 
 MAX_CMD_VEL = 0.05 # 5cm per second
-communicator = Communicator(identifier=ROBOT_ID)
 try:
     cam_odom = CamOdomClient(robot_id=3, debug=False)
     cam_odom.connect()
 except Exception as e:
     print(e)
     quit()
+communicator = Communicator(identifier=ROBOT_ID, cam_odom=cam_odom)
 # Create a class to manage shared ROS subscribers and publishers
 class ROSManager(Node):
     def __init__(self, node_name='state_machine_node'):
@@ -355,7 +355,6 @@ class SeekObject(State):
         #         communicator.obstacle_coords = [] # assume
         #         # return "end" #FoundObjectHost
         return "outcome1" #FoundObjectHost
-        return "loop"
         
 
 class PathFollowing(State):
@@ -452,7 +451,7 @@ class PathFollowing(State):
             yasmin.YASMIN_LOG_INFO(bcolors.BLUE_OK + f"Moving in Theta-Direction" + bcolors.ENDC)
             twist_msg = Twist()
             # print(f'{cam_odom.current_position=}')
-            # print(abs(45 - cam_odom.current_position["theta"]))
+            # print(abs(45 -    ))
             err_theta = target_theta - cam_odom.current_position["theta"]
             if err_theta < -180 or err_theta > 180:
                 err_theta = -(err_theta % 180) # tell it to go other way, "it's closer the other way"
