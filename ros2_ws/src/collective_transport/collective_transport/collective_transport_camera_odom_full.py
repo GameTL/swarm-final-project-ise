@@ -85,43 +85,42 @@ _____________
 |1          |
 _____________ 
 """
-
-home_coords =  {"1" :[0.8,0.8,315], "2" : [0.3,0.3,315], "3" : [0.3,0.8,315]}
+home_coords =  {"1" :[0.8,0.8,315], "2" : [0.2,0.2,315], "3" : [0.2,0.8,315]}
 linear_pid_dict =  {
     "1" :{
-        "kp" :  1,
-        "ki" :  0,
-        "kd" :  0,
+        "kp" :  0.3,
+        "ki" :  6.0,
+        "kd" :  0.1,
         "clamped" :  True,
-        "min" :  -0.5,
-        "max" :  0.5,
-        "deadzone_limit" : 0.4}, 
+        "min" :  -0.7,
+        "max" :  0.7,
+        "deadzone_limit" : 0.2}, 
     "2" :{
         "kp" :  1,
-        "ki" :  0,
-        "kd" :  0,
+        "ki" :  0.1,
+        "kd" :  0.3,
         "clamped" :  True,
         "min" :  -0.5,
         "max" :  0.5,
         "deadzone_limit" : 0.4}}
 
 angular_pid_dict =  {
-    "1" :{
+    "1" :{ # with new wheels
         "kp" :  1,
         "ki" :  0,
         "kd" :  0,
         "clamped" :  True,
-        "min" :  -0.5,
-        "max" :  0.5,
+        "min" :  -0.9,
+        "max" :  0.9,
         "deadzone_limit" : 0.4}, 
-    "2" :{
-        "kp" :  1,
-        "ki" :  0,
-        "kd" :  0,
+    "2" :{ # robocup wheels
+        "kp" :  0.3,
+        "ki" :  0.1,
+        "kd" :  0.3,
         "clamped" :  True,
-        "min" :  -0.5,
-        "max" :  0.5,
-        "deadzone_limit" : 0.4}
+        "min" :  -0.9,
+        "max" :  0.9,
+        "deadzone_limit" : 0.52}
                      }
 
 
@@ -359,7 +358,8 @@ class Init(State):
         """
         print(bcolors.YELLOW_WARNING + f"Executing state Init" + bcolors.ENDC)
         print(f"Robot ID: {str(ROBOT_ID)}")
-        # time.sleep(1) 
+        
+        time.sleep(10) # for showing and filming
         
         print("Assuming the theta = 0 globally")
         return "outcome1"
