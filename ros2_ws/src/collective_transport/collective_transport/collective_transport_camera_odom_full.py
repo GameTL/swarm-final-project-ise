@@ -87,10 +87,54 @@ _____________
 """
 
 home_coords =  {"1" :[0.8,0.8,315], "2" : [0.3,0.3,315], "3" : [0.3,0.8,315]}
+linear_pid_dict =  {
+    "1" :{
+        "kp" :  1,
+        "ki" :  0,
+        "kd" :  0,
+        "clamped" :  True,
+        "min" :  -0.5,
+        "max" :  0.5,
+        "deadzone_limit" : 0.4}, 
+    "2" :{
+        "kp" :  1,
+        "ki" :  0,
+        "kd" :  0,
+        "clamped" :  True,
+        "min" :  -0.5,
+        "max" :  0.5,
+        "deadzone_limit" : 0.4}}
+
+angular_pid_dict =  {
+    "1" :{
+        "kp" :  1,
+        "ki" :  0,
+        "kd" :  0,
+        "clamped" :  True,
+        "min" :  -0.5,
+        "max" :  0.5,
+        "deadzone_limit" : 0.4}, 
+    "2" :{
+        "kp" :  1,
+        "ki" :  0,
+        "kd" :  0,
+        "clamped" :  True,
+        "min" :  -0.5,
+        "max" :  0.5,
+        "deadzone_limit" : 0.4}
+                     }
+
+
+
+
 
 MAX_CMD_VEL = 0.05 # 5cm per second
 try:
-    cam_odom = CamOdomClient(robot_id=3, debug=False)
+    if int(ROBOT_ID) == 1:
+        cam_odom = CamOdomClient(robot_id="3", debug=False)
+    else:
+        cam_odom = CamOdomClient(robot_id=ROBOT_ID, debug=False)
+        
     cam_odom.connect()
 except Exception as e:
     print(e)
@@ -202,7 +246,7 @@ def globaltorobottf(global_x_vel, global_y_vel, current_theta):
 def movetotheta(target_theta):
     print(bcolors.BLUE_OK + f"Moving in Theta-Direction; Goal: {target_theta=}" + bcolors.ENDC)
     twist_msg = Twist()
-    pid_theta = PID(kp=0.1, ki=0.0, kd=0.1, min=-1.0, max=1.0, deadzone_limit=0.45, clamped=True)
+    pid_theta = PID(kp=angular_pid_dict[ROBOT_ID]["kp"], ki=angular_pid_dict[ROBOT_ID]["ki"], kd=angular_pid_dict[ROBOT_ID]["kd"], min=angular_pid_dict[ROBOT_ID]["min"], max=angular_pid_dict[ROBOT_ID]["max"], deadzone_limit=angular_pid_dict[ROBOT_ID]["deadzone_limit"], clamped=angular_pid_dict[ROBOT_ID]["clamped"])
     while True: # err less than 2 degree, paired with the delay of the odom 2 degree is perfect
         err_theta = target_theta - cam_odom.current_position["theta"]
         if err_theta < -180 or err_theta > 180:
@@ -226,7 +270,8 @@ def movetotheta(target_theta):
 def movealongx315(target_x):
     print(bcolors.BLUE_OK + f"Moving in global X-Direction; Goal: {target_x=}" + bcolors.ENDC)
     twist_msg = Twist() # reset the twist msg
-    pid_x = PID(kp=0.3, ki=6.0, kd=0.01, min=-0.7, max=0.7, deadzone_limit=0.2, clamped=True)
+    pid_x = PID(kp=linear_pid_dict[ROBOT_ID]["kp"], ki=linear_pid_dict[ROBOT_ID]["ki"], kd=linear_pid_dict[ROBOT_ID]["kd"], min=linear_pid_dict[ROBOT_ID]["min"], max=linear_pid_dict[ROBOT_ID]["max"], deadzone_limit=linear_pid_dict[ROBOT_ID]["deadzone_limit"], clamped=linear_pid_dict[ROBOT_ID]["clamped"])
+    
     while True:
         err_x = target_x - cam_odom.current_position["x"]
         # print(f'{err_x=}')
@@ -249,7 +294,7 @@ def movealongx315(target_x):
 def movealongy315(target_y):
     print(bcolors.BLUE_OK + f"Moving in global Y-Direction; Goal: {target_y=}" + bcolors.ENDC)
     twist_msg = Twist() # reset the twist msgs
-    pid_y = PID(kp=0.3, ki=6, kd=0.01, min=-0.7, max=0.7, deadzone_limit=0.2, clamped=True)
+    pid_y = PID(kp=linear_pid_dict[ROBOT_ID]["kp"], ki=linear_pid_dict[ROBOT_ID]["ki"], kd=linear_pid_dict[ROBOT_ID]["kd"], min=linear_pid_dict[ROBOT_ID]["min"], max=linear_pid_dict[ROBOT_ID]["max"], deadzone_limit=linear_pid_dict[ROBOT_ID]["deadzone_limit"], clamped=linear_pid_dict[ROBOT_ID]["clamped"])
     while True:
         err_y = target_y - cam_odom.current_position["y"]
         # print(f'{err_y=}')
@@ -366,22 +411,22 @@ class MoveStartPos(State):
             (home_pose[0], home_pose[1], home_pose[2]), # move along the y &  ensure theta
         ]
         ######## START HOMING
-        # print(bcolors.BLUE_OK + f"{home_goal=}" + bcolors.ENDC)
-        # commands = decode_coords(home_goal)
-        # print(bcolors.BLUE_OK + f"{commands=}" + bcolors.ENDC)
-        # movetotheta(target_theta=315)
-        # print(bcolors.BLUE_OK + f"Moving Independantly from the swarms" + bcolors.ENDC)
-        # for command, target in commands:
-            # print(f'{command=}')
-            # if command == 'x':
-                # movealongx315(target)
-            # elif command == 'y':
-                # movealongy315(target)
-            # elif command == 'theta':
-                # movetotheta(target)
-            # else:
-                # pass
-        # print(bcolors.GREEN_OK + f"FINSIHED CENTERING>>>>>>>........." + bcolors.ENDC)
+        print(bcolors.BLUE_OK + f"{home_goal=}" + bcolors.ENDC)
+        commands = decode_coords(home_goal)
+        print(bcolors.BLUE_OK + f"{commands=}" + bcolors.ENDC)
+        movetotheta(target_theta=315)
+        print(bcolors.BLUE_OK + f"Moving Independantly from the swarms" + bcolors.ENDC)
+        for command, target in commands:
+            print(f'{command=}')
+            if command == 'x':
+                movealongx315(target)
+            elif command == 'y':
+                movealongy315(target)
+            elif command == 'theta':
+                movetotheta(target)
+            else:
+                pass
+        print(bcolors.GREEN_OK + f"FINSIHED CENTERING>>>>>>>........." + bcolors.ENDC)
         ######### HOMING
         return "outcome1"
 
