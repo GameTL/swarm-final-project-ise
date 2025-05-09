@@ -60,7 +60,7 @@ class bcolors:
     ITALIC         = '\033[3m'
     UNDERLINE      = '\033[4m'
 # Get the environment variable
-ROBOT_ID: int = int(os.environ.get('ROBOT_ID'))
+ROBOT_ID: str = str(os.environ.get('ROBOT_ID'))
 fake = False
 stop_msg = Twist()
 
@@ -86,7 +86,7 @@ _____________
 _____________ 
 """
 
-home_coords =  {"1" : np.array([0.8,0.8,315]), "2" : np.array([0.3,0.3,315]), "3" : np.array([0.3,0.8,315])}
+home_coords =  {"1" :[0.8,0.8,315], "2" : [0.3,0.3,315], "3" : [0.3,0.8,315]}
 
 MAX_CMD_VEL = 0.05 # 5cm per second
 try:
@@ -95,8 +95,12 @@ try:
 except Exception as e:
     print(e)
     quit()
-communicator = Communicator(identifier=ROBOT_ID, cam_odom=cam_odom)
+communicator = Communicator(identifier=ROBOT_ID, odom_obj=cam_odom, suppress_output=False)
+# Start listening thread
+server_thread = threading.Thread(target=communicator.comm_thread_spawner, daemon=True)
+server_thread.start()
 
+communicator.start_periodic_broadcast(interval_sec=1)
 # Create a class to manage shared ROS subscribers and publishers
 class ROSManager(Node):
     def __init__(self, node_name='state_machine_node'):
@@ -113,6 +117,7 @@ class ROSManager(Node):
         self.robot_pose_sub  # prevent unused variable warning
         # Set up publishers 
         self.cmd_vel_pub = self.create_publisher(Twist, 'cmd_vel', 2)
+        self.spinned = False
 
         
         # Start a non-blocking spin in a separate thread
@@ -121,10 +126,9 @@ class ROSManager(Node):
         self.spin_thread.start()
         
     def _spin_node(self):
-        while rclpy.ok():
-            rclpy.spin_once(self, timeout_sec=0.1)
-    
-            
+        while rclpy.ok() and not self.spinned:
+            rclpy.spin_once(self, timeout_sec=0.5)
+            self.spinned = True
     def robot_pose_callback(self, msg):
         self.latest_robot_pose = msg
         # print(f"new {msg}")
@@ -137,6 +141,8 @@ class ROSManager(Node):
         
     def shutdown(self):
         self.node.destroy_node()
+if not rclpy.ok():
+    rclpy.init()
 ros_manager = ROSManager()
 #### Special Function
 class PID:
@@ -287,7 +293,7 @@ class Init(State):
     - Odometry  : Check Wheel Movement (Threading)
     
     Attributes:
-        counter (int): Counter to track the number of executions of this state.
+        counter (int): Counter to    track the number of executions of this state.
     """
 
     def __init__(self) -> None:
@@ -347,7 +353,7 @@ class MoveStartPos(State):
         
         # print(self.ros_manager.get_latest_pose())
         
-        goal_pose = home_coords[ROBOT_ID]
+        home_pose = home_coords[ROBOT_ID]
             
         # goal_pose = np.array([rob_pose.x + 0, 
         #                 rob_pose.y + 0,
@@ -355,25 +361,27 @@ class MoveStartPos(State):
         
         home_goal = [
             # (cam_odom.current_position['x'], cam_odom.current_position['y']),
-            (cam_odom.current_position['x'] + 0.3, cam_odom.current_position['y']), # move along the x 
-            (cam_odom.current_position['x'] + 0.3, cam_odom.current_position['y']+ 0.3, 315), # move along the y &  ensure theta
+            (home_pose[0], cam_odom.current_position['y']), # move along the x 
+            (home_pose[0], home_pose[1]), # move along the y &  ensure theta
+            (home_pose[0], home_pose[1], home_pose[2]), # move along the y &  ensure theta
         ]
-        print(bcolors.BLUE_OK + f"{home_goal=}" + bcolors.ENDC)
-        commands = decode_coords(home_goal)
-        print(bcolors.BLUE_OK + f"{commands=}" + bcolors.ENDC)
-        movetotheta(target_theta=315, THRESHOLD_THETA_POSITION=THRESHOLD_THETA_POSITION)
-        print(bcolors.BLUE_OK + f"Moving Independantly from the swarms" + bcolors.ENDC)
-        for command, target in commands:
-            print(f'{command=}')
-            if command == 'x':
-                movealongx315(target)
-            elif command == 'y':
-                movealongy315(target)
-            elif command == 'theta':
-                movetotheta(target)
-            else:
-                pass
-        print(bcolors.GREEN_OK + f"FINSIHED CENTERING>>>>>>>........." + bcolors.ENDC)
+        ######## START HOMING
+        # print(bcolors.BLUE_OK + f"{home_goal=}" + bcolors.ENDC)
+        # commands = decode_coords(home_goal)
+        # print(bcolors.BLUE_OK + f"{commands=}" + bcolors.ENDC)
+        # movetotheta(target_theta=315)
+        # print(bcolors.BLUE_OK + f"Moving Independantly from the swarms" + bcolors.ENDC)
+        # for command, target in commands:
+            # print(f'{command=}')
+            # if command == 'x':
+                # movealongx315(target)
+            # elif command == 'y':
+                # movealongy315(target)
+            # elif command == 'theta':
+                # movetotheta(target)
+            # else:
+                # pass
+        # print(bcolors.GREEN_OK + f"FINSIHED CENTERING>>>>>>>........." + bcolors.ENDC)
         ######### HOMING
         return "outcome1"
 
@@ -391,7 +399,6 @@ class AtStartPos(State):
 
     def __init__(self) -> None:
         super().__init__(["outcome1", "end"])
-        # self.ros_manager = ros_manager
         # self.counter = 0
 
     def execute(self, blackboard: Blackboard) -> str:
@@ -403,28 +410,30 @@ class AtStartPos(State):
         """
         print(bcolors.YELLOW_WARNING + f"Executing state AtStartPos" + bcolors.ENDC)
         ######### CHECKING OTHER ROBOT LOCATION
-        while True:
-            if len(communicator.coords_dict) == 2:
-                break
-            else:
-                print(bcolors.YELLOW_WARNING + f"Waiting for other robot to pair. Only see {len(communicator.coords_dict)}robot" + bcolors.ENDC)
-        print(bcolors.BLUE_OK + f"see {len(communicator.coords_dict)}/{2} robot" + bcolors.ENDC)
-        print(bcolors.BLUE_OK + f"Waiting for all to reach the location" + bcolors.ENDC)
-        while True:
-            print(f'{communicator.coords_dict=}')
-            time.sleep(0.01)
-            num_robot = len(communicator.coords_dict)
-            arrvied_counter = 0 
-            for robot in communicator.coords_dict.keys():
-                if abs(communicator.coords_dict[robot][0] - home_coords[robot][0]) < (THRESHOLD_X_POSITION * 2) :
-                    num_robot_arrvied +=1
-                if abs(communicator.coords_dict[robot][1] - home_coords[robot][1]) < (THRESHOLD_Y_POSITION * 2) :
-                    num_robot_arrvied +=1
-            if arrvied_counter == num_robot*2:
-                break
-            time.sleep(0.2)
-        print(bcolors.BLUE_OK + f"All robot have arrived at home " + bcolors.ENDC)
-        pprint(communicator.coords_dict)
+        # while True:
+        #     print(f'{communicator.coords_dict=}')
+        #     if len(communicator.coords_dict) == 1:
+        #         break
+        #     else:
+        #         print(bcolors.YELLOW_WARNING + f"Waiting for other robot to pair. Only see {len(communicator.coords_dict)}robot" + bcolors.ENDC)
+        #         time.sleep(1)
+        # # print(bcolors.BLUE_OK + f"Waiting for all to reach the location" + bcolors.ENDC)
+        # while True:
+        #     print(bcolors.BLUE_OK + f"see {len(communicator.coords_dict)}/{2} robot" + bcolors.ENDC)
+        #     print(f'{communicator.coords_dict=}')
+        #     time.sleep(0.01)
+        #     num_robot = len(communicator.coords_dict)
+        #     arrvied_counter = 0 
+        #     for robot in communicator.coords_dict.keys():
+        #         if abs(communicator.coords_dict[robot][0] - home_coords[robot][0]) < (THRESHOLD_X_POSITION * 2) :
+        #             num_robot_arrvied +=1
+        #         if abs(communicator.coords_dict[robot][1] - home_coords[robot][1]) < (THRESHOLD_Y_POSITION * 2) :
+        #             num_robot_arrvied +=1
+        #     if arrvied_counter == num_robot*2:
+        #         break
+        #     time.sleep(0.2)
+        # print(bcolors.BLUE_OK + f"All robot have arrived at home " + bcolors.ENDC)
+        # pprint(communicator.coords_dict)
         return "outcome1"
         
 class SeekObject(State):
@@ -441,7 +450,6 @@ class SeekObject(State):
     def __init__(self) -> None:
             
         super().__init__(["outcome1","loop", "end"])
-        self.ros_manager = ros_manager
 
     def execute(self, blackboard: Blackboard) -> str:
         """
@@ -460,74 +468,73 @@ class SeekObject(State):
         # print(f"{self.cv_class.cylinder_detection=}")
         
         while 1:
-            # print(f"{self.cv_class.cylinder_detection=}")
-            if communicator.header == "PATH":  # received the path from master
-                return "outcome2"  # IdleSlave
+            rob_pose = [cam_odom.current_position["x"], cam_odom.current_position["y"], cam_odom.current_position["theta"]]
+        #     # print(f"{self.cv_class.cylinder_detection=}")
+        #     if communicator.header == "PATH":  # received the path from master
+        #         return "outcome2"  # IdleSlave
             
-            detection_info = self.cv_class.cylinder_detection
+        #     detection_info = self.cv_class.cylinder_detection
             
-            # --- Simplified Validation ---
-            is_valid_detection = False
-            if isinstance(detection_info, list) and len(detection_info) >= 3:
-                self.ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
-                # Check if all of the first three elements are finite numbers
-                if all(math.isfinite(val) for val in detection_info[:3]):
-                    is_valid_detection = True
-            # --- End Simplified Validation ---
+        #     # --- Simplified Validation ---
+        #     is_valid_detection = False
+        #     if isinstance(detection_info, list) and len(detection_info) >= 3:
+        #         self.ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
+        #         # Check if all of the first three elements are finite numbers
+        #         if all(math.isfinite(val) for val in detection_info[:3]):
+        #             is_valid_detection = True
+        #     # --- End Simplified Validation ---
 
-            if is_valid_detection:
-                twist_msg = Twist()
-                # self.ros_manager.publish_cmd_vel(twist_msg)
-                print(f"{detection_info=}")
-                print(f"Found an object stopping.. Validating detection data...")
+        #     if is_valid_detection:
+        #         self.ros_manager.publish_cmd_vel(stop_msg)
+        #         print(f"{detection_info=}")
+        #         print(f"Found an object stopping.. Validating detection data...")
                 
-                # Since we've validated, no need for the extra checks here,
-                # but you might want to log the valid data explicitly if needed.
-                print(f"Valid detection data received: {detection_info[:3]}")
+        #         # Since we've validated, no need for the extra checks here,
+        #         # but you might want to log the valid data explicitly if needed.
+        #         print(f"Valid detection data received: {detection_info[:3]}")
                 
-                break # Exit the loop as valid data is found
+        #         break # Exit the loop as valid data is found
 
-            else:
-                # If validation failed (either not a list, too short, or contained non-finite values in the first 3)
-                # print(f"Invalid or incomplete detection data: {detection_info}. Sending rotating twist msg.")
-                if fake:
-                    pass
-                else:
-                    twist_msg = Twist()
-                    if ROBOT_ID % 1: 
-                        twist_msg.angular.z = -0.35
-                    else:
-                        twist_msg.angular.z = 0.35
+        #     # else:
+        #         # If validation failed (either not a list, too short, or contained non-finite values in the first 3)
+        #         # print(f"Invalid or incomplete detection data: {detection_info}. Sending rotating twist msg.")
+        #             # twist_msg = Twist()
+        #             # if int(ROBOT_ID) % 1: 
+        #             #     twist_msg.angular.z = -0.6
+        #             # else:
+        #             #     twist_msg.angular.z = 0.6
                         
-                    self.ros_manager.publish_cmd_vel(twist_msg)
-                    pass
-                # time.sleep(0.1)  # around 10hz
-        detection_info = self.cv_class.cylinder_detection # do smth
-        if isinstance(detection_info, list) and len(detection_info) >= 3:
-            # Check if all of the first three elements are finite numbers
-            twist_msg = Twist()
-            self.ros_manager.publish_cmd_vel(twist_msg)
-            if all(math.isfinite(val) for val in detection_info[:3]):
-                print(bcolors.BLUE_OK + f"Found a Detection at {detection_info=}" + bcolors.ENDC)
+        #             # self.ros_manager.publish_cmd_vel(twist_msg)
+        #         # time.sleep(0.1)  # around 10hz
+        # if isinstance(detection_info, list) and len(detection_info) >= 3:
+        #     # Check if all of the first three elements are finite numbers
+        #     twist_msg = Twist()
+        #     self.ros_manager.publish_cmd_vel(twist_msg)
+        #     if all(math.isfinite(val) for val in detection_info[:3]):
+        #         print(bcolors.BLUE_OK + f"Found a Detection at {detection_info=}" + bcolors.ENDC) 
         
-                blackboard["object_info"] = detection_info
-                object_theta = detection_info[0]
-                object_d     = detection_info[1]
-                object_w     = detection_info[2]
+        #         blackboard["object_info"] = detection_info
+        #         object_d     = detection_info[0]
+        #         object_w     = detection_info[1]
+        #         object_theta = detection_info[2]
                 
-                rob_pose = [cam_odom.current_position["x"], cam_odom.current_position["y"]], cam_odom.current_position["theta"]
-                # communicator.object_coords = [0.0, 0.0] # assume
-                # communicator.obstacle_coords = [[-1, -1.4], [0.6, 0.3], [0.1, 1.67]] #
+        #         # communicator.object_coords = [0.0, 0.0] # assume
+        #         # communicator.obstacle_coords = [[-1, -1.4], [0.6, 0.3], [0.1, 1.67]] #
                 
-                object_pose = [ # robot pose  + the distance xy of the object relative to robot pose
-                    rob_pose[0] + (object_d+object_w/2)*math.cos(math.radians(rob_pose[2] + object_theta)),
-                    rob_pose[1] + (object_d+object_w/2)*math.sin(math.radians(rob_pose[2] + object_theta))
-                ]
-                communicator.object_coords = object_pose
-                print(bcolors.BLUE_OK + f"Object Calculated: \n\trobot_pose {rob_pose}\n\tobject_pose {object_pose}" + bcolors.ENDC)
-                communicator.obstacle_coords = [] # assume
-                # return "end" #FoundObjectHost
-        return "outcome1" #FoundObjectHost
+        #         object_pose = [ # robot pose  + the distance xy of the object relative to robot pose
+        #             rob_pose[0] + (object_d)*math.cos(math.radians(rob_pose[2] + object_theta)) * 0.8,
+        #             rob_pose[1] + (object_d)*math.sin(math.radians(rob_pose[2] + object_theta)) * 0.8
+        #         ]
+        #         # Real Results
+        #         # communicator.object_coords = object_pose
+        #         # Testing Results
+            communicator.object_coords = [0.5,0.5]
+            print(bcolors.BLUE_OK + f"Object Calculated: \n\trobot_pose {rob_pose}\n\tobject_pose {communicator.object_coords }" + bcolors.ENDC)
+            communicator.obstacle_coords = [] # assume
+            communicator.object_detected()
+            communicator.cleanup() # To clear waypoints and orientation
+                    # return "end" #FoundObjectHost
+            return "outcome1" #FoundObjectHost
         
 
 class PathFollowing(State):
@@ -548,7 +555,6 @@ class PathFollowing(State):
             outcome2: Indicates the state should finish execution and return.
         """
         super().__init__(["outcome1", "end"])
-        self.ros_manager = ros_manager
         self.counter = 0
         
         self.linear_kp = 1
@@ -568,11 +574,13 @@ class PathFollowing(State):
         Raises: Exception: May raise exceptions related to state execution.
         """
         print(bcolors.YELLOW_WARNING + f"Executing state PathFollowing" + bcolors.ENDC)
+        pprint(communicator.command)
+        pprint(communicator.orientation)
 
         
-        self.ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
-        self.ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
-        self.ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
+        ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
+        ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
+        ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
         time.sleep(1)
         return "outcome1"
 
@@ -583,8 +591,7 @@ def main(args=None):
     
 
     print("yasmin_frfr")
-    if not rclpy.ok():
-        rclpy.init(args=args)
+
     
 
     

@@ -4,10 +4,10 @@ import socket
 import threading
 import os
 from collections import defaultdict
-from .formation import FormationMaster
-from .translator import Translator
+from formation import FormationMaster
+from translator import Translator
 
-IDENTIFIER = "jetson1"
+IDENTIFIER = "1"
 HOST_FP = f"{os.path.dirname(os.path.realpath(__file__))}/hosts.json" # from the same location this file find host.json
 MAX_CONNECTIONS = 5
 TIMEOUT = 5
@@ -24,7 +24,11 @@ class Communicator:
         self.odom_obj = odom_obj
 
         # For object detection and path planning
-        self.current_coords = [ self.odom_obj.current_position["x"],self.odom_obj.current_position["y"] ]
+        try:
+            self.current_coords = [ self.odom_obj.current_position["x"],self.odom_obj.current_position["y"] ]
+        except:
+            self.current_coords = [ 0.69,  0.69]
+            
         self.coords_dict = {}
         self.obstacle_coords = [] # Should know from lidar
         self.object_coords = () # Should know from lidar + camera
@@ -253,7 +257,7 @@ class Communicator:
         Utility function for robot to call when object is detected
         """
         self.consensus(self.identifier)
-        communicator.broadcast("OBJECT_DETECTED", message) # TODO: Should be object and obstacle positions
+        self.broadcast("OBJECT_DETECTED", message) # TODO: Should be object and obstacle positions
 
     def path_planning(self, current_coords, object_coords, obstacle_coords, radius=0.3):
         print(f"[INFO] Received this set of current_coords: {current_coords}")
@@ -329,6 +333,7 @@ if __name__ == "__main__":
         if user_input == "S":
             communicator.object_detected()
             communicator.cleanup() # To clear waypoints and orientation
+            print()
         elif user_input == "Q":
             break
         else:
