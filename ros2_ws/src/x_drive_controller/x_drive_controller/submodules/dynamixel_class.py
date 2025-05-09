@@ -32,7 +32,7 @@ if system == "Darwin":
 elif system == "Linux":
     print("The operating system is Linux.")
     # DEVICENAME = '/dev/ttyUSB1'
-    DEVICENAME = '/dev/ttyUSB0'
+    DEVICENAME = '/dev/ttyUSB1'
     # DEVICENAME = '/dev/usb_serial'
 
 DISABLE = 0
@@ -42,7 +42,7 @@ DXL_MOVING_STATUS_THRESHOLD = 20    # Dynamixel moving status threshold
 index = 0
 dxl_goal_speed = [300, 800]         # Goal position
 
-MAX_LINEAR_STEP = 250
+MAX_LINEAR_STEP = 300
 MAX_ANGULAR_STEP = 5
 MAX_ANGULAR_SPEED = 2*(3.14)/8 # Rad/s
 STEP_LIMIT = MAX_LINEAR_STEP # MOVING SPEED LIMIT
@@ -299,7 +299,7 @@ class DynamixelInterface:
             print(f"Error: Motor ID {e} not found in velo_info")  # Handle missing motor IDs gracefully
             return np.array([0, 0, 0])  # Return a default value in case of error
 
-        return np.array([xDot, yDot, thetaDot])
+        return np.array([xDot, yDot, -thetaDot])
         
     def inv_drive(self, v1=0, v2=0, v3=0, v4=0):
         V_motor = np.array([[v1], [v2], [v3], [v4]])
@@ -314,7 +314,7 @@ class DynamixelInterface:
         return Vin[0], Vin[1], Vin[2]
      
     def drive(self, xDot, yDot, thetaDot):
-        thetaDot = min(max(thetaDot,-MAX_ANGULAR_SPEED), MAX_ANGULAR_SPEED)
+        thetaDot = -(min(max(thetaDot,-MAX_ANGULAR_SPEED), MAX_ANGULAR_SPEED))
         # print("----")
         if (not(xDot) or not(yDot)):
             magnitude_reducer = 1
@@ -323,7 +323,8 @@ class DynamixelInterface:
             # print(yDot)
             # print((abs(xDot)+abs(yDot)))
             # print(max(abs(xDot),abs(yDot)))
-            magnitude_reducer = (abs(xDot)+abs(yDot))/max(abs(xDot),abs(yDot))
+            magnitude_reducer = (abs(xDot)+abs(yDot))/max(abs(xDot),abs(yDot)) * 2
+            # magnitude_reducer = 1
         # print(magnitude_reducer)
         # print("----")
         xDot       /= magnitude_reducer # (m/s)

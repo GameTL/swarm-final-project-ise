@@ -4,8 +4,8 @@ import socket
 import threading
 import os
 from collections import defaultdict
-from formation import FormationMaster
-from translator import Translator
+from .formation import FormationMaster
+from .translator import Translator
 
 IDENTIFIER = "1"
 HOST_FP = f"{os.path.dirname(os.path.realpath(__file__))}/hosts.json" # from the same location this file find host.json
