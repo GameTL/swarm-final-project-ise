@@ -431,7 +431,7 @@ class PathFollowing(State):
             yasmin.YASMIN_LOG_INFO(bcolors.BLUE_OK + f"Moving in global x-Direction" + bcolors.ENDC)
             start_time = time.time()
             
-            
+            # Simple Threshold Goal
             twist_msg = Twist()
             x = 0.5
             while True:

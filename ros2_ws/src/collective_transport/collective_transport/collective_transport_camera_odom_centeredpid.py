@@ -403,6 +403,7 @@ class PathFollowing(State):
                 self.clamped = clamped
                 self.min = min
                 self.max = max
+                self.deadzone_limit = deadzone_limit
                 self.diff_err = np.float64(0.0)
                 self.sum_err = np.float64(0.0)
                 self.prev_err : np.float64 = np.float64(0.0)
@@ -416,8 +417,8 @@ class PathFollowing(State):
                 self.diff_err = (err - self.prev_err)/delta_t
                 out = self.kp *  err + self.ki  * self.sum_err + self.kd * self.diff_err
                 
-                if -self.activation_threshold < out < self.activation_threshold:
-                    out = np.sign(out) * self.activation_threshold
+                if -self.deadzone_limit < out < self.deadzone_limit:
+                    out = np.sign(out) * self.deadzone_limit
                     
                 self.prev_time = curr_time
                 self.prev_err = err
@@ -431,44 +432,51 @@ class PathFollowing(State):
                 self.prev_err : np.float64 = np.float64(0.0)
                 self.prev_time : float = time.time_ns()
                 
-        def globaltorobottf(global_x_vel, global_y_vel):
-            sin_cos_45 = 0.70710678118
-            out_x = (-global_x_vel*sin_cos_45 + global_y_vel*sin_cos_45 )
-            out_y = (global_x_vel*sin_cos_45 + global_y_vel*sin_cos_45 )
+        def globaltorobottf_at315(global_x_vel, global_y_vel):
+            """ 
+            cmd_vel direction
+            0.5    +0.5    +x
+            -0.5   -0.5    -x
+            -0.5   +0.5    +y
+            +0.5   -0.5    -y
+            """
+            sin_cos_315 = 0.70710678118
+            out_x = (global_x_vel*sin_cos_315 - global_y_vel*sin_cos_315 )
+            out_y = (+global_x_vel*sin_cos_315 + global_y_vel*sin_cos_315 )
             return out_x, out_y
-        #### END Special Function
-        
-        yasmin.YASMIN_LOG_INFO(bcolors.YELLOW_WARNING + f"Executing state PathFollowing" + bcolors.ENDC)
-        communicator.object_coords # x, y, theta
-        #### Specs SI Units
-        target_x = 0.5 #m
-        target_y = 0.5 #m
-        target_theta = 45 #degress
-        threshold_x_position = 0.03 # 3 cm
-        threshold_y_position = 0.03 # 3 cm
-        while True:
-            #* 1. THETA-movement 45 degree
-            yasmin.YASMIN_LOG_INFO(bcolors.BLUE_OK + f"Moving in Theta-Direction" + bcolors.ENDC)
+        def globaltorobottf(global_x_vel, global_y_vel, current_theta):
+            current_theta_rad = np.radians(current_theta)
+            out_x = (-global_x_vel*np.cos(current_theta_rad) + global_y_vel*np.sin(current_theta_rad) )
+            out_y = (global_x_vel*np.sin(current_theta_rad) + global_y_vel*np.cos(current_theta_rad) )
+            return out_x, out_y
+        def movetotheta(target_theta, threshold_theta_position):
+            print(bcolors.BLUE_OK + f"Moving in Theta-Direction; Goal: {target_theta=}" + bcolors.ENDC)
             twist_msg = Twist()
-            # print(f'{cam_odom.current_position=}')
-            # print(abs(45 -    ))
-            err_theta = target_theta - cam_odom.current_position["theta"]
-            if err_theta < -180 or err_theta > 180:
-                err_theta = -(err_theta % 180) # tell it to go other way, "it's closer the other way"
-            pid_theta = PID(kp=0.05, ki=0, kd=0, min=-0.5, max=0.5, deadzone_limit=0.3, clamped=True)
-            while (abs(err_theta)) > 2: # err less than 2 degree, paired with the delay of the odom 2 degree is perfect
-                print(f'{cam_odom.current_position=}')
-                twist_msg.angular.z = pid_theta.calculate(err_theta)
+            pid_theta = PID(kp=0.1, ki=0.0, kd=0.1, min=-1.0, max=1.0, deadzone_limit=0.45, clamped=True)
+            while True: # err less than 2 degree, paired with the delay of the odom 2 degree is perfect
+                err_theta = target_theta - cam_odom.current_position["theta"]
+                if err_theta < -180 or err_theta > 180:
+                    err_theta = np.sign(err_theta) * (-1) * (err_theta % 180) # tell it to go other way, "it's closer the other way"
+                if (abs(err_theta)) < threshold_theta_position:
+                    break
+                # print(f'{cam_odom.current_position=}')
+                out_theta = pid_theta.calculate(err_theta)
+                twist_msg.angular.z = out_theta
+                print(f"\r {err_theta=}; {out_theta=}; {cam_odom.current_position=}", end='', flush=True)
+                # print(bcolors.BLUE_OK + f"{err_theta=},{out_theta=}, currpos={cam_odom.current_position}" + bcolors.ENDC)
                 self.ros_manager.publish_cmd_vel(twist_msg)
+                time.sleep(0.01)
+            print()
             self.ros_manager.publish_cmd_vel(Twist()) # STOP MSG
-            time.sleep(0.5)
-            yasmin.YASMIN_LOG_INFO(bcolors.GREEN_OK + f"arrvied at theta= {cam_odom.current_position["theta"]}" + bcolors.ENDC)
-            time.sleep(3)
+            time.sleep(0.25)
+            self.ros_manager.publish_cmd_vel(Twist()) # STOP MSG
+            print(bcolors.GREEN_OK + f"arrvied at theta= {cam_odom.current_position['theta']}" + bcolors.ENDC)
+            time.sleep(1.5)
             
-            #* 2. Move along the x-axis first 
-            yasmin.YASMIN_LOG_INFO(bcolors.BLUE_OK + f"Moving in global X-Direction" + bcolors.ENDC)
+        def movealongx315(target_x, threshold_x_position):
+            print(bcolors.BLUE_OK + f"Moving in global X-Direction; Goal: {target_x=}" + bcolors.ENDC)
             twist_msg = Twist() # reset the twist msg
-            pid_x = PID(kp=0.5, ki=0, kd=0, min=-0.5, max=0.5, deadzone_limit=0.3, clamped=True)
+            pid_x = PID(kp=0.3, ki=6.0, kd=0.01, min=-0.7, max=0.7, deadzone_limit=0.2, clamped=True)
             while True:
                 err_x = target_x - cam_odom.current_position["x"]
                 # print(f'{err_x=}')
@@ -477,18 +485,21 @@ class PathFollowing(State):
                 if (abs(err_x)) < threshold_x_position:
                     break
                 out_x = pid_x.calculate(err_x) # err_position --> Velocity
-                twist_msg.linear.x, twist_msg.linear.y =  globaltorobottf(out_x, 0)
+                print(f"\r {err_x=}; {out_x=}; {cam_odom.current_position=}", end='', flush=True)
+                twist_msg.linear.x, twist_msg.linear.y =  globaltorobottf_at315(out_x, 0)
                 self.ros_manager.publish_cmd_vel(twist_msg)
-                time.sleep(0.01)
+                time.sleep(0.05)
+            print()
             self.ros_manager.publish_cmd_vel(Twist()) # STOP MSG
-            self.sleep(0.5)
-            yasmin.YASMIN_LOG_INFO(bcolors.GREEN_OK + f"arrvied at x= {cam_odom.current_position["x"]}" + bcolors.ENDC)
-            time.sleep(2)
-            
-            #* 3. Move along the y-axis second 
-            yasmin.YASMIN_LOG_INFO(bcolors.BLUE_OK + f"Moving in global Y-Direction" + bcolors.ENDC)
+            time.sleep(0.25)
+            self.ros_manager.publish_cmd_vel(Twist()) # STOP MSG
+            print(bcolors.GREEN_OK + f"arrvied at x= {cam_odom.current_position['x']}" + bcolors.ENDC)
+            time.sleep(1.5)
+
+        def movealongy315(target_y, threshold_y_position):
+            print(bcolors.BLUE_OK + f"Moving in global Y-Direction; Goal: {target_y=}" + bcolors.ENDC)
             twist_msg = Twist() # reset the twist msgs
-            pid_y = PID(kp=0.5, ki=0, kd=0, min=-0.5, max=0.5, deadzone_limit=0.3, clamped=True)
+            pid_y = PID(kp=0.3, ki=6, kd=0.01, min=-0.7, max=0.7, deadzone_limit=0.2, clamped=True)
             while True:
                 err_y = target_y - cam_odom.current_position["y"]
                 # print(f'{err_y=}')
@@ -497,26 +508,129 @@ class PathFollowing(State):
                 if (abs(err_y)) < threshold_y_position:
                     break
                 out_y = pid_y.calculate(err_y) # err_position --> Velocity
-                twist_msg.linear.x, twist_msg.linear.y =  globaltorobottf(0, out_y)
+                print(f"\r {err_y=}; {out_y=};{cam_odom.current_position=}", end='', flush=True)
+                twist_msg.linear.x, twist_msg.linear.y =  globaltorobottf_at315(0, out_y)
                 self.ros_manager.publish_cmd_vel(twist_msg)
                 time.sleep(0.01)
+            print()
             self.ros_manager.publish_cmd_vel(Twist()) # STOP MSG
-            time.sleep(0.5)
-            yasmin.YASMIN_LOG_INFO(bcolors.GREEN_OK + f"arrvied at y= {cam_odom.current_position["y"]}" + bcolors.ENDC)
-            time.sleep(2)
-            """ 
-            cmd_vel direction
-            -0.5   +0.5    +x
-            +0.5   -0.5    -x
-            +0.5   +0.5    +y
-            -0.5   -0.5    +y
-            """
-            quit()
-        # goal2 = [
-            # (1.78, -1.05),
-            # (1.78, -0.25),
-            # (1.05, -0.25, 3.14),
-        # ]
+            time.sleep(0.25)
+            print(bcolors.GREEN_OK + f"arrvied at y= {cam_odom.current_position['y']}" + bcolors.ENDC)
+            time.sleep(1.5)
+        def decode_coords(goals):
+            task = []
+            (x, y) = (1.78, -1.05)
+            ws_coord = [x,y]
+            for info in goals: 
+                dx = info[0] - ws_coord[0]
+                dy = info[1] - ws_coord[1]
+                if abs(dx) > abs(dy):
+                    task.append(['x', info[0]])
+                    ws_coord[0] = info[0]
+                else:
+                    task.append(['y', info[1]])
+                    ws_coord[1] = info[1]
+                if len(info) == 3: # lastinfo
+                    task.append(['theta', info[2]])
+            return task
+        #### END Special Function
+        
+        yasmin.YASMIN_LOG_INFO(bcolors.YELLOW_WARNING + f"Executing state PathFollowing" + bcolors.ENDC)
+        communicator.object_coords # x, y, theta
+        #### Specs SI Units
+        target_x = 0.5 #m
+        target_y = 0.5 #m
+        target_theta = 315 #degress
+        
+        threshold_x_position = 0.005 # 3 cm
+        threshold_y_position = 0.005 # 3 cm
+        threshold_theta_position = 1 # 3 cm
+        
+        ######### CENTERING
+        goal1 = [
+            (cam_odom.current_position['x'], cam_odom.current_position['y']),
+            (0.5, cam_odom.current_position['y']),
+            (0.5, 0.5, 0),
+        ]
+        print(bcolors.BLUE_OK + f"{goal1=}" + bcolors.ENDC)
+        commands = decode_coords(goal1)
+        print(bcolors.BLUE_OK + f"{commands=}" + bcolors.ENDC)
+        movetotheta(target_theta=315, threshold_theta_position=threshold_theta_position)
+        for command, target in commands:
+            print(f'{command=}')
+            if command == 'x':
+                movealongx315(target, threshold_x_position)
+            elif command == 'y':
+                movealongy315(target, threshold_y_position)
+            elif command == 'theta':
+                movetotheta(target, threshold_theta_position)
+            else:
+                pass
+        print(bcolors.GREEN_OK + f"FINSIHED CENTERING>>>>>>>........." + bcolors.ENDC)
+        ######### CENTERING
+        
+        goal2 = [
+            # (cam_odom.current_position['x'], cam_odom.current_position['y']),
+            (cam_odom.current_position['x'] + 0.3, cam_odom.current_position['y']),
+            (cam_odom.current_position['x'] + 0.3, cam_odom.current_position['y']+ 0.3),
+            (cam_odom.current_position['x'] + 0.3, cam_odom.current_position['y']+ 0.3),
+            (cam_odom.current_position['x'] + 0.3, cam_odom.current_position['y']+ 0.3),
+            (cam_odom.current_position['x'] + 0.3, cam_odom.current_position['y']),
+            (cam_odom.current_position['x'], cam_odom.current_position['y']),
+        ]
+        print(bcolors.BLUE_OK + f"{goal2=}" + bcolors.ENDC)
+        commands = decode_coords(goal2)
+        print(bcolors.BLUE_OK + f"{commands=}" + bcolors.ENDC)
+        movetotheta(target_theta=315, threshold_theta_position=threshold_theta_position)
+        for command, target in commands:
+            print(f'{command=}')
+            if command == 'x':
+                movealongx315(target, threshold_x_position)
+            elif command == 'y':
+                movealongy315(target, threshold_y_position)
+            elif command == 'theta':
+                movetotheta(target, threshold_theta_position)
+            else:
+                pass
+        ######### CENTERING
+        goal1 = [
+            (cam_odom.current_position['x'], cam_odom.current_position['y']),
+            (0.5, cam_odom.current_position['y']),
+            (0.5, 0.5),
+        ]
+        print(bcolors.BLUE_OK + f"{goal1=}" + bcolors.ENDC)
+        commands = decode_coords(goal1)
+        print(bcolors.BLUE_OK + f"{commands=}" + bcolors.ENDC)
+        movetotheta(target_theta=315, threshold_theta_position=threshold_theta_position)
+        for command, target in commands:
+            print(f'{command=}')
+            if command == 'x':
+                movealongx315(target, threshold_x_position)
+            elif command == 'y':
+                movealongy315(target, threshold_y_position)
+            elif command == 'theta':
+                movetotheta(target, threshold_theta_position)
+            else:
+                pass
+        print(bcolors.GREEN_OK + f"FINSIHED CENTERING>>>>>>>........." + bcolors.ENDC)
+        ######### CENTERING
+        
+
+        """                     
+        #* 1. THETA-movement 45 degree
+            movetotheta(target_theta=target_theta, threshold_theta_position=threshold_theta_position)
+            movetotheta(target_theta=target_theta, threshold_theta_position=threshold_theta_position)
+
+        #* 2. Move along the x-axis first 
+            movealongx315(target_x=target_x,threshold_x_position=threshold_x_position)
+            movealongx315(target_x=target_x,threshold_x_position=threshold_x_position)
+
+        #* 3. Move along the y-axis second 
+            movealongy315(target_y=target_y, threshold_y_position=threshold_y_position)
+            movealongy315(target_y=target_y, threshold_y_position=threshold_y_position)
+        """
+        quit()
+
         
         self.ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
         self.ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
