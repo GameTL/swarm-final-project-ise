@@ -73,7 +73,7 @@ stop_msg.angular.z  = 0.0
 
 THRESHOLD_X_POSITION = 0.005 # 3 cm
 THRESHOLD_Y_POSITION = 0.005 # 3 cm
-THRESHOLD_THETA_POSITION = 1.5 # 3 cm
+THRESHOLD_THETA_POSITION = 1 # 3 cm
 
 """ Location of the robot in the arena
  ^ 
@@ -422,7 +422,6 @@ class MoveStartPos(State):
             outcome2: Indicates the state should finish execution and return.
         """
         super().__init__(["outcome1", "end"])
-        self.ros_manager = ros_manager
         self.goal_reached = False
         self.linear_kp = 1
 
@@ -451,21 +450,21 @@ class MoveStartPos(State):
             (home_pose[0], home_pose[1], home_pose[2]), # move along the y &  ensure theta
         ]
         ######## START HOMING
-        print(bcolors.BLUE_OK + f"{home_goal=}" + bcolors.ENDC)
-        commands = decode_coords(home_goal)
-        print(bcolors.BLUE_OK + f"{commands=}" + bcolors.ENDC)
-        movetotheta(target_theta=315)
-        print(bcolors.BLUE_OK + f"Moving Independantly from the swarms" + bcolors.ENDC)
-        for command, target in commands:
-            print(f'{command=}')
-            if command == 'x':
-                movealongx315(target)
-            elif command == 'y':
-                movealongy315(target)
-            elif command == 'theta':
-                movetotheta(target)
-            else:
-                pass
+        # print(bcolors.BLUE_OK + f"{home_goal=}" + bcolors.ENDC)
+        # commands = decode_coords(home_goal)
+        # print(bcolors.BLUE_OK + f"{commands=}" + bcolors.ENDC)
+        # movetotheta(target_theta=315)
+        # print(bcolors.BLUE_OK + f"Moving Independantly from the swarms" + bcolors.ENDC)
+        # for command, target in commands:
+        #     print(f'{command=}')
+        #     if command == 'x':
+        #         movealongx315(target)
+        #     elif command == 'y':
+        #         movealongy315(target)
+        #     elif command == 'theta':
+        #         movetotheta(target)
+        #     else:
+        #         pass
         print(bcolors.GREEN_OK + f"FINSIHED CENTERING>>>>>>>........." + bcolors.ENDC)
         ######### HOMING
         return "outcome1"
@@ -663,7 +662,7 @@ class PathFollowing(State):
         pprint(communicator.orientation)
 
         
-        ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
+        ros_manager.publish_cmd_vel(stop_msg) # STOP MSGk
         ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
         ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
         time.sleep(1)
@@ -693,6 +692,10 @@ def main(args=None):
     sm.add_state("AtStartPos", AtStartPos(), transitions={"outcome1": "SeekObject","end": "outcome4"})
     
     sm.add_state("SeekObject", SeekObject(), transitions={"outcome1": "PathFollowing","loop": "SeekObject","end": "outcome4"})
+    # tell arrvied via comms 
+    # click in place 
+    # move 45 degrees towards the center 
+    
     # sm.add_state("IdleSlave", IdleSlave(), transitions={"outcome1": "BAR","end": "outcome4"}) # TaskMaster
     # sm.add_state("FoundObject", FoundObject(), transitions={"outcome1": "BAR","end": "outcome4"}) #Slave
     # sm.add_state("PathPlanning", PathPlanning(), transitions={"outcome1": "BAR","end": "outcome4"}) #Slave
