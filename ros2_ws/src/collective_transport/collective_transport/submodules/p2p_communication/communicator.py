@@ -1,3 +1,4 @@
+import sys 
 import json
 import time
 import socket
@@ -12,9 +13,20 @@ HOST_FP = f"{os.path.dirname(os.path.realpath(__file__))}/hosts.json" # from the
 MAX_CONNECTIONS = 5
 TIMEOUT = 5
 MAX_RETRIES = 3
-
+class bcolors:
+    RED_FAIL       = '\033[91m'
+    GRAY_OK        = '\033[90m'
+    GREEN_OK       = '\033[92m'
+    YELLOW_WARNING = '\033[93m'
+    BLUE_OK        = '\033[94m'
+    MAGENTA_OK     = '\033[95m'
+    CYAN_OK        = '\033[96m'
+    ENDC           = '\033[0m'
+    BOLD           = '\033[1m'
+    ITALIC         = '\033[3m'
+    UNDERLINE      = '\033[4m'
 class Communicator:
-    def __init__(self, host_fp=HOST_FP, identifier=IDENTIFIER, max_connections=MAX_CONNECTIONS, suppress_output=True, odom_obj=None):
+    def __init__(self, host_fp=HOST_FP, identifier=IDENTIFIER, max_connections=MAX_CONNECTIONS, suppress_output=False, odom_obj=None):
         # Initialize default attributes
         self.host_fp = host_fp
         self.identifier = identifier
@@ -57,6 +69,7 @@ class Communicator:
             raise ValueError(f"[ERROR] No host configuration found for '{self.identifier}'")
 
         host_data = self.host_info[self.identifier]
+        print(bcolors.GREEN_OK + f"{self.identifier=}, {host_data=}" + bcolors.ENDC)
         server_fd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_fd.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server_fd.bind((host_data["ip"], host_data["port"]))
@@ -83,7 +96,7 @@ class Communicator:
             self.header = header # don't delete State machine needs this
             sender = data.get("sender", "")
             content = data.get("content", "")
-
+            print(bcolors.YELLOW_WARNING + f"RECEIVING {header,sender, content}" + bcolors.ENDC)
             if header == "OBJECT_DETECTED":
                 print("[INFO] Object detected, stopping.") # TODO Replace with actual functionality
                 self.consensus(sender)  # Trigger consensus function
@@ -133,6 +146,7 @@ class Communicator:
 
         except (json.JSONDecodeError, ConnectionError) as e:
             print(f"[ERROR] Error handling connection: {e}")
+            sys.exit(1)
 
         finally:
             client_fd.close()
@@ -143,6 +157,7 @@ class Communicator:
             "sender": self.identifier,
             "content": content
         })
+        print(bcolors.YELLOW_WARNING + f"BROADCASTING {header, content}" + bcolors.ENDC)
 
         for peer, peer_data in self.host_info.items():
             if peer == self.identifier:
@@ -154,7 +169,6 @@ class Communicator:
                     client_fd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     client_fd.settimeout(TIMEOUT)
                     client_fd.connect((peer_data["ip"], peer_data["port"]))
-
                     # Send the message
                     client_fd.sendall(message.encode("utf-8"))
 
