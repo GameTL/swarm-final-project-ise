@@ -88,6 +88,45 @@ _____________
 home_coords =  {"1" :[0.8,0.8,315], "2" : [0.2,0.2,315], "3" : [0.2,0.8,315]}
 linear_pid_dict =  {
     "1" :{
+        "kp" :  4,
+        "ki" :  6.0,
+        "kd" :  3,
+        "clamped" :  True,
+        "min" :  -0.8,
+        "max" :  0.8,
+        "deadzone_limit" : 0.2}, 
+    "2" :{
+        "kp" :  1.5,
+        "ki" :  6.0,
+        "kd" :  0.3,
+        "clamped" :  True,
+        "min" :  -0.8,
+        "max" :  0.8,
+        "deadzone_limit" : 0.4}}
+
+angular_pid_dict =  {
+    "1" :{ # with new wheels
+        "kp" :  0.04,
+        "ki" :  0.000,
+        "kd" :  0.01,
+        "clamped" :  True,
+        "min" :  -0.9,
+        "max" :  0.9,
+        "deadzone_limit" : 0.35}, 
+    "2" :{ # robocup wheels
+        "kp" :  0.3,
+        "ki" :  0.5,
+        "kd" :  0.3,
+        "clamped" :  True,
+        "min" :  -0.9,
+        "max" :  0.9,
+        "deadzone_limit" : 0.35}
+                     }
+
+""" 
+OLD
+linear_pid_dict =  {
+    "1" :{
         "kp" :  0.3,
         "ki" :  6.0,
         "kd" :  0.1,
@@ -122,6 +161,7 @@ angular_pid_dict =  {
         "max" :  0.9,
         "deadzone_limit" : 0.52}
                      }
+"""
 
 
 
@@ -138,6 +178,9 @@ try:
 except Exception as e:
     print(e)
     quit()
+# while True:
+time.sleep(1)
+print([cam_odom.current_position["x"], cam_odom.current_position["y"], cam_odom.current_position["theta"]])
 communicator = Communicator(identifier=ROBOT_ID, odom_obj=cam_odom, suppress_output=False)
 # Start listening thread
 server_thread = threading.Thread(target=communicator.comm_thread_spawner, daemon=True)
@@ -359,7 +402,8 @@ class Init(State):
         print(bcolors.YELLOW_WARNING + f"Executing state Init" + bcolors.ENDC)
         print(f"Robot ID: {str(ROBOT_ID)}")
         
-        time.sleep(10) # for showing and filming
+        DEMO_TIME = 1
+        time.sleep(DEMO_TIME) # for showing and filming
         
         print("Assuming the theta = 0 globally")
         return "outcome1"
@@ -382,7 +426,6 @@ class MoveStartPos(State):
             outcome2: Indicates the state should finish execution and return.
         """
         super().__init__(["outcome1", "end"])
-        self.ros_manager = ros_manager
         self.goal_reached = False
         self.linear_kp = 1
 
@@ -411,21 +454,21 @@ class MoveStartPos(State):
             (home_pose[0], home_pose[1], home_pose[2]), # move along the y &  ensure theta
         ]
         ######## START HOMING
-        print(bcolors.BLUE_OK + f"{home_goal=}" + bcolors.ENDC)
-        commands = decode_coords(home_goal)
-        print(bcolors.BLUE_OK + f"{commands=}" + bcolors.ENDC)
-        movetotheta(target_theta=315)
-        print(bcolors.BLUE_OK + f"Moving Independantly from the swarms" + bcolors.ENDC)
-        for command, target in commands:
-            print(f'{command=}')
-            if command == 'x':
-                movealongx315(target)
-            elif command == 'y':
-                movealongy315(target)
-            elif command == 'theta':
-                movetotheta(target)
-            else:
-                pass
+        # print(bcolors.BLUE_OK + f"{home_goal=}" + bcolors.ENDC)
+        # commands = decode_coords(home_goal)
+        # print(bcolors.BLUE_OK + f"{commands=}" + bcolors.ENDC)
+        # movetotheta(target_theta=315)
+        # print(bcolors.BLUE_OK + f"Moving Independantly from the swarms" + bcolors.ENDC)
+        # for command, target in commands:
+        #     print(f'{command=}')
+        #     if command == 'x':
+        #         movealongx315(target)
+        #     elif command == 'y':
+        #         movealongy315(target)
+        #     elif command == 'theta':
+        #         movetotheta(target)
+        #     else:
+        #         pass
         print(bcolors.GREEN_OK + f"FINSIHED CENTERING>>>>>>>........." + bcolors.ENDC)
         ######### HOMING
         return "outcome1"
@@ -515,8 +558,9 @@ class SeekObject(State):
         while 1:
             rob_pose = [cam_odom.current_position["x"], cam_odom.current_position["y"], cam_odom.current_position["theta"]]
         #     # print(f"{self.cv_class.cylinder_detection=}")
-        #     if communicator.header == "PATH":  # received the path from master
-        #         return "outcome2"  # IdleSlave
+            if communicator.header == "PATH":  # received the path from master
+                print(bcolors.YELLOW_WARNING + f"RECEIVED PATH HEADER" + bcolors.ENDC)
+                return "outcome2"  # IdleSlave
             
         #     detection_info = self.cv_class.cylinder_detection
             
@@ -623,7 +667,7 @@ class PathFollowing(State):
         pprint(communicator.orientation)
 
         
-        ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
+        ros_manager.publish_cmd_vel(stop_msg) # STOP MSGk
         ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
         ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
         time.sleep(1)
@@ -653,6 +697,10 @@ def main(args=None):
     sm.add_state("AtStartPos", AtStartPos(), transitions={"outcome1": "SeekObject","end": "outcome4"})
     
     sm.add_state("SeekObject", SeekObject(), transitions={"outcome1": "PathFollowing","loop": "SeekObject","end": "outcome4"})
+    # tell arrvied via comms 
+    # click in place 
+    # move 45 degrees towards the center 
+    
     # sm.add_state("IdleSlave", IdleSlave(), transitions={"outcome1": "BAR","end": "outcome4"}) # TaskMaster
     # sm.add_state("FoundObject", FoundObject(), transitions={"outcome1": "BAR","end": "outcome4"}) #Slave
     # sm.add_state("PathPlanning", PathPlanning(), transitions={"outcome1": "BAR","end": "outcome4"}) #Slave
