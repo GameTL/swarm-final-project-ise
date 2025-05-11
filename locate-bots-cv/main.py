@@ -16,7 +16,7 @@ os.environ["OPENCV_VIDEOIO_MSMF_ENABLE_HW_TRANSFORMS"] = "0"
 #########################
 # gui = True
 gui = False
-printout = False
+printout = True
 # printout = False
 #########################
 #insert the size of the frame here
@@ -110,7 +110,7 @@ try:
         print(f"\rFrames: {frame_count:<10}, FPS: {str(int(fps)):<3}", end='', flush=True)
 
         # Overlay FPS text
-        if True:
+        if gui:
             cv2.putText(frame, f"FPS: {int(fps)}", (7, 70), 
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
             cv2.circle(frame, (frame.shape[1]//2,frame.shape[0]//2), radius=5, color=(0, 0, 255), thickness=-1)

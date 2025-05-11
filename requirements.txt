@@ -3,3 +3,4 @@ mdurl==0.1.2
 paho-mqtt==2.1.0
 Pygments==2.19.1
 rich==13.9.4
+filterpy==1.4.5
