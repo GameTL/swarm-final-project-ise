@@ -29,7 +29,7 @@ class XDriveController(Node):
     def __init__(self):
         super().__init__('x_drive_controller')
         # Declare & Get parameters
-        self.declare_parameter('serial_port', '/dev/ttyUSB0')
+        self.declare_parameter('serial_port', '/dev/ttyUSB1')
         serial_port = self.get_parameter('serial_port').get_parameter_value().string_value
         
         self.interface = DynamixelInterface(device_name=serial_port)

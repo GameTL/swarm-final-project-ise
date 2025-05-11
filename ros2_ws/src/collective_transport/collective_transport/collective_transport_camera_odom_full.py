@@ -623,7 +623,7 @@ class SeekObject(State):
             communicator.object_detected()
             communicator.cleanup() # To clear waypoints and orientation
                     # return "end" #FoundObjectHost
-            return "outcome1" #FoundObjectHost
+        return "outcome1" #FoundObjectHost
         
 
 class PathFollowing(State):
