@@ -623,7 +623,7 @@ class SeekObject(State):
             communicator.object_detected()
             communicator.cleanup() # To clear waypoints and orientation
                     # return "end" #FoundObjectHost
-            return "outcome1" #FoundObjectHost
+        return "outcome1" #FoundObjectHost
         
 
 class PathFollowing(State):
@@ -709,10 +709,6 @@ def main(args=None):
     
     sm.add_state("AtObject", AtStartPos(), transitions={"outcome1": "outcome4","end": "outcome4"})
 
-    
-    # Start listening thread
-    server_thread = threading.Thread(target=communicator.comm_thread_spawner, daemon=True)
-    server_thread.start()
 
     try:
         print("State Machine starting")
