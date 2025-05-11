@@ -73,7 +73,7 @@ stop_msg.angular.z  = 0.0
 
 THRESHOLD_X_POSITION = 0.005 # 3 cm
 THRESHOLD_Y_POSITION = 0.005 # 3 cm
-THRESHOLD_THETA_POSITION = 1 # 3 cm
+THRESHOLD_THETA_POSITION = 1.5 # 3 cm
 
 """ Location of the robot in the arena
  ^ 
@@ -86,6 +86,45 @@ _____________
 _____________ 
 """
 home_coords =  {"1" :[0.8,0.8,315], "2" : [0.2,0.2,315], "3" : [0.2,0.8,315]}
+linear_pid_dict =  {
+    "1" :{
+        "kp" :  4,
+        "ki" :  6.0,
+        "kd" :  3,
+        "clamped" :  True,
+        "min" :  -0.8,
+        "max" :  0.8,
+        "deadzone_limit" : 0.2}, 
+    "2" :{
+        "kp" :  1.5,
+        "ki" :  6.0,
+        "kd" :  0.3,
+        "clamped" :  True,
+        "min" :  -0.8,
+        "max" :  0.8,
+        "deadzone_limit" : 0.4}}
+
+angular_pid_dict =  {
+    "1" :{ # with new wheels
+        "kp" :  0.04,
+        "ki" :  0.000,
+        "kd" :  0.01,
+        "clamped" :  True,
+        "min" :  -0.9,
+        "max" :  0.9,
+        "deadzone_limit" : 0.35}, 
+    "2" :{ # robocup wheels
+        "kp" :  0.3,
+        "ki" :  0.5,
+        "kd" :  0.3,
+        "clamped" :  True,
+        "min" :  -0.9,
+        "max" :  0.9,
+        "deadzone_limit" : 0.35}
+                     }
+
+""" 
+OLD
 linear_pid_dict =  {
     "1" :{
         "kp" :  0.3,
@@ -122,6 +161,7 @@ angular_pid_dict =  {
         "max" :  0.9,
         "deadzone_limit" : 0.52}
                      }
+"""
 
 
 
