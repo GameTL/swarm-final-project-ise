@@ -15,8 +15,8 @@ os.environ["OPENCV_VIDEOIO_MSMF_ENABLE_HW_TRANSFORMS"] = "0"
 
 #########################
 # gui = True
-gui = True
-printout = True
+gui = False
+printout = False
 # printout = False
 #########################
 #insert the size of the frame here

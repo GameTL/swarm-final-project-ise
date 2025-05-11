@@ -2,6 +2,10 @@ import cv2
 import numpy as np
 import pandas as pd
 import json
+from filter import AverageFilter
+from filterpy.kalman import KalmanFilter
+from filterpy.common import Q_discrete_white_noise
+
 #########################
 printout = False
 #########################
@@ -10,13 +14,18 @@ ARUCO_DICT = {
     "DICT_4X4_50": cv2.aruco.DICT_4X4_50
 } 
 
+def init_ekf():
+    KalmanFilter(dim_x=3, dim_z=3)
+
 class Aruco():
-    def __init__(self, map_size, aruco_dict = ARUCO_DICT):
+    def __init__(self, map_size, aruco_dict = ARUCO_DICT, filter="AVERAGE_FILTER"):
         self.aruco_dict = aruco_dict
         self.aruco_type = self.aruco_dict.keys()
         self.current_data = dict()
         self.map_size = map_size
         self.testing_data = pd.DataFrame(columns=["id", "timestamp", "x", "y", "theta"])
+        if filter == "AVERAGE_FILTER":
+            self.filter = AverageFilter()
         '''
         self.communicator = Communicator() #create communicator object
         with open("../ros2_ws/src/collective_transport/collective_transport/collective_transport/submodules/p2p_communication/hosts.json", "r") as f:
@@ -84,10 +93,12 @@ class Aruco():
                 if printout:
                     print(f"[Inference] ArUco marker ID: {markerID} @ ({round(x_map, 4)}m, {round(y_map, 4)}m, {actual_theta_deg} degree)")
                 self.current_data[str(markerID)] = (x, y, display_theta_deg) 
+                pose=np.array([x, y, actual_theta_deg])
+                filtered_pose = self.filter.filtering(str(markerID), pose)
                 recorded_data[str(markerID)] = {
-                    "x":x,
-                    "y": y,
-                    "theta": actual_theta_deg
+                    "x":filtered_pose[0],
+                    "y": filtered_pose[1],
+                    "theta": filtered_pose[2]
                 }
                 self.testing_data.loc[len(self.testing_data)] =  {
                     "id": str(markerID),
