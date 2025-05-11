@@ -178,6 +178,9 @@ try:
 except Exception as e:
     print(e)
     quit()
+# while True:
+time.sleep(1)
+print([cam_odom.current_position["x"], cam_odom.current_position["y"], cam_odom.current_position["theta"]])
 communicator = Communicator(identifier=ROBOT_ID, odom_obj=cam_odom, suppress_output=False)
 # Start listening thread
 server_thread = threading.Thread(target=communicator.comm_thread_spawner, daemon=True)
@@ -399,7 +402,8 @@ class Init(State):
         print(bcolors.YELLOW_WARNING + f"Executing state Init" + bcolors.ENDC)
         print(f"Robot ID: {str(ROBOT_ID)}")
         
-        time.sleep(10) # for showing and filming
+        DEMO_TIME = 1
+        time.sleep(DEMO_TIME) # for showing and filming
         
         print("Assuming the theta = 0 globally")
         return "outcome1"
@@ -554,8 +558,9 @@ class SeekObject(State):
         while 1:
             rob_pose = [cam_odom.current_position["x"], cam_odom.current_position["y"], cam_odom.current_position["theta"]]
         #     # print(f"{self.cv_class.cylinder_detection=}")
-        #     if communicator.header == "PATH":  # received the path from master
-        #         return "outcome2"  # IdleSlave
+            if communicator.header == "PATH":  # received the path from master
+                print(bcolors.YELLOW_WARNING + f"RECEIVED PATH HEADER" + bcolors.ENDC)
+                return "outcome2"  # IdleSlave
             
         #     detection_info = self.cv_class.cylinder_detection
             
