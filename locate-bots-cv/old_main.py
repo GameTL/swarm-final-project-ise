@@ -9,13 +9,10 @@ from aruco_visual import ArucoVisual  # Assuming this uses `turtle`
 import datetime as dt
 from aruco_server import latest_data
 import sys
-import os
-
-os.environ["OPENCV_VIDEOIO_MSMF_ENABLE_HW_TRANSFORMS"] = "0"
 
 #########################
 # gui = True
-gui = True
+gui = False
 printout = True
 # printout = False
 #########################
@@ -24,25 +21,12 @@ MAP_SIZE = (1.45, 1.07)
 
 prev_frame_time = 0
 #* WINDOWS
-cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)  # Open the camera
+# cap = cv2.VideoCapture(2, cv2.CAP_DSHOW)  # Open the camera
 #* LINUX
-# cap = cv2.VideoCapture(2, cv2.CAP_V4L2)      # ← new: V4L2 backend on Linux
-
-# 🎥 Camera setup
-vid_fmt = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
-cap.set(cv2.CAP_PROP_FOURCC, vid_fmt)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-cap.set(cv2.CAP_PROP_FPS, 60)
-cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
-
+cap = cv2.VideoCapture(2, cv2.CAP_V4L2)      # ← new: V4L2 backend on Linux
 if not cap.isOpened():                       #     bail out early if it fails
     raise RuntimeError("Could not open /dev/video0 – check index & permissions")
 aruco = Aruco(MAP_SIZE)
-
-cap.set(cv2.CAP_PROP_BRIGHTNESS, 128)
-vid_fmt = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
-cap.set(cv2.CAP_PROP_FOURCC, vid_fmt)
 
 # Thread-safe queue for communication between OpenCV and turtle
 data_queue = queue.Queue()
@@ -50,7 +34,7 @@ data_queue = queue.Queue()
 # Function to update the turtle map in a separate thread
 def update_turtle_map():
     global aruco_visual
-    aruco_visual = ArucoVisual(960, 720)  # Initialize in the thread
+    aruco_visual = ArucoVisual(640, 480)  # Initialize in the thread
 
     while True:
         try:
@@ -72,22 +56,13 @@ def record_data(df, timestemp):
         }
         df.loc[-1] = data
 
-def crop_center(frame, target_width=960, target_height=720):
-    h, w, _ = frame.shape
-    x1 = w // 2 - target_width // 2
-    y1 = h // 2 - target_height // 2
-    x2 = x1 + target_width
-    y2 = y1 + target_height
-    return frame[y1:y2, x1:x2]
-
 # Start turtle thread
 if gui:
     turtle_thread = threading.Thread(target=update_turtle_map, daemon=True)
     turtle_thread.start()
 
+counter = 0
 fps = 0
-frame_count = 0
-start_time = time.time()
 try:
     while True: 
         # NEW  – overwrites the same line every pass (⏎ is carriage-return)
@@ -95,30 +70,30 @@ try:
         current_timestamp = dt.datetime.now()
         if not ret:
             continue  # Skip iteration if the frame is invalid
-        frame = crop_center(frame)
+
         detected_markers, recorded_data = aruco.aruco_detect(frame, current_timestamp)
+        if detected_markers is None:
+            detected_markers = frame.copy()
 
         # Send data to turtle thread
         data_queue.put(aruco.current_data)
 
-        frame_count += 1
-        elapsed_time = time.time() - start_time  # 경과 시간
-        if elapsed_time >= 1:
-            fps = frame_count / elapsed_time  # FPS 계산
-            start_time = time.time()  # 시간 초기화
-            frame_count = 0
-        print(f"\rFrames: {frame_count:<10}, FPS: {str(int(fps)):<3}", end='', flush=True)
+        # FPS Calculation
+        new_frame_time = time.time()
+        fps = 1 / (new_frame_time - prev_frame_time) if prev_frame_time else 0
+        print(f"\rFrames: {counter:<10}, FPS: {str(int(fps)):<3}", end='', flush=True)
+        prev_frame_time = new_frame_time
 
         # Overlay FPS text
-        if True:
+        if gui:
             cv2.putText(frame, f"FPS: {int(fps)}", (7, 70), 
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
             cv2.circle(frame, (frame.shape[1]//2,frame.shape[0]//2), radius=5, color=(0, 0, 255), thickness=-1)
             cv2.imshow("Aruco Detection", frame)
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if cv2.waitKey(3) & 0xFF == ord('q'):
             break
-        if cv2.waitKey(1) & 0xFF == ord('r'):
+        if cv2.waitKey(3) & 0xFF == ord('r'):
             aruco_visual.reset_map()
 
         if len(recorded_data) != 0:
@@ -133,6 +108,7 @@ try:
                 print(y, end='', flush=True)
             latest_data.clear()
             latest_data.update(recorded_data)
+        counter += 1
 
     cap.release()
     cv2.destroyAllWindows()
