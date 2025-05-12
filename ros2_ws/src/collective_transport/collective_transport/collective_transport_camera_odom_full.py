@@ -75,6 +75,8 @@ THRESHOLD_X_POSITION = 0.005 # 3 cm
 THRESHOLD_Y_POSITION = 0.005 # 3 cm
 THRESHOLD_THETA_POSITION = 1 # 3 cm
 
+# wait for the clicking
+MAX_WAIT = 10.0  # seconds to wait for peer acknowledgment
 """ Location of the robot in the arena
  ^ 
  | 
@@ -749,19 +751,149 @@ class PathFollowing(State):
 # COLLECTIVE TRANSPORT 
 #   # need to tune the speed of each robot
 # MoveStartPos
+# New stuff here
+class AtObject(State):
+    """
+    Both robots have reached the object and acknowledge gripping it.
+    """
+    def __init__(self) -> None:
+        super().__init__(["outcome1", "end"])
+
+    def execute(self, blackboard: Blackboard) -> str:
+        print(bcolors.YELLOW_WARNING + "Executing AtObject state: acknowledging object grip" + bcolors.ENDC)
+        # broadcast that this robot has gripped the object
+        communicator.broadcast("AT_OBJECT", communicator.object_coords)
+        # wait for peer to acknowledge grip
+        start = time.time()
+        while time.time() - start < MAX_WAIT:
+            if getattr(communicator, "header", None) == "AT_OBJECT":
+                break
+            time.sleep(0.1)
+        else:
+            self.get_logger().warn("Peer did not acknowledge in time")
+            return "end"            
+        print(bcolors.GREEN_OK + "Both robots have acknowledged object grip" + bcolors.ENDC)
+        return "outcome1"
+
+class ClickingObject(State):
+    """
+    Both robots have reached the object and acknowledge gripping it.
+    """
+    def __init__(self) -> None:
+        super().__init__(["outcome1", "end"])
+
+    def execute(self, blackboard: Blackboard) -> str:
+        print(bcolors.YELLOW_WARNING + "Executing ClickingObject state: Clicking into the object " + bcolors.ENDC)
+        # X-movement
+        yasmin.YASMIN_LOG_INFO(bcolors.BLUE_OK + f"Moving in X-Direction" + bcolors.ENDC)
+        start_time = time.time()
+        twist_msg = Twist()
+        twist_msg.linear.x = 0.5
+        twist_msg.linear.y = 0.0
+        while (time.time() - start_time) < 2:
+            self.ros_manager.publish_cmd_vel(twist_msg)
+        yasmin.YASMIN_LOG_INFO(bcolors.BLUE_OK + f"Stopping" + bcolors.ENDC)
+        self.ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
+        self.ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
+        self.ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
+        time.sleep(1)
+        return "outcome1"
+
+
+class DiagonalTransport(State):
+    """
+    Executes collective diagonal transport using jacobian-based PI control.
+    """
+
+    def __init__(self) -> None:
+        super().__init__(["outcome1", "end"])
+        # === Diagonal collective-transport setup ===
+        self.r       = 0.05
+        self.L       = 0.2
+        phi1         = np.deg2rad([45, 135, -135, -45])
+        phi2         = phi1 + np.pi
+        x1           = np.array([ self.L, -self.L, -self.L,  self.L])
+        y1           = np.array([ self.L,  self.L, -self.L, -self.L])
+        x2, y2       = -x1, -y1
+
+        # build Jacobians
+        def build_jacobian(phi, x, y):
+            A = np.zeros((4,3))
+            for i in range(4):
+                A[i] = [
+                    np.cos(phi[i]),
+                    np.sin(phi[i]),
+                    x[i]*np.sin(phi[i]) - y[i]*np.cos(phi[i])
+                ]
+            return A
+
+        A1 = build_jacobian(phi1, x1, y1)
+        A2 = build_jacobian(phi2, x2, y2)
+        self.J1 = np.linalg.pinv(A1)
+        self.J2 = np.linalg.pinv(A2)
+
+        # PI controller gains
+        K           = 1.0    # TODO: measure this
+        self.Kp     = 8.0/K
+        Ti          = 0.25
+        self.Ki     = self.Kp / Ti
+
+        # references
+        self.phi_ref = -np.pi/4   # -45°
+        self.v_diag  = 0.35
+        self.dt      = 0.01
+        self.e_int   = 0.0
+
+
+    def execute(self, blackboard: Blackboard) -> str:
+        print(bcolors.YELLOW_WARNING + "Executing DiagonalTransport state (pure diagonal)" + bcolors.ENDC)
+
+        # --- PI yaw controller  ---
+        theta = np.deg2rad(cam_odom.current_position["theta"])
+        e = (self.phi_ref - theta + np.pi) % (2 * np.pi) - np.pi
+        self.e_int += e * self.dt
+        U = self.Kp * e + self.Ki * self.e_int
+        wz = U
+
+        # Desired chassis velocities (global –45°), no rotation
+        vx = self.v_diag * np.cos(self.phi_ref)
+        vy = self.v_diag * np.sin(self.phi_ref)
+
+        # Build and publish a Twist → driver will spin only the two 315° wheels
+        twist = Twist()
+        twist.linear.x, twist.linear.y = globaltorobottf(vx, vy, cam_odom.current_position["theta"])
+        twist.angular.z = 0.0
+        ros_manager.publish_cmd_vel(twist)
+        time.sleep(2.5)
+        twist = Twist()
+        ros_manager.publish_cmd_vel(twist)
+        time.sleep(0.1)
+        ros_manager.publish_cmd_vel(twist)
+        
+
+        return "outcome1"
+    
+# class DiagonalTransport(State):          Uses the move along functions
+#     """
+#     Executes collective transports in global x and y.
+#     """
+#     def __init__(self) -> None:
+#         super().__init__(["outcome1", "end"])
+
+#     def execute(self, blackboard: Blackboard) -> str:
+#         print(bcolors.YELLOW_WARNING + "Executing DiagonalTransportAxes state (axis-based diagonal)" + bcolors.ENDC)
+#         # Retrieve global object coordinates
+#         target_x, target_y = communicator.object_coords[0], communicator.object_coords[1]
+#         # First move along global X using the 315° wheel
+#         movealongx315(target_x)
+#         # Then move along global Y using the 315° wheel
+#         movealongy315(target_y)
+#         return "outcome1"
+
 
 
               
 def main(args=None):
-    global cam_odom
-    
-
-    print("yasmin_frfr")
-
-    
-
-    
-    
     # Set ROS 2 loggers
     set_ros_loggers()
     
@@ -782,9 +914,11 @@ def main(args=None):
     # sm.add_state("FoundObject", FoundObject(), transitions={"outcome1": "BAR","end": "outcome4"}) #Slave
     # sm.add_state("PathPlanning", PathPlanning(), transitions={"outcome1": "BAR","end": "outcome4"}) #Slave
     
-    sm.add_state("PathFollowing", PathFollowing(), transitions={"outcome1": "AtObject","end": "outcome4"}) #Slave
+    sm.add_state("PathFollowing", PathFollowing(), transitions={"outcome1": "AtObject","end": "outcome4"})
     
-    sm.add_state("AtObject", AtStartPos(), transitions={"outcome1": "outcome4","end": "outcome4"})
+    sm.add_state("AtObject", AtObject(), transitions={"outcome1": "ClickingObject","end": "outcome4"})
+    sm.add_state("ClickingObject", ClickingObject(), transitions={"outcome1": "DiagonalTransport","end": "outcome4"})
+    sm.add_state("DiagonalTransport", DiagonalTransport(), transitions={"outcome1": "MoveStartPos", "end":"outcome4"})
 
 
     try:
