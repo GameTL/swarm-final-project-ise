@@ -799,15 +799,15 @@ class ClickingObject(State):
         yasmin.YASMIN_LOG_INFO(bcolors.BLUE_OK + f"Moving in X-Direction" + bcolors.ENDC)
         start_time = time.time()
         twist_msg = Twist()
-        twist_msg.linear.x = 0.5
+        twist_msg.linear.x = 0.7
         twist_msg.linear.y = 0.0
-        while (time.time() - start_time) < 2:
+        while (time.time() - start_time) < 1.5:
             ros_manager.publish_cmd_vel(twist_msg)
         yasmin.YASMIN_LOG_INFO(bcolors.BLUE_OK + f"Stopping" + bcolors.ENDC)
         ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
         ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
         ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
-        time.sleep(1)
+        time.sleep(3)
         return "outcome1"
 
 
@@ -893,7 +893,8 @@ class DiagonalTransport(State):
 
     def execute(self, blackboard: Blackboard) -> str:
         print(bcolors.YELLOW_WARNING + "Executing DiagonalTransportAxes state (axis-based diagonal)" + bcolors.ENDC)
-
+        ros_manager.stop_motors()
+        time.sleep(1)
         if ROBOT_ID == "1":
             twist_msg =  Twist()
             twist_msg.linear.x = 0.7
@@ -902,7 +903,7 @@ class DiagonalTransport(State):
             twist_msg =  Twist()
             twist_msg.linear.x = -0.4
             ros_manager.publish_cmd_vel(twist_msg)
-        time.sleep(1.5)
+        time.sleep(2)
         ros_manager.stop_motors()
         communicator.cleanup()
         twist_msg =  Twist()
