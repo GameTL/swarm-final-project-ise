@@ -910,7 +910,7 @@ class DiagonalTransport(State):
         ros_manager.stop_motors()
         communicator.cleanup()
         twist_msg =  Twist()
-        twist_msg.linear.x = 0.7
+        twist_msg.linear.x = -0.7
         ros_manager.publish_cmd_vel(twist_msg)
         time.sleep(1.5)
         return "outcome1"
