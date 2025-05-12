@@ -378,7 +378,7 @@ def movealongx315(target_x):
         if (abs(err_x)) < THRESHOLD_X_POSITION:
             break
         out_x = pid_x.calculate(err_x) # err_position --> Velocity
-        print(f"\r Moving...| err_theta={err_x:>6.2f} | out_theta={err_x:>6.2f} | odom_pos: [{float(cam_odom.current_position['x']):>6.2f} {float(cam_odom.current_position['y']):>6.2f} {float(cam_odom.current_position['theta']):>6.2f}] |", end='', flush=True)
+        print(f"\r Moving...| err_x={err_x:>6.2f} | out_x={out_x:>6.2f} | odom_pos: [{float(cam_odom.current_position['x']):>6.2f} {float(cam_odom.current_position['y']):>6.2f} {float(cam_odom.current_position['theta']):>6.2f}] |", end='', flush=True)
         twist_msg.linear.x, twist_msg.linear.y =  globaltorobottf_at315(out_x, 0)
         ros_manager.publish_cmd_vel(twist_msg)
         time.sleep(0.05)
@@ -401,7 +401,7 @@ def movealongy315(target_y):
         if (abs(err_y)) < THRESHOLD_Y_POSITION:
             break
         out_y = pid_y.calculate(err_y) # err_position --> Velocity
-        print(f"\r Moving...| err_theta={err_y:>6.2f} | out_theta={err_y:>6.2f} | odom_pos: [{float(cam_odom.current_position['x']):>6.2f} {float(cam_odom.current_position['y']):>6.2f} {float(cam_odom.current_position['theta']):>6.2f}] |", end='', flush=True)
+        print(f"\r Moving...| err_y={err_y:>6.2f} | out_y={out_y:>6.2f} | odom_pos: [{float(cam_odom.current_position['x']):>6.2f} {float(cam_odom.current_position['y']):>6.2f} {float(cam_odom.current_position['theta']):>6.2f}] |", end='', flush=True)
         twist_msg.linear.x, twist_msg.linear.y =  globaltorobottf_at315(0, out_y)
         ros_manager.publish_cmd_vel(twist_msg)
         time.sleep(0.01)

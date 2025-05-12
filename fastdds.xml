@@ -1,0 +1,7 @@
+<transport_descriptors>
+  <transport_descriptor>
+    <interfaceWhiteList>
+      <address>127.0.0.1</address> <!-- only localhost -->
+    </interfaceWhiteList>
+  </transport_descriptor>
+</transport_descriptors>
