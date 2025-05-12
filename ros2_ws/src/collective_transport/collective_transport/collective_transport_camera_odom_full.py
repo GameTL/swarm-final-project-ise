@@ -91,7 +91,7 @@ linear_pid_dict =  {
     "1" :{
         "kp" :  0.6,
         "ki" :  0.0,
-        "kd" :  0.1,
+        "kd" :  0.2,
         "clamped" :  True,
         "min" :  -0.4,
         "max" :  0.4,
@@ -124,7 +124,7 @@ angular_pid_dict =  {
         "deadzone_limit" : 0.45},
     "2" :{ # robocup wheels K_u = 0.05, T_u - 3.5
         "kp" :  0.04, # 0.02 also works well for P only
-        "ki" :  0.001, # (0.54* 0.025)/0.35 
+        "ki" :  0.005, # (0.54* 0.025)/0.35 
         "kd" :  0.01,
         "clamped" :  True,
         "min" :  -0.6,
@@ -272,12 +272,12 @@ class PID:
         out = self.kp *  err
         out += self.ki  * self.sum_err + self.kd * self.diff_err
         if self.stop:
-            time.sleep(0.3)
+            time.sleep(0.05)
             out = 0.0
             self.stop = False
         else: 
             if -self.deadzone_limit < out < self.deadzone_limit:
-                out = np.sign(out) * self.deadzone_limit
+                out = np.sign(out) * self.deadzone_limit * 2
                 self.stop = True
             else:
                 self.stop = False
@@ -815,95 +815,105 @@ class ClickingObject(State):
         return "outcome1"
 
 
-class DiagonalTransport(State):
-    """
-    Executes collective diagonal transport using jacobian-based PI control.
-    """
-
-    def __init__(self) -> None:
-        super().__init__(["outcome1", "end"])
-        # === Diagonal collective-transport setup ===
-        self.r       = 0.05
-        self.L       = 0.2
-        phi1         = np.deg2rad([45, 135, -135, -45])
-        phi2         = phi1 + np.pi
-        x1           = np.array([ self.L, -self.L, -self.L,  self.L])
-        y1           = np.array([ self.L,  self.L, -self.L, -self.L])
-        x2, y2       = -x1, -y1
-
-        # build Jacobians
-        def build_jacobian(phi, x, y):
-            A = np.zeros((4,3))
-            for i in range(4):
-                A[i] = [
-                    np.cos(phi[i]),
-                    np.sin(phi[i]),
-                    x[i]*np.sin(phi[i]) - y[i]*np.cos(phi[i])
-                ]
-            return A
-
-        A1 = build_jacobian(phi1, x1, y1)
-        A2 = build_jacobian(phi2, x2, y2)
-        self.J1 = np.linalg.pinv(A1)
-        self.J2 = np.linalg.pinv(A2)
-
-        # PI controller gains
-        K           = 1.0    # TODO: measure this
-        self.Kp     = 8.0/K
-        Ti          = 0.25
-        self.Ki     = self.Kp / Ti
-
-        # references
-        self.phi_ref = -np.pi/4   # -45°
-        self.v_diag  = 0.35
-        self.dt      = 0.01
-        self.e_int   = 0.0
-
-
-    def execute(self, blackboard: Blackboard) -> str:
-        print(bcolors.YELLOW_WARNING + "Executing DiagonalTransport state (pure diagonal)" + bcolors.ENDC)
-
-        # --- PI yaw controller  ---
-        theta = np.deg2rad(cam_odom.current_position["theta"])
-        e = (self.phi_ref - theta + np.pi) % (2 * np.pi) - np.pi
-        self.e_int += e * self.dt
-        U = self.Kp * e + self.Ki * self.e_int
-        wz = U
-
-        # Desired chassis velocities (global –45°), no rotation
-        vx = self.v_diag * np.cos(self.phi_ref)
-        vy = self.v_diag * np.sin(self.phi_ref)
-
-        # Build and publish a Twist → driver will spin only the two 315° wheels
-        twist = Twist()
-        twist.linear.x, twist.linear.y = globaltorobottf(vx, vy, cam_odom.current_position["theta"])
-        twist.angular.z = 0.0
-        ros_manager.publish_cmd_vel(twist)
-        time.sleep(2.5)
-        twist = Twist()
-        ros_manager.publish_cmd_vel(twist)
-        time.sleep(0.1)
-        ros_manager.publish_cmd_vel(twist)
-        
-
-        return "outcome1"
-    
-# class DiagonalTransport(State):          Uses the move along functions
+# class DiagonalTransport(State):
 #     """
-#     Executes collective transports in global x and y.
+#     Executes collective diagonal transport using jacobian-based PI control.
 #     """
+
 #     def __init__(self) -> None:
 #         super().__init__(["outcome1", "end"])
+#         # === Diagonal collective-transport setup ===
+#         self.r       = 0.05
+#         self.L       = 0.2
+#         phi1         = np.deg2rad([45, 135, -135, -45])
+#         phi2         = phi1 + np.pi
+#         x1           = np.array([ self.L, -self.L, -self.L,  self.L])
+#         y1           = np.array([ self.L,  self.L, -self.L, -self.L])
+#         x2, y2       = -x1, -y1
+
+#         # build Jacobians
+#         def build_jacobian(phi, x, y):
+#             A = np.zeros((4,3))
+#             for i in range(4):
+#                 A[i] = [
+#                     np.cos(phi[i]),
+#                     np.sin(phi[i]),
+#                     x[i]*np.sin(phi[i]) - y[i]*np.cos(phi[i])
+#                 ]
+#             return A
+
+#         A1 = build_jacobian(phi1, x1, y1)
+#         A2 = build_jacobian(phi2, x2, y2)
+#         self.J1 = np.linalg.pinv(A1)
+#         self.J2 = np.linalg.pinv(A2)
+
+#         # PI controller gains
+#         K           = 1.0    # TODO: measure this
+#         self.Kp     = 8.0/K
+#         Ti          = 0.25
+#         self.Ki     = self.Kp / Ti
+
+#         # references
+#         self.phi_ref = -np.pi/4   # -45°
+#         self.v_diag  = 0.35
+#         self.dt      = 0.01
+#         self.e_int   = 0.0
+
 
 #     def execute(self, blackboard: Blackboard) -> str:
-#         print(bcolors.YELLOW_WARNING + "Executing DiagonalTransportAxes state (axis-based diagonal)" + bcolors.ENDC)
-#         # Retrieve global object coordinates
-#         target_x, target_y = communicator.object_coords[0], communicator.object_coords[1]
-#         # First move along global X using the 315° wheel
-#         movealongx315(target_x)
-#         # Then move along global Y using the 315° wheel
-#         movealongy315(target_y)
+#         print(bcolors.YELLOW_WARNING + "Executing DiagonalTransport state (pure diagonal)" + bcolors.ENDC)
+
+#         # --- PI yaw controller  ---
+#         theta = np.deg2rad(cam_odom.current_position["theta"])
+#         e = (self.phi_ref - theta + np.pi) % (2 * np.pi) - np.pi
+#         self.e_int += e * self.dt
+#         U = self.Kp * e + self.Ki * self.e_int
+#         wz = U
+
+#         # Desired chassis velocities (global –45°), no rotation
+#         vx = self.v_diag * np.cos(self.phi_ref)
+#         vy = self.v_diag * np.sin(self.phi_ref)
+
+#         # Build and publish a Twist → driver will spin only the two 315° wheels
+#         twist = Twist()
+#         twist.linear.x, twist.linear.y = globaltorobottf(vx, vy, cam_odom.current_position["theta"])
+#         twist.angular.z = 0.0
+#         ros_manager.publish_cmd_vel(twist)
+#         time.sleep(2.5)
+#         twist = Twist()
+#         ros_manager.publish_cmd_vel(twist)
+#         time.sleep(0.1)
+#         ros_manager.publish_cmd_vel(twist)
+        
+
 #         return "outcome1"
+    
+class DiagonalTransport(State):
+    """
+    Executes collective transports in global x and y.
+    """
+    def __init__(self) -> None:
+        super().__init__(["outcome1", "end"])
+
+    def execute(self, blackboard: Blackboard) -> str:
+        print(bcolors.YELLOW_WARNING + "Executing DiagonalTransportAxes state (axis-based diagonal)" + bcolors.ENDC)
+
+        if ROBOT_ID == "1":
+            twist_msg =  Twist()
+            twist_msg.linear.x, twist_msg.linear.y =  globaltorobottf_at315(0, 0.7)
+            ros_manager.publish_cmd_vel(twist_msg)
+        elif ROBOT_ID == "2":
+            twist_msg =  Twist()
+            twist_msg.linear.x, twist_msg.linear.y =  globaltorobottf_at315(0, -0.7)
+            ros_manager.publish_cmd_vel(twist_msg)
+        time.sleep(2)
+        ros_manager.stop_motors()
+        communicator.cleanup()
+        twist_msg =  Twist()
+        twist_msg.linear.x = 0.7
+        ros_manager.publish_cmd_vel(twist_msg)
+        time.sleep(1.5)
+        return "outcome1"
 
 
 
