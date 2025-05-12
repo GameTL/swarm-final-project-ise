@@ -99,7 +99,7 @@ class FormationMaster:
             center_x, center_y = self.object_coords  # Center of the circle
 
             # Compute orientation
-            theta = math.atan2(center_y - target_y, center_x - target_x)
+            theta = math.degrees(math.atan2(center_y - target_y, center_x - target_x))
 
             # Store (x, y, theta) for each robot
             self.matches[member] = (target_x, target_y, round(theta, self.fineness))

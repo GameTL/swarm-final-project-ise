@@ -7,13 +7,13 @@ import os
 from collections import defaultdict
 from .formation import FormationMaster
 from .translator import Translator
-from ..cam_odom.cam_odom_client import CamOdomClient
 
 IDENTIFIER = "1"
 HOST_FP = f"{os.path.dirname(os.path.realpath(__file__))}/hosts.json" # from the same location this file find host.json
 MAX_CONNECTIONS = 5
 TIMEOUT = 5
 MAX_RETRIES = 3
+
 class bcolors:
     RED_FAIL       = '\033[91m'
     GRAY_OK        = '\033[90m'
@@ -27,18 +27,19 @@ class bcolors:
     ITALIC         = '\033[3m'
     UNDERLINE      = '\033[4m'
 class Communicator:
-    def __init__(self, host_fp=HOST_FP, identifier=IDENTIFIER, max_connections=MAX_CONNECTIONS, suppress_output=False, odom_obj: CamOdomClient=None):
+    def __init__(self, host_fp=HOST_FP, identifier=IDENTIFIER, max_connections=MAX_CONNECTIONS, suppress_output=False,suppress_debug_coords=True, odom_obj=None):
         # Initialize default attributes
         self.host_fp = host_fp
         self.identifier = identifier
         self.max_connections = max_connections
         self.taskmaster_claims = []
         self.suppress = suppress_output
-        self.odom_obj: CamOdomClient = odom_obj
+        self.odom_obj = odom_obj
+        self.suppress_debug_coords = suppress_debug_coords
 
         # For object detection and path planning
         try:
-            self.current_coords = self.odom_obj.current_position_2d
+            self.current_coords = [ self.odom_obj.current_position["x"],self.odom_obj.current_position["y"] ]
         except:
             self.current_coords = [ 0.69,  0.69]
             
@@ -97,7 +98,8 @@ class Communicator:
             self.header = header # don't delete State machine needs this
             sender = data.get("sender", "")
             content = data.get("content", "")
-            print(bcolors.YELLOW_WARNING + f"RECEIVING {header,sender, content}" + bcolors.ENDC)
+            if header != "COORDINATES":
+                print(bcolors.YELLOW_WARNING + f"RECEIVING {header,sender, content}" + bcolors.ENDC)
             if header == "OBJECT_DETECTED":
                 print("[INFO] Object detected, stopping.") # TODO Replace with actual functionality
                 self.consensus(sender)  # Trigger consensus function
@@ -120,8 +122,8 @@ class Communicator:
 
                         # Clear path planning params
                         # self.coords_dict = {}
-                    
-                    print(f"[COORDS] Current coords: {self.coords_dict}")
+                    if not self.suppress_debug_coords:
+                        print(f"[COORDS] Current coords: {self.coords_dict}")
             elif header == "PATH":
                 if not self.suppress:
                     print(f"[DEBUG] Received the paths from {sender}: {content}")
@@ -143,7 +145,8 @@ class Communicator:
             # Wait for SYNACK confirmation
             synack = client_fd.recv(1024).decode("utf-8")
             if synack == "SYNACK" and not self.suppress:
-                print("[INFO] SYNACK received")
+                if not(self.suppress_debug_coords and header == "COORDINATES"):
+                    print("[INFO] SYNACK received")
 
         except (json.JSONDecodeError, ConnectionError) as e:
             print(f"[ERROR] Error handling connection: {e}")
@@ -158,7 +161,8 @@ class Communicator:
             "sender": self.identifier,
             "content": content
         })
-        print(bcolors.YELLOW_WARNING + f"BROADCASTING {header, content}" + bcolors.ENDC)
+        if header != "COORDINATES":
+            print(bcolors.YELLOW_WARNING + f"BROADCASTING {header, content}" + bcolors.ENDC)
 
         for peer, peer_data in self.host_info.items():
             if peer == self.identifier:
@@ -179,7 +183,8 @@ class Communicator:
                         # Send SYNACK confirmation
                         client_fd.sendall("SYNACK".encode("utf-8"))
                         if not self.suppress:
-                            print(f"[INFO] {peer} acknowledged the message.")
+                            if not(self.suppress_debug_coords and header == "COORDINATES"):
+                                print(f"[INFO] {peer} acknowledged the message.")
                         break
 
                 except (socket.timeout, ConnectionError):

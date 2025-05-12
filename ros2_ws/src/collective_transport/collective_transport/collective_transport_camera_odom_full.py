@@ -306,7 +306,8 @@ def movetotheta(target_theta):
         # print(f'{cam_odom.current_position=}')
         out_theta = pid_theta.calculate(err_theta)
         twist_msg.angular.z = out_theta
-        print(f"\r {err_theta=}; {out_theta=}; {cam_odom.current_position=}", end='', flush=True)
+        print(f"\r| err_theta={err_theta:>6.2f} | out_theta={out_theta:>6.2f} | odom_pos: [{float(cam_odom.current_position['x']):>6.2f} {float(cam_odom.current_position['y']):>6.2f} {float(cam_odom.current_position['theta']):>6.2f}] |", end='', flush=True)
+        # print(f"\r {err_theta=}; {out_theta=}; {cam_odom.current_position=}", end='', flush=True)
         # print(bcolors.BLUE_OK + f"{err_theta=},{out_theta=}, currpos={cam_odom.current_position}" + bcolors.ENDC)
         ros_manager.publish_cmd_vel(twist_msg)
         time.sleep(0.01)
@@ -330,7 +331,7 @@ def movealongx315(target_x):
         if (abs(err_x)) < THRESHOLD_X_POSITION:
             break
         out_x = pid_x.calculate(err_x) # err_position --> Velocity
-        print(f"\r {err_x=}; {out_x=}; {cam_odom.current_position=}", end='', flush=True)
+        print(f"\r {err_x=:.2f<6}; {out_x=:.2f<6}; odom_pos: [{float(cam_odom.current_position['x']):.2f<6} {float(cam_odom.current_position['y']):.2f<6} {float(cam_odom.current_position['theta']):.2f<6}]", end='', flush=True)
         twist_msg.linear.x, twist_msg.linear.y =  globaltorobottf_at315(out_x, 0)
         ros_manager.publish_cmd_vel(twist_msg)
         time.sleep(0.05)
@@ -363,9 +364,8 @@ def movealongy315(target_y):
     print(bcolors.GREEN_OK + f"arrvied at y= {cam_odom.current_position['y']}" + bcolors.ENDC)
     time.sleep(1.5)
     
-def decode_coords(goals):
+def decode_coords(goals, x, y):
     task = []
-    (x, y) = (1.78, -1.05)
     ws_coord = [x,y]
     for info in goals: 
         dx = info[0] - ws_coord[0]
@@ -629,7 +629,8 @@ class SeekObject(State):
             print(bcolors.BLUE_OK + f"Object Calculated: \n\trobot_pose {rob_pose}\n\tobject_pose {communicator.object_coords }" + bcolors.ENDC)
             communicator.obstacle_coords = [] # assume
             communicator.object_detected()
-            communicator.cleanup() # To clear waypoints and orientation
+            break
+            
                     # return "end" #FoundObjectHost
         return "outcome1" #FoundObjectHost
         
@@ -662,18 +663,18 @@ class PathFollowing(State):
         Raises: Exception: May raise exceptions related to state execution.
         """
         print(bcolors.YELLOW_WARNING + f"Executing state PathFollowing" + bcolors.ENDC)
-        pprint(communicator.command)
-        pprint(communicator.orientation)
-
-        home_goal = [
-            # (cam_odom.current_position['x'], cam_odom.current_position['y']),
-            (home_pose[0], cam_odom.current_position['y']), # move along the x 
-            (home_pose[0], home_pose[1]), # move along the y &  ensure theta
-            (home_pose[0], home_pose[1], home_pose[2]), # move along the y &  ensure theta
-        ]
-        print(bcolors.BLUE_OK + f"{home_goal=}" + bcolors.ENDC)
-        commands = decode_coords(home_goal)
-        print(bcolors.BLUE_OK + f"{commands=}" + bcolors.ENDC)
+        # pprint(communicator.command)
+        # pprint(communicator.orientation)
+        """ 
+        >>> [(0.51, 0.45416666666666666), (0.8, 0.45416666666666666), (0.8, 0.5), (0.8, 0.5)]
+        >>> 3.14"""
+        _tmp = list(communicator.command[-1])
+        _tmp.append(communicator.orientation)
+        commands = communicator.command
+        commands[-1] = tuple(_tmp)
+        pprint(commands)
+        commands = decode_coords(commands, communicator.current_coords[0], communicator.current_coords[1])
+        pprint(commands)
         movetotheta(target_theta=315)
         print(bcolors.BLUE_OK + f"Moving to the planned commands" + bcolors.ENDC)
         for command, target in commands:
@@ -690,6 +691,7 @@ class PathFollowing(State):
         ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
         ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
         time.sleep(1)
+        communicator.cleanup() # To clear waypoints and orientation
         return "outcome1" # go ARRIVED POS
     
 # ARRVIED 
