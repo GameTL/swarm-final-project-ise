@@ -72,7 +72,7 @@ stop_msg.angular.z  = 0.0
 
 THRESHOLD_X_POSITION = 0.01 # 3 cm
 THRESHOLD_Y_POSITION = 0.01 # 3 cm
-THRESHOLD_THETA_POSITION = 2 # 3 cm
+THRESHOLD_THETA_POSITION = 1.5 # 3 cm
 
 # wait for the clicking
 MAX_WAIT = 100.0  # seconds to wait for peer acknowledgment
@@ -897,7 +897,7 @@ class DiagonalTransport(State):
         time.sleep(1)
         if ROBOT_ID == "1":
             twist_msg =  Twist()
-            twist_msg.linear.x = 15
+            twist_msg.linear.x = 15.0
             ros_manager.publish_cmd_vel(twist_msg)
         elif ROBOT_ID == "2":
             twist_msg =  Twist()
@@ -916,7 +916,7 @@ class DiagonalTransport(State):
             ros_manager.publish_cmd_vel(twist_msg)
         elif ROBOT_ID == "2":
             twist_msg =  Twist()
-            twist_msg.linear.x = 15
+            twist_msg.linear.x = 15.0
             ros_manager.publish_cmd_vel(twist_msg)
         time.sleep(4)
         ros_manager.stop_motors()
@@ -927,7 +927,7 @@ class DiagonalTransport(State):
         
         if ROBOT_ID == "1":
             twist_msg =  Twist()
-            twist_msg.linear.x = 15
+            twist_msg.linear.x = 15.0
             ros_manager.publish_cmd_vel(twist_msg)
         elif ROBOT_ID == "2":
             twist_msg =  Twist()
