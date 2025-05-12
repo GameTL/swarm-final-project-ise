@@ -93,16 +93,16 @@ linear_pid_dict =  {
         "ki" :  0.0,
         "kd" :  0.2,
         "clamped" :  True,
-        "min" :  -0.4,
-        "max" :  0.4,
-        "deadzone_limit" : 0.2}, 
+        "min" :  -0.6,
+        "max" :  0.6,
+        "deadzone_limit" : 0.3}, 
     "2" :{
         "kp" :  0.8,
         "ki" :  0.0,
         "kd" :  0.1,
         "clamped" :  True,
-        "min" :  -0.4,
-        "max" :  0.4,
+        "min" :  -0.6,
+        "max" :  0.6,
         "deadzone_limit" : 0.5}}
 
 angular_pid_dict =  {
@@ -119,17 +119,17 @@ angular_pid_dict =  {
         "ki" :  0.001, # (0.54* 0.025)/0.35 
         "kd" :  0.01,
         "clamped" :  True,
-        "min" :  -0.6,
-        "max" :  0.6,
+        "min" :  -0.7,
+        "max" :  0.7,
         "deadzone_limit" : 0.45},
     "2" :{ # robocup wheels K_u = 0.05, T_u - 3.5
         "kp" :  0.06, # 0.02 also works well for P only
         "ki" :  0.01, # (0.54* 0.025)/0.35 
         "kd" :  0.01,
         "clamped" :  True,
-        "min" :  -0.6,
-        "max" :  0.6,
-        "deadzone_limit" : 0.6}
+        "min" :  -0.7,
+        "max" :  0.7,
+        "deadzone_limit" : 0.5}
                      }
 
 """ 
@@ -627,7 +627,10 @@ class SeekObject(State):
         while 1:
             rob_pose = [cam_odom.current_position["x"], cam_odom.current_position["y"], cam_odom.current_position["theta"]]
         #     # print(f"{self.cv_class.cylinder_detection=}")
+            if communicator.header == "OBJECT_DETECTED":
+                ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
             if communicator.header == "PATH":  # received the path from master
+                ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
                 print(bcolors.YELLOW_WARNING + f"RECEIVED PATH HEADER" + bcolors.ENDC)
                 return "outcome1"  # IdleSlave
             
