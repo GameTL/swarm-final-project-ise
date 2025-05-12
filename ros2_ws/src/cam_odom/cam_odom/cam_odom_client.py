@@ -20,7 +20,7 @@ logging.basicConfig(
 )
 
 class CamOdomClient:
-    def __init__(self, server_ip='192.168.0.150', port=12345, robot_id=None, debug=False):
+    def __init__(self, server_ip='192.168.0.103', port=12345, robot_id=None, debug=False):
         self.server_ip = server_ip
         self.port = port
         self.robot_id = str(robot_id) if robot_id is not None else None
