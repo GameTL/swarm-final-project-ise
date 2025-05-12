@@ -3,7 +3,7 @@ import json
 from rich.pretty import pprint
 
 class FormationMaster:
-    def __init__(self, name, current_coords: dict, object_coords: tuple, obstacles: dict, radius=0.15, fineness=2, debug_level=0, start_angle_deg=45):
+    def __init__(self, name, current_coords: dict, object_coords: tuple, obstacles: dict, radius=0.15, fineness=2, debug_level=0):
         """ 
         current_coords: assumed that data are in this order [('TurtleBot3Burger_1', [1.3787268144635236, -0.38032573186548774, 0.0]), ('TurtleBot3Burger_2', [0.07806162991058642, 0.8007404816156147, 0.0])]
         current_coords: assumed that data are in this order [robot1,robot2,robot3] -> [5,6]
@@ -21,7 +21,6 @@ class FormationMaster:
         self.radius = radius
         self.fineness = fineness
         self.debug_level = debug_level
-        self.start_angle_rad = math.radians(start_angle_deg) # Store the start angle in radians
         if self.debug_level != 0:
             print(f"(helper)[DEBUG] Initializing with Debug Level {self.debug_level}")
         else:
@@ -53,28 +52,12 @@ class FormationMaster:
 
     def calculate_target_coords(self):
         # Calculate target coords based on radius around the object coordinates
-        # Old 
-        # internal_angle = 2 * math.pi / self.member_count
-        
-        # Gemini
-        internal_angle_step = 2 * math.pi / self.member_count
+        internal_angle = 2 * math.pi / self.member_count
         for i in range(self.member_count):
-            # Old
-            # # x' = x + rcos(theta * i) 
-            # x = self.object_coords[0] + (self.radius * math.cos(internal_angle * i))
+            # x' = x + rcos(theta * i) 
+            x = self.object_coords[0] + (self.radius * math.cos(internal_angle * i))
             # y' = y + rsin(theta * i)
-            # y = self.object_coords[1] + (self.radius * math.sin(internal_angle * i))
-            
-            # Gemini
-            # Calculate the angle for the current robot, adding the start_angle_rad offset
-            angle = self.start_angle_rad + (internal_angle_step * i)
-
-            # x' = x + rcos(angle)
-            x = self.object_coords[0] + (self.radius * math.cos(angle))
-            # y' = y + rsin(theta * i)
-            # y' = y + rsin(angle)
-            y = self.object_coords[1] + (self.radius * math.sin(angle))
-            
+            y = self.object_coords[1] + (self.radius * math.sin(internal_angle * i))
 
             self.target_coords.append((x, y))
         
