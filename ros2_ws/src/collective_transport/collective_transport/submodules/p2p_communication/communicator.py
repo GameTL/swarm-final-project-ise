@@ -7,6 +7,7 @@ import os
 from collections import defaultdict
 from .formation import FormationMaster
 from .translator import Translator
+from ..cam_odom.cam_odom_client import CamOdomClient
 
 IDENTIFIER = "1"
 HOST_FP = f"{os.path.dirname(os.path.realpath(__file__))}/hosts.json" # from the same location this file find host.json
@@ -26,18 +27,18 @@ class bcolors:
     ITALIC         = '\033[3m'
     UNDERLINE      = '\033[4m'
 class Communicator:
-    def __init__(self, host_fp=HOST_FP, identifier=IDENTIFIER, max_connections=MAX_CONNECTIONS, suppress_output=False, odom_obj=None):
+    def __init__(self, host_fp=HOST_FP, identifier=IDENTIFIER, max_connections=MAX_CONNECTIONS, suppress_output=False, odom_obj: CamOdomClient=None):
         # Initialize default attributes
         self.host_fp = host_fp
         self.identifier = identifier
         self.max_connections = max_connections
         self.taskmaster_claims = []
         self.suppress = suppress_output
-        self.odom_obj = odom_obj
+        self.odom_obj: CamOdomClient = odom_obj
 
         # For object detection and path planning
         try:
-            self.current_coords = [ self.odom_obj.current_position["x"],self.odom_obj.current_position["y"] ]
+            self.current_coords = self.odom_obj.current_position_2d
         except:
             self.current_coords = [ 0.69,  0.69]
             

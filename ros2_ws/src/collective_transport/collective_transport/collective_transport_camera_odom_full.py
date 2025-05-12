@@ -224,6 +224,14 @@ class ROSManager(Node):
         
     def publish_cmd_vel(self, twist_msg):
         self.cmd_vel_pub.publish(twist_msg)
+    def stop_motors(self):
+        time.sleep(0.1)
+        msg =  Twist()
+        self.cmd_vel_pub.publish(msg)
+        time.sleep(0.1)
+        self.cmd_vel_pub.publish(msg)
+        time.sleep(0.1)
+        
         
     def shutdown(self):
         self.node.destroy_node()
@@ -644,15 +652,6 @@ class PathFollowing(State):
             outcome2: Indicates the state should finish execution and return.
         """
         super().__init__(["outcome1", "end"])
-        self.counter = 0
-        
-        self.linear_kp = 1
-        self.linear_ki = 0 
-        self.linear_kd = 0
-
-        self.angular_kp = 1
-        self.angular_ki = 0 
-        self.angular_kd = 0
 
         
     def execute(self, blackboard: Blackboard) -> str:
@@ -666,12 +665,37 @@ class PathFollowing(State):
         pprint(communicator.command)
         pprint(communicator.orientation)
 
-        
+        home_goal = [
+            # (cam_odom.current_position['x'], cam_odom.current_position['y']),
+            (home_pose[0], cam_odom.current_position['y']), # move along the x 
+            (home_pose[0], home_pose[1]), # move along the y &  ensure theta
+            (home_pose[0], home_pose[1], home_pose[2]), # move along the y &  ensure theta
+        ]
+        print(bcolors.BLUE_OK + f"{home_goal=}" + bcolors.ENDC)
+        commands = decode_coords(home_goal)
+        print(bcolors.BLUE_OK + f"{commands=}" + bcolors.ENDC)
+        movetotheta(target_theta=315)
+        print(bcolors.BLUE_OK + f"Moving to the planned commands" + bcolors.ENDC)
+        for command, target in commands:
+            print(f'{command=}')
+            if command == 'x':
+                movealongx315(target)
+            elif command == 'y':
+                movealongy315(target)
+            elif command == 'theta':
+                movetotheta(target)
+            else:
+                pass
         ros_manager.publish_cmd_vel(stop_msg) # STOP MSGk
         ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
         ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
         time.sleep(1)
-        return "outcome1"
+        return "outcome1" # go ARRIVED POS
+    
+# ARRVIED 
+# COLLECTIVE TRANSPORT 
+#   # need to tune the speed of each robot
+# MoveStartPos
 
 
               

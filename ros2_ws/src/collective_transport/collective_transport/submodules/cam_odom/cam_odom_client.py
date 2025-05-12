@@ -69,6 +69,9 @@ class CamOdomClient:
 
     def get_position(self):
         return self.current_position
+    @property
+    def current_position_2d(self):
+        return (self.current_position["x"], self.current_position["y"])
 
     def disconnect(self):
         self._running = False
