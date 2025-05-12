@@ -690,7 +690,7 @@ class AtObject(State):
         # wait for peer to acknowledge grip
         start = time.time()
         while time.time() - start < MAX_WAIT:
-            if getattr(communicator, "header", None) == "AT_OBJECT" and communicator.sender != ROBOT_ID:
+            if getattr(communicator, "header", None) == "AT_OBJECT":
                 break
             time.sleep(0.1)
         else:
