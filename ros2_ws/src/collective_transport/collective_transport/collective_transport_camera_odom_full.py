@@ -545,7 +545,7 @@ class MoveStartPos(State):
         print(bcolors.GREEN_OK + f"FINSIHED CENTERING>>>>>>>........." + bcolors.ENDC)
         ######### HOMING
         print(bcolors.YELLOW_WARNING + f"{communicator.header=}" + bcolors.ENDC)
-        if communicator.header == "" or communicator.header == "COORDINATES": # starting
+        if communicator.header == "" or communicator.header == "COORDINATES" or communicator.header == "PATH" : # starting
             return "outcome1"
         else:
             return "outcome2"
