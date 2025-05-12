@@ -127,8 +127,8 @@ angular_pid_dict =  {
         "ki" :  0.01, # (0.54* 0.025)/0.35 
         "kd" :  0.01,
         "clamped" :  True,
-        "min" :  -0.7,
-        "max" :  0.7,
+        "min" :  -0.85,
+        "max" :  0.85,
         "deadzone_limit" : 0.5}
                      }
 
@@ -897,18 +897,49 @@ class DiagonalTransport(State):
         time.sleep(1)
         if ROBOT_ID == "1":
             twist_msg =  Twist()
-            twist_msg.linear.x = 1.5
+            twist_msg.linear.x = 15
             ros_manager.publish_cmd_vel(twist_msg)
         elif ROBOT_ID == "2":
             twist_msg =  Twist()
-            twist_msg.linear.x = 0.1
+            twist_msg.linear.x = -0.1
             ros_manager.publish_cmd_vel(twist_msg)
         time.sleep(2)
         ros_manager.stop_motors()
         communicator.cleanup()
         twist_msg =  Twist()
         ros_manager.stop_motors()
-        time.sleep(3)
+        time.sleep(1)
+        
+        if ROBOT_ID == "1":
+            twist_msg =  Twist()
+            twist_msg.linear.x = -0.1
+            ros_manager.publish_cmd_vel(twist_msg)
+        elif ROBOT_ID == "2":
+            twist_msg =  Twist()
+            twist_msg.linear.x = 15
+            ros_manager.publish_cmd_vel(twist_msg)
+        time.sleep(4)
+        ros_manager.stop_motors()
+        communicator.cleanup()
+        twist_msg =  Twist()
+        ros_manager.stop_motors()
+        time.sleep(1)
+        
+        if ROBOT_ID == "1":
+            twist_msg =  Twist()
+            twist_msg.linear.x = 15
+            ros_manager.publish_cmd_vel(twist_msg)
+        elif ROBOT_ID == "2":
+            twist_msg =  Twist()
+            twist_msg.linear.x = -0.1
+            ros_manager.publish_cmd_vel(twist_msg)
+        time.sleep(2)
+        ros_manager.stop_motors()
+        communicator.cleanup()
+        twist_msg =  Twist()
+        ros_manager.stop_motors()
+        time.sleep(1)
+        
         twist_msg.linear.x = -0.6
         twist_msg.linear.y = -0.6
         ros_manager.publish_cmd_vel(twist_msg)
