@@ -901,7 +901,7 @@ class DiagonalTransport(State):
             ros_manager.publish_cmd_vel(twist_msg)
         elif ROBOT_ID == "2":
             twist_msg =  Twist()
-            twist_msg.linear.x = -0.2
+            twist_msg.linear.x = 0.1
             ros_manager.publish_cmd_vel(twist_msg)
         time.sleep(2)
         ros_manager.stop_motors()
