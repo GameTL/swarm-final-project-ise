@@ -101,8 +101,8 @@ linear_pid_dict =  {
         "ki" :  0.02,
         "kd" :  0.1,
         "clamped" :  True,
-        "min" :  -0.6,
-        "max" :  0.6,
+        "min" :  -0.75,
+        "max" :  0.75,
         "deadzone_limit" : 0.5}}
 
 angular_pid_dict =  {
@@ -896,19 +896,21 @@ class DiagonalTransport(State):
 
         if ROBOT_ID == "1":
             twist_msg =  Twist()
-            twist_msg.linear.x, twist_msg.linear.y =  globaltorobottf_at315(0, 0.7)
+            twist_msg.linear.x = 0.7
             ros_manager.publish_cmd_vel(twist_msg)
         elif ROBOT_ID == "2":
             twist_msg =  Twist()
-            twist_msg.linear.x, twist_msg.linear.y =  globaltorobottf_at315(0, -0.7)
+            twist_msg.linear.x = -0.4
             ros_manager.publish_cmd_vel(twist_msg)
-        time.sleep(2)
+        time.sleep(1.5)
         ros_manager.stop_motors()
         communicator.cleanup()
         twist_msg =  Twist()
+        ros_manager.stop_motors()
+        time.sleep(3)
         twist_msg.linear.x = -0.7
         ros_manager.publish_cmd_vel(twist_msg)
-        time.sleep(1.5)
+        time.sleep(1)
         return "outcome1"
 
 
