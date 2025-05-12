@@ -75,7 +75,7 @@ THRESHOLD_Y_POSITION = 0.01 # 3 cm
 THRESHOLD_THETA_POSITION = 2 # 3 cm
 
 # wait for the clicking
-MAX_WAIT = 10.0  # seconds to wait for peer acknowledgment
+MAX_WAIT = 100.0  # seconds to wait for peer acknowledgment
 """ Location of the robot in the arena
  ^ 
  | 
@@ -90,15 +90,15 @@ home_coords =  {"1" :[0.8,0.8,315], "2" : [0.2,0.2,315], "3" : [0.2,0.8,315]}
 linear_pid_dict =  {
     "1" :{
         "kp" :  0.8,
-        "ki" :  0.0,
+        "ki" :  0.01,
         "kd" :  0.1,
         "clamped" :  True,
         "min" :  -0.6,
         "max" :  0.6,
-        "deadzone_limit" : 0.5}, 
+        "deadzone_limit" : 0.55}, 
     "2" :{
         "kp" :  0.8,
-        "ki" :  0.0,
+        "ki" :  0.02,
         "kd" :  0.1,
         "clamped" :  True,
         "min" :  -0.6,
@@ -124,7 +124,7 @@ angular_pid_dict =  {
         "deadzone_limit" : 0.45},
     "2" :{ # robocup wheels K_u = 0.05, T_u - 3.5
         "kp" :  0.06, # 0.02 also works well for P only
-        "ki" :  0.01, # (0.54* 0.025)/0.35 
+        "ki" :  0.03, # (0.54* 0.025)/0.35 
         "kd" :  0.01,
         "clamped" :  True,
         "min" :  -0.7,
@@ -367,7 +367,7 @@ def movetotheta(target_theta):
         # print(f"\r {err_theta=}; {out_theta=}; {cam_odom.current_position=}", end='', flush=True)
         # print(bcolors.BLUE_OK + f"{err_theta=},{out_theta=}, currpos={cam_odom.current_position}" + bcolors.ENDC)
         ros_manager.publish_cmd_vel(twist_msg)
-        time.sleep(0.01)
+        time.sleep(0.005)
         
     print()
     ros_manager.publish_cmd_vel(Twist()) # STOP MSG
@@ -741,6 +741,7 @@ class PathFollowing(State):
         pprint(commands)
         movetotheta(target_theta=315)
         print(bcolors.BLUE_OK + f"Moving to the planned commands" + bcolors.ENDC)
+        commands.pop(0)
         for command, target in commands:
             print(f'{command=}')
             if command == 'x':
