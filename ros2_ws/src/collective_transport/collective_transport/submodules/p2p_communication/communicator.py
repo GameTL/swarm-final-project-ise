@@ -95,10 +95,10 @@ class Communicator:
 
             data = json.loads(message)
             header = data.get("header", "")
-            self.header = header # don't delete State machine needs this
             sender = data.get("sender", "")
             content = data.get("content", "")
             if header != "COORDINATES":
+                self.header = header # don't delete State machine needs this, NEVER STORE COORDINATES
                 print(bcolors.YELLOW_WARNING + f"RECEIVING {header,sender, content}" + bcolors.ENDC)
             if header == "OBJECT_DETECTED":
                 print("[INFO] Object detected, stopping.") # TODO Replace with actual functionality
@@ -279,7 +279,7 @@ class Communicator:
         self.consensus(self.identifier)
         self.broadcast("OBJECT_DETECTED", message) # TODO: Should be object and obstacle positions
 
-    def path_planning(self, current_coords, object_coords, obstacle_coords, radius=0.3):
+    def path_planning(self, current_coords, object_coords, obstacle_coords, radius=0.28):
         print(f"[INFO] Received this set of current_coords: {current_coords}")
         
         # Initialize formation master

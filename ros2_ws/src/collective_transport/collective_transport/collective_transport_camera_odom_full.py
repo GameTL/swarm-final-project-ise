@@ -70,8 +70,8 @@ stop_msg.angular.x  = 0.0
 stop_msg.angular.y  = 0.0
 stop_msg.angular.z  = 0.0
 
-THRESHOLD_X_POSITION = 0.005 # 3 cm
-THRESHOLD_Y_POSITION = 0.005 # 3 cm
+THRESHOLD_X_POSITION = 0.01 # 3 cm
+THRESHOLD_Y_POSITION = 0.01 # 3 cm
 THRESHOLD_THETA_POSITION = 2 # 3 cm
 
 # wait for the clicking
@@ -103,7 +103,7 @@ linear_pid_dict =  {
         "clamped" :  True,
         "min" :  -0.4,
         "max" :  0.4,
-        "deadzone_limit" : 0.45}}
+        "deadzone_limit" : 0.5}}
 
 angular_pid_dict =  {
     # "1" :{ # with new wheels
