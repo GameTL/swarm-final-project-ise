@@ -113,14 +113,14 @@ angular_pid_dict =  {
         "min" :  -0.9,
         "max" :  0.9,
         "deadzone_limit" : 0.35}, 
-    "2" :{ # robocup wheels
-        "kp" :  0.3,
-        "ki" :  0.5,
-        "kd" :  0.3,
+    "2" :{ # robocup wheels K_u = 0.05, T_u - 3.5
+        "kp" :  0.02, # 0.02 also works well for P only
+        "ki" :  0.0085714286, # (0.54* 0.025)/0.35 
+        "kd" :  0.0,
         "clamped" :  True,
         "min" :  -0.9,
         "max" :  0.9,
-        "deadzone_limit" : 0.35}
+        "deadzone_limit" : 0.45}
                      }
 
 """ 
@@ -259,10 +259,10 @@ class PID:
         delta_t = np.float64(((curr_time - self.prev_time)/ 10**9))
         self.sum_err += err * delta_t
         self.diff_err = (err - self.prev_err)/delta_t
-        out = self.kp *  err + self.ki  * self.sum_err + self.kd * self.diff_err
-        
+        out = self.kp *  err
         if -self.deadzone_limit < out < self.deadzone_limit:
             out = np.sign(out) * self.deadzone_limit
+        out += self.ki  * self.sum_err + self.kd * self.diff_err
             
         self.prev_time = curr_time
         self.prev_err = err
@@ -293,16 +293,62 @@ def globaltorobottf(global_x_vel, global_y_vel, current_theta):
     out_x = (-global_x_vel*np.cos(current_theta_rad) + global_y_vel*np.sin(current_theta_rad) )
     out_y = (global_x_vel*np.sin(current_theta_rad) + global_y_vel*np.cos(current_theta_rad) )
     return out_x, out_y
+import time
+import numpy as np
+import datetime # Added for timestamp in filename
+import plotly.graph_objects as go # Added for plotting
 def movetotheta(target_theta):
+    # --- Logging setup ---
+    log_times = []
+    log_errors = []
+    start_time = time.time()
+    # --- End Logging setup ---
     print(bcolors.BLUE_OK + f"Moving in Theta-Direction; Goal: {target_theta=}" + bcolors.ENDC)
     twist_msg = Twist()
     pid_theta = PID(kp=angular_pid_dict[ROBOT_ID]["kp"], ki=angular_pid_dict[ROBOT_ID]["ki"], kd=angular_pid_dict[ROBOT_ID]["kd"], min=angular_pid_dict[ROBOT_ID]["min"], max=angular_pid_dict[ROBOT_ID]["max"], deadzone_limit=angular_pid_dict[ROBOT_ID]["deadzone_limit"], clamped=angular_pid_dict[ROBOT_ID]["clamped"])
     while True: # err less than 2 degree, paired with the delay of the odom 2 degree is perfect
         err_theta = target_theta - cam_odom.current_position["theta"]
-        if err_theta < -180 or err_theta > 180:
-            err_theta = np.sign(err_theta) * (-1) * (err_theta % 180) # tell it to go other way, "it's closer the other way"
+        
+        # Gemini way 
+        # --- STANDARD Angle Wrap-Around Normalization ---
+        if err_theta > 180:
+            err_theta -= 360
+        elif err_theta < -180:
+            err_theta += 360
+        # --- End Normalization ---
+        # My way
+        # if err_theta < -180 or err_theta > 180:
+        #     err_theta = np.sign(err_theta) * (-1) * (err_theta % 180) # tell it to go other way, "it's closer the other way"
         if (abs(err_theta)) < THRESHOLD_THETA_POSITION:
+        # if time.time() - start_time > 30:
+            ros_manager.publish_cmd_vel(Twist()) # STOP MSG
+            ## LOGGINGGG
+            # # Generate filename
+            # timestamp_str = datetime.datetime.now().strftime('%y%m%d%H%M%S')
+            # filename = f"theta_error_log_{timestamp_str}.png" # Save as PNG
+            # fig = go.Figure()
+            # fig.add_trace(go.Scatter(x=log_times, y=log_errors, mode='lines+markers', name='Theta Error'))
+
+            # fig.update_layout(
+            #     title=f'Theta Error vs Time (Target: {target_theta} deg)',
+            #     xaxis_title='Time (s)',
+            #     yaxis_title='Error Theta (degrees)',
+            #     legend_title='Legend'
+            # )
+
+            # # Save the plot
+            # fig.write_image(filename)
+            # print(f"saving {filename}")
+            # quit()
+            ## END LOGGINGGG 
             break
+                # --- Log data ---
+                
+        elapsed_time = time.time() - start_time
+        log_times.append(elapsed_time)
+        log_errors.append(err_theta)
+        # --- End Log data ---
+        
         # print(f'{cam_odom.current_position=}')
         out_theta = pid_theta.calculate(err_theta)
         twist_msg.angular.z = out_theta
@@ -311,6 +357,7 @@ def movetotheta(target_theta):
         # print(bcolors.BLUE_OK + f"{err_theta=},{out_theta=}, currpos={cam_odom.current_position}" + bcolors.ENDC)
         ros_manager.publish_cmd_vel(twist_msg)
         time.sleep(0.01)
+        
     print()
     ros_manager.publish_cmd_vel(Twist()) # STOP MSG
     time.sleep(0.25)
@@ -433,7 +480,7 @@ class MoveStartPos(State):
             outcome1: Indicates the state should continue to the Bar state.
             outcome2: Indicates the state should finish execution and return.
         """
-        super().__init__(["outcome1", "end"])
+        super().__init__(["outcome1","outcome2", "end"])
         self.goal_reached = False
         self.linear_kp = 1
 
@@ -479,7 +526,8 @@ class MoveStartPos(State):
                 pass
         print(bcolors.GREEN_OK + f"FINSIHED CENTERING>>>>>>>........." + bcolors.ENDC)
         ######### HOMING
-        if communicator.header == "": # starting
+        print(bcolors.YELLOW_WARNING + f"{communicator.header=}" + bcolors.ENDC)
+        if communicator.header == "" or communicator.header == "COORDINATES": # starting
             return "outcome1"
         else:
             return "outcome2"
