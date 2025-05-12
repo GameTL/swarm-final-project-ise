@@ -72,7 +72,7 @@ stop_msg.angular.z  = 0.0
 
 THRESHOLD_X_POSITION = 0.005 # 3 cm
 THRESHOLD_Y_POSITION = 0.005 # 3 cm
-THRESHOLD_THETA_POSITION = 1.5 # 3 cm
+THRESHOLD_THETA_POSITION = 2 # 3 cm
 
 # wait for the clicking
 MAX_WAIT = 10.0  # seconds to wait for peer acknowledgment
@@ -97,13 +97,13 @@ linear_pid_dict =  {
         "max" :  0.4,
         "deadzone_limit" : 0.2}, 
     "2" :{
-        "kp" :  0.6,
+        "kp" :  0.8,
         "ki" :  0.0,
         "kd" :  0.1,
         "clamped" :  True,
         "min" :  -0.4,
         "max" :  0.4,
-        "deadzone_limit" : 0.2}}
+        "deadzone_limit" : 0.45}}
 
 angular_pid_dict =  {
     # "1" :{ # with new wheels
@@ -123,13 +123,13 @@ angular_pid_dict =  {
         "max" :  0.6,
         "deadzone_limit" : 0.45},
     "2" :{ # robocup wheels K_u = 0.05, T_u - 3.5
-        "kp" :  0.04, # 0.02 also works well for P only
-        "ki" :  0.005, # (0.54* 0.025)/0.35 
+        "kp" :  0.06, # 0.02 also works well for P only
+        "ki" :  0.01, # (0.54* 0.025)/0.35 
         "kd" :  0.01,
         "clamped" :  True,
         "min" :  -0.6,
         "max" :  0.6,
-        "deadzone_limit" : 0.45}
+        "deadzone_limit" : 0.6}
                      }
 
 """ 
@@ -270,17 +270,9 @@ class PID:
         self.sum_err += err * delta_t
         self.diff_err = (err - self.prev_err)/delta_t
         out = self.kp *  err
+        if -self.deadzone_limit < out < self.deadzone_limit:
+            out = np.sign(out) * self.deadzone_limit
         out += self.ki  * self.sum_err + self.kd * self.diff_err
-        if self.stop:
-            time.sleep(0.05)
-            out = 0.0
-            self.stop = False
-        else: 
-            if -self.deadzone_limit < out < self.deadzone_limit:
-                out = np.sign(out) * self.deadzone_limit * 2
-                self.stop = True
-            else:
-                self.stop = False
 
             
         self.prev_time = curr_time
