@@ -462,24 +462,27 @@ class MoveStartPos(State):
             (home_pose[0], home_pose[1], home_pose[2]), # move along the y &  ensure theta
         ]
         ######## START HOMING
-        # print(bcolors.BLUE_OK + f"{home_goal=}" + bcolors.ENDC)
-        # commands = decode_coords(home_goal)
-        # print(bcolors.BLUE_OK + f"{commands=}" + bcolors.ENDC)
-        # movetotheta(target_theta=315)
-        # print(bcolors.BLUE_OK + f"Moving Independantly from the swarms" + bcolors.ENDC)
-        # for command, target in commands:
-        #     print(f'{command=}')
-        #     if command == 'x':
-        #         movealongx315(target)
-        #     elif command == 'y':
-        #         movealongy315(target)
-        #     elif command == 'theta':
-        #         movetotheta(target)
-        #     else:
-        #         pass
+        print(bcolors.BLUE_OK + f"{home_goal=}" + bcolors.ENDC)
+        commands = decode_coords(home_goal, communicator.current_coords[0],communicator.current_coords[1])
+        print(bcolors.BLUE_OK + f"{commands=}" + bcolors.ENDC)
+        movetotheta(target_theta=315)
+        print(bcolors.BLUE_OK + f"Moving Independantly from the swarms" + bcolors.ENDC)
+        for command, target in commands:
+            print(f'{command=}')
+            if command == 'x':
+                movealongx315(target)
+            elif command == 'y':
+                movealongy315(target)
+            elif command == 'theta':
+                movetotheta(target)
+            else:
+                pass
         print(bcolors.GREEN_OK + f"FINSIHED CENTERING>>>>>>>........." + bcolors.ENDC)
         ######### HOMING
-        return "outcome1"
+        if communicator.header == "": # starting
+            return "outcome1"
+        else:
+            return "outcome2"
 
 class AtStartPos(State):
     """
