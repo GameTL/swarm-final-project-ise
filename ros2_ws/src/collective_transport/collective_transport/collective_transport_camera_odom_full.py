@@ -40,7 +40,6 @@ import yasmin
 from yasmin import State
 from yasmin import Blackboard
 from yasmin import StateMachine
-from yasmin_ros import set_ros_loggers
 from yasmin_viewer import YasminViewerPub
 from geometry_msgs.msg import Pose2D, Twist
 
@@ -98,9 +97,9 @@ linear_pid_dict =  {
         "max" :  0.8,
         "deadzone_limit" : 0.2}, 
     "2" :{
-        "kp" :  1.5,
-        "ki" :  6.0,
-        "kd" :  0.3,
+        "kp" :  0.6,
+        "ki" :  0.0,
+        "kd" :  0.1,
         "clamped" :  True,
         "min" :  -0.8,
         "max" :  0.8,
@@ -116,9 +115,9 @@ angular_pid_dict =  {
         "max" :  0.9,
         "deadzone_limit" : 0.35}, 
     "2" :{ # robocup wheels K_u = 0.05, T_u - 3.5
-        "kp" :  0.02, # 0.02 also works well for P only
-        "ki" :  0.0085714286, # (0.54* 0.025)/0.35 
-        "kd" :  0.0,
+        "kp" :  0.04, # 0.02 also works well for P only
+        "ki" :  0.001, # (0.54* 0.025)/0.35 
+        "kd" :  0.01,
         "clamped" :  True,
         "min" :  -0.9,
         "max" :  0.9,
@@ -254,6 +253,7 @@ class PID:
         self.sum_err = np.float64(0.0)
         self.prev_err : np.float64 = np.float64(0.0)
         self.prev_time : float = time.time_ns()
+        self.stop = False
     def calculate(self, err) -> np.float64:
         err = np.float64(err) # ensure it's float64
         # Make sure the err is negetive an positive otherwise the Err Sum will runaway
@@ -262,9 +262,18 @@ class PID:
         self.sum_err += err * delta_t
         self.diff_err = (err - self.prev_err)/delta_t
         out = self.kp *  err
-        if -self.deadzone_limit < out < self.deadzone_limit:
-            out = np.sign(out) * self.deadzone_limit
         out += self.ki  * self.sum_err + self.kd * self.diff_err
+        if self.stop:
+            time.sleep(0.2)
+            out = 0.0
+            self.stop = False
+        else: 
+            if -self.deadzone_limit < out < self.deadzone_limit:
+                out = np.sign(out) * self.deadzone_limit
+                self.stop = True
+            else:
+                self.stop = False
+
             
         self.prev_time = curr_time
         self.prev_err = err
@@ -383,7 +392,7 @@ def movealongx315(target_x):
         print(f"\r Moving...| err_x={err_x:>6.2f} | out_x={out_x:>6.2f} | odom_pos: [{float(cam_odom.current_position['x']):>6.2f} {float(cam_odom.current_position['y']):>6.2f} {float(cam_odom.current_position['theta']):>6.2f}] |", end='', flush=True)
         twist_msg.linear.x, twist_msg.linear.y =  globaltorobottf_at315(out_x, 0)
         ros_manager.publish_cmd_vel(twist_msg)
-        time.sleep(0.05)
+        time.sleep(0.005)
     print()
     ros_manager.publish_cmd_vel(Twist()) # STOP MSG
     time.sleep(0.25)
@@ -406,7 +415,7 @@ def movealongy315(target_y):
         print(f"\r Moving...| err_y={err_y:>6.2f} | out_y={out_y:>6.2f} | odom_pos: [{float(cam_odom.current_position['x']):>6.2f} {float(cam_odom.current_position['y']):>6.2f} {float(cam_odom.current_position['theta']):>6.2f}] |", end='', flush=True)
         twist_msg.linear.x, twist_msg.linear.y =  globaltorobottf_at315(0, out_y)
         ros_manager.publish_cmd_vel(twist_msg)
-        time.sleep(0.01)
+        time.sleep(0.005)
     print()
     ros_manager.publish_cmd_vel(Twist()) # STOP MSG
     time.sleep(0.25)
@@ -554,7 +563,7 @@ class AtStartPos(State):
         """
         Executes the logic for the Foo state.
         Args: blackboard (Blackboard): The shared data structure for states.
-        Returns: str: The outcome of the execution, which can be "outcome1" or "outcome2".
+        Returns: str: The outcome of the execution, which can be "outcome1" 
         Raises: Exception: May raise exceptions related to state execution.
         """
         print(bcolors.YELLOW_WARNING + f"Executing state AtStartPos" + bcolors.ENDC)
@@ -604,7 +613,7 @@ class SeekObject(State):
         """
         Executes the logic for the Foo state.
         Args: blackboard (Blackboard): The shared data structure for states.
-        Returns: str: The outcome of the execution, which can be "outcome1" or "outcome2".
+        Returns: str: The outcome of the execution, which can be "outcome1" 
         Raises: Exception: May raise exceptions related to state execution.
         """
         # if not hasattr(self, "cv_class"):/
@@ -621,7 +630,7 @@ class SeekObject(State):
         #     # print(f"{self.cv_class.cylinder_detection=}")
             if communicator.header == "PATH":  # received the path from master
                 print(bcolors.YELLOW_WARNING + f"RECEIVED PATH HEADER" + bcolors.ENDC)
-                return "outcome2"  # IdleSlave
+                return "outcome1"  # IdleSlave
             
         #     detection_info = self.cv_class.cylinder_detection
             
@@ -678,11 +687,12 @@ class SeekObject(State):
         #         # Real Results
         #         # communicator.object_coords = object_pose
         #         # Testing Results
-            communicator.object_coords = [0.5,0.5]
-            print(bcolors.BLUE_OK + f"Object Calculated: \n\trobot_pose {rob_pose}\n\tobject_pose {communicator.object_coords }" + bcolors.ENDC)
-            communicator.obstacle_coords = [] # assume
-            communicator.object_detected()
-            break
+            if ROBOT_ID ==1:
+                communicator.object_coords = [0.5,0.5]
+                print(bcolors.BLUE_OK + f"Object Calculated: \n\trobot_pose {rob_pose}\n\tobject_pose {communicator.object_coords }" + bcolors.ENDC)
+                communicator.obstacle_coords = [] # assume
+                communicator.object_detected()
+                break
             
                     # return "end" #FoundObjectHost
         return "outcome1" #FoundObjectHost
@@ -703,7 +713,6 @@ class PathFollowing(State):
         """
         Outcomes:
             outcome: Indicates the state should continue to the Bar state.
-            outcome2: Indicates the state should finish execution and return.
         """
         super().__init__(["outcome1", "end"])
 
@@ -712,7 +721,7 @@ class PathFollowing(State):
         """
         Executes the logic for the Foo state.
         Args: blackboard (Blackboard): The shared data structure for states.
-        Returns: str: The outcome of the execution, which can be "outcome1" or "outcome2".
+        Returns: str: The outcome of the execution, which can be "outcome1"
         Raises: Exception: May raise exceptions related to state execution.
         """
         print(bcolors.YELLOW_WARNING + f"Executing state PathFollowing" + bcolors.ENDC)
@@ -770,7 +779,6 @@ class AtObject(State):
                 break
             time.sleep(0.1)
         else:
-            self.get_logger().warn("Peer did not acknowledge in time")
             return "end"            
         print(bcolors.GREEN_OK + "Both robots have acknowledged object grip" + bcolors.ENDC)
         return "outcome1"
@@ -894,18 +902,16 @@ class DiagonalTransport(State):
 
               
 def main(args=None):
-    # Set ROS 2 loggers
-    set_ros_loggers()
     
     # Create a finite state machine (FSM)
     sm = StateMachine(outcomes=["outcome4"])
 
     # Add states to the FSM
     sm.add_state("Init", Init(), transitions={"outcome1": "MoveStartPos","end": "outcome4"})
-    sm.add_state("MoveStartPos", MoveStartPos(), transitions={"outcome1": "AtStartPos","end": "outcome4"})
+    sm.add_state("MoveStartPos", MoveStartPos(), transitions={"outcome1": "AtStartPos","outcome2": "outcome4","end": "outcome4"})
     sm.add_state("AtStartPos", AtStartPos(), transitions={"outcome1": "SeekObject","end": "outcome4"})
     
-    sm.add_state("SeekObject", SeekObject(), transitions={"outcome1": "PathFollowing","loop": "SeekObject","end": "outcome4"})
+    sm.add_state("SeekObject", SeekObject(), transitions={"outcome1": "PathFollowing","end": "outcome4"})
     # tell arrvied via comms 
     # click in place 
     # move 45 degrees towards the center 
