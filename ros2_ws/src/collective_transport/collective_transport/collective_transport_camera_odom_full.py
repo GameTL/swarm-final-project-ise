@@ -306,7 +306,7 @@ def movetotheta(target_theta):
         # print(f'{cam_odom.current_position=}')
         out_theta = pid_theta.calculate(err_theta)
         twist_msg.angular.z = out_theta
-        print(f"\r| err_theta={err_theta:>6.2f} | out_theta={out_theta:>6.2f} | odom_pos: [{float(cam_odom.current_position['x']):>6.2f} {float(cam_odom.current_position['y']):>6.2f} {float(cam_odom.current_position['theta']):>6.2f}] |", end='', flush=True)
+        print(f"\r Moving...| err_theta={err_theta:>6.2f} | out_theta={out_theta:>6.2f} | odom_pos: [{float(cam_odom.current_position['x']):>6.2f} {float(cam_odom.current_position['y']):>6.2f} {float(cam_odom.current_position['theta']):>6.2f}] |", end='', flush=True)
         # print(f"\r {err_theta=}; {out_theta=}; {cam_odom.current_position=}", end='', flush=True)
         # print(bcolors.BLUE_OK + f"{err_theta=},{out_theta=}, currpos={cam_odom.current_position}" + bcolors.ENDC)
         ros_manager.publish_cmd_vel(twist_msg)
@@ -331,7 +331,7 @@ def movealongx315(target_x):
         if (abs(err_x)) < THRESHOLD_X_POSITION:
             break
         out_x = pid_x.calculate(err_x) # err_position --> Velocity
-        print(f"\r {err_x=:.2f<6}; {out_x=:.2f<6}; odom_pos: [{float(cam_odom.current_position['x']):.2f<6} {float(cam_odom.current_position['y']):.2f<6} {float(cam_odom.current_position['theta']):.2f<6}]", end='', flush=True)
+        print(f"\r Moving...| err_theta={err_x:>6.2f} | out_theta={err_x:>6.2f} | odom_pos: [{float(cam_odom.current_position['x']):>6.2f} {float(cam_odom.current_position['y']):>6.2f} {float(cam_odom.current_position['theta']):>6.2f}] |", end='', flush=True)
         twist_msg.linear.x, twist_msg.linear.y =  globaltorobottf_at315(out_x, 0)
         ros_manager.publish_cmd_vel(twist_msg)
         time.sleep(0.05)
@@ -354,7 +354,7 @@ def movealongy315(target_y):
         if (abs(err_y)) < THRESHOLD_Y_POSITION:
             break
         out_y = pid_y.calculate(err_y) # err_position --> Velocity
-        print(f"\r {err_y=}; {out_y=};{cam_odom.current_position=}", end='', flush=True)
+        print(f"\r Moving...| err_theta={err_y:>6.2f} | out_theta={err_y:>6.2f} | odom_pos: [{float(cam_odom.current_position['x']):>6.2f} {float(cam_odom.current_position['y']):>6.2f} {float(cam_odom.current_position['theta']):>6.2f}] |", end='', flush=True)
         twist_msg.linear.x, twist_msg.linear.y =  globaltorobottf_at315(0, out_y)
         ros_manager.publish_cmd_vel(twist_msg)
         time.sleep(0.01)
