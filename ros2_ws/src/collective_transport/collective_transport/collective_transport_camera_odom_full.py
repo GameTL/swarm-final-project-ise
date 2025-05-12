@@ -72,7 +72,7 @@ stop_msg.angular.z  = 0.0
 
 THRESHOLD_X_POSITION = 0.005 # 3 cm
 THRESHOLD_Y_POSITION = 0.005 # 3 cm
-THRESHOLD_THETA_POSITION = 1.5# 3 cm
+THRESHOLD_THETA_POSITION = 1.5 # 3 cm
 
 # wait for the clicking
 MAX_WAIT = 10.0  # seconds to wait for peer acknowledgment
