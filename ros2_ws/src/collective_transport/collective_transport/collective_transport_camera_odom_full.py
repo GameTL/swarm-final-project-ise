@@ -106,14 +106,22 @@ linear_pid_dict =  {
         "deadzone_limit" : 0.4}}
 
 angular_pid_dict =  {
-    "1" :{ # with new wheels
-        "kp" :  0.04,
-        "ki" :  0.000,
+    # "1" :{ # with new wheels
+    #     "kp" :  0.04,
+    #     "ki" :  0.000,
+    #     "kd" :  0.01,
+    #     "clamped" :  True,
+    #     "min" :  -0.9,
+    #     "max" :  0.9,
+    #     "deadzone_limit" : 0.35}, 
+    "1" :{ # robocup wheels K_u = 0.05, T_u - 3.5
+        "kp" :  0.04, # 0.02 also works well for P only
+        "ki" :  0.001, # (0.54* 0.025)/0.35 
         "kd" :  0.01,
         "clamped" :  True,
         "min" :  -0.9,
         "max" :  0.9,
-        "deadzone_limit" : 0.35}, 
+        "deadzone_limit" : 0.45},
     "2" :{ # robocup wheels K_u = 0.05, T_u - 3.5
         "kp" :  0.04, # 0.02 also works well for P only
         "ki" :  0.001, # (0.54* 0.025)/0.35 
@@ -505,7 +513,6 @@ class MoveStartPos(State):
         """
         print(bcolors.YELLOW_WARNING + f"Executing state MoveStartPos" + bcolors.ENDC)
         
-        # print(self.ros_manager.get_latest_pose())
         
         home_pose = home_coords[ROBOT_ID]
             
@@ -637,14 +644,14 @@ class SeekObject(State):
         #     # --- Simplified Validation ---
         #     is_valid_detection = False
         #     if isinstance(detection_info, list) and len(detection_info) >= 3:
-        #         self.ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
+        #         ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
         #         # Check if all of the first three elements are finite numbers
         #         if all(math.isfinite(val) for val in detection_info[:3]):
         #             is_valid_detection = True
         #     # --- End Simplified Validation ---
 
         #     if is_valid_detection:
-        #         self.ros_manager.publish_cmd_vel(stop_msg)
+        #         ros_manager.publish_cmd_vel(stop_msg)
         #         print(f"{detection_info=}")
         #         print(f"Found an object stopping.. Validating detection data...")
                 
@@ -663,12 +670,12 @@ class SeekObject(State):
         #             # else:
         #             #     twist_msg.angular.z = 0.6
                         
-        #             # self.ros_manager.publish_cmd_vel(twist_msg)
+        #             # ros_manager.publish_cmd_vel(twist_msg)
         #         # time.sleep(0.1)  # around 10hz
         # if isinstance(detection_info, list) and len(detection_info) >= 3:
         #     # Check if all of the first three elements are finite numbers
         #     twist_msg = Twist()
-        #     self.ros_manager.publish_cmd_vel(twist_msg)
+        #     ros_manager.publish_cmd_vel(twist_msg)
         #     if all(math.isfinite(val) for val in detection_info[:3]):
         #         print(bcolors.BLUE_OK + f"Found a Detection at {detection_info=}" + bcolors.ENDC) 
         
@@ -687,7 +694,7 @@ class SeekObject(State):
         #         # Real Results
         #         # communicator.object_coords = object_pose
         #         # Testing Results
-            if ROBOT_ID ==1:
+            if ROBOT_ID == "1":
                 communicator.object_coords = [0.5,0.5]
                 print(bcolors.BLUE_OK + f"Object Calculated: \n\trobot_pose {rob_pose}\n\tobject_pose {communicator.object_coords }" + bcolors.ENDC)
                 communicator.obstacle_coords = [] # assume
@@ -799,11 +806,11 @@ class ClickingObject(State):
         twist_msg.linear.x = 0.5
         twist_msg.linear.y = 0.0
         while (time.time() - start_time) < 2:
-            self.ros_manager.publish_cmd_vel(twist_msg)
+            ros_manager.publish_cmd_vel(twist_msg)
         yasmin.YASMIN_LOG_INFO(bcolors.BLUE_OK + f"Stopping" + bcolors.ENDC)
-        self.ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
-        self.ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
-        self.ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
+        ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
+        ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
+        ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
         time.sleep(1)
         return "outcome1"
 
