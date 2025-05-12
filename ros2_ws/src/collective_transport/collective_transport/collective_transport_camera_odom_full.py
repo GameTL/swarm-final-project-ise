@@ -115,16 +115,16 @@ angular_pid_dict =  {
     #     "max" :  0.9,
     #     "deadzone_limit" : 0.35}, 
     "1" :{ # robocup wheels K_u = 0.05, T_u - 3.5
-        "kp" :  0.04, # 0.02 also works well for P only
-        "ki" :  0.001, # (0.54* 0.025)/0.35 
+        "kp" :  0.02, # 0.02 also works well for P only
+        "ki" :  0.01, # (0.54* 0.025)/0.35 
         "kd" :  0.01,
         "clamped" :  True,
         "min" :  -0.7,
         "max" :  0.7,
         "deadzone_limit" : 0.45},
     "2" :{ # robocup wheels K_u = 0.05, T_u - 3.5
-        "kp" :  0.06, # 0.02 also works well for P only
-        "ki" :  0.03, # (0.54* 0.025)/0.35 
+        "kp" :  0.02, # 0.02 also works well for P only
+        "ki" :  0.01, # (0.54* 0.025)/0.35 
         "kd" :  0.01,
         "clamped" :  True,
         "min" :  -0.7,
