@@ -632,7 +632,6 @@ class SeekObject(State):
                 ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
                 print(bcolors.YELLOW_WARNING + f"RECEIVED PATH HEADER" + bcolors.ENDC)
                 return "outcome1"  # IdleSlave
-            if ROBOT_ID == 1:
             
             detection_info = self.cv_class.cylinder_detection
             

@@ -279,7 +279,7 @@ class Communicator:
         self.consensus(self.identifier)
         self.broadcast("OBJECT_DETECTED", message) # TODO: Should be object and obstacle positions
 
-    def path_planning(self, current_coords, object_coords, obstacle_coords, radius=0.24):
+    def path_planning(self, current_coords, object_coords, obstacle_coords, radius=0.22):
         print(f"[INFO] Received this set of current_coords: {current_coords}")
         
         # Initialize formation master
