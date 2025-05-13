@@ -129,9 +129,8 @@ angular_pid_dict =  {
         "clamped" :  True,
         "min" :  -0.85,
         "max" :  0.85,
-        "deadzone_limit" : 0.5}
+        "deadzone_limit" : 0.4}
                      }
-
 """ 
 OLD
 linear_pid_dict =  {
