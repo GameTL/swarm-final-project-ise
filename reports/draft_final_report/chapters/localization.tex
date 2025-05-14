@@ -1,5 +1,21 @@
 \chapter{Localization}
 
+\section*{Wheel Odometry}
+\paragraph*{}
+\quad Wheel odometry is solely calculated using the dynamic model of the omnidirectional wheeled robot. Hence, the position or the velocity of the wheel becomes a necessity. However, wheel odometry is only suitable under two conditions: the robot must not have wheel slip, and the encoder must be precise. 
+\paragraph*{}
+The problem that arose during the implementation phase was that the motor (Dynamixel AX-12W) was not able to return the complete position and velocity values. Due to the limited range of the embedded encoder in the motor, the resulting random value is between 330º and 350º (Figure \ref{fig:goal-position}). Moreover, the value returned by the encoder, according to the documentation, was the percentage of the maximum torque. \cite{robotisAX12W} 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.35\linewidth]{assets/images/odometry/goal_position.png}
+    \caption{Encoder diagram of AX-12W}
+    \label{fig:goal-position}
+\end{figure}
+
+To work around this, we instead tried the current speed register. However, this approach requires the robot to operate at relatively low speeds to maintain accuracy. Yet, this method will not work during the collective transport phase, as the load to the motor will be different. Hence, LiDAR odometry was considered as the more viable solution for odometry.
+
+\newpage
 \section*{Odometry Validation}
 \quad The performance evaluation of the LiDAR odometry is carried out using an overhead camera setup. To ensure that our odometry is accurate enough for use in SLAM, the camera tracks the robot’s movement and provides a ground-truth odometry reference. Then, the data from the camera are compared to the LiDAR's.
 
