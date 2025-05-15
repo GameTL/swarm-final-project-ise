@@ -1,5 +1,14 @@
 \chapter{Localization}
+\section*{SLAM Analysis for Robot Navigation}
 
+\paragraph*{}
+Simultaneous Localization and Mapping (SLAM) is a computational technique used by mobile robots to build a map of an unknown environment while simultaneously estimating their own position within that map. SLAM fuses data from sensors such as LiDAR, IMU, and wheel encoders to incrementally construct a geometric representation of the surrounding environment. By performing scan matching and correcting odometry drift over time, SLAM enables reliable localization and autonomous navigation even in GPS-denied environments. Variants like Graph SLAM use nonlinear optimization to refine pose graphs, while real-time solutions such as SLAM Toolbox offer online mapping and loop closure capabilities.
+
+In our project, SLAM was intended to support three cooperative robots performing collective object transport. We explored both Graph SLAM and SLAM Toolbox as potential solutions. SLAM Toolbox was particularly appealing due to its integration with ROS 2 and support for asynchronous global pose graph optimization. The goal was to construct a shared map, correct odometry drift from both LiDAR (RF2O) and encoder sources, and enable reliable path planning across the arena. SLAM would also assist with multi-robot coordination by aligning their reference frames to a common global map, which is crucial for tasks such as role assignment and distributed transport.
+
+However, SLAM cannot be effectively deployed in our current setup due to a combination of environmental and sensor limitations. The arena's physical dimensions (approximately $2.1 \, \text{m} \times 1.4 \, \text{m}$) are too small to allow sufficient motion for loop closures or robust scan alignment. Moreover, the environment lacks distinctive features, providing little geometric structure for scan matching algorithms to latch onto. On the odometry side, wheel encoders on the Dynamixel-based drive system have blind spots, and the RF2O LiDAR odometry exhibits significant drift and instability in low-feature settings. These issues with the odometry is further described below.
+
+\newpage
 \section*{Wheel Odometry}
 \paragraph*{}
 \quad Wheel odometry is solely calculated using the dynamic model of the omnidirectional wheeled robot. Hence, the position or the velocity of the wheel becomes a necessity. However, wheel odometry is only suitable under two conditions: the robot must not have wheel slip, and the encoder must be precise. 
