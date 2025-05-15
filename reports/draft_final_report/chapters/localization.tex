@@ -16,6 +16,76 @@ The problem that arose during the implementation phase was that the motor (Dynam
 To work around this, we instead tried the current speed register. However, this approach requires the robot to operate at relatively low speeds to maintain accuracy. Yet, this method will not work during the collective transport phase, as the load to the motor will be different. Hence, LiDAR odometry was considered as the more viable solution for odometry.
 
 \newpage
+\section*{LiDAR Odometry}
+The LiDAR odometery package that we used was the MAPIRlab rf20 odometer package. The details of the package were described in their paper published in the ICRA conference. The process used for the calculation of LiDAR odometry was based on range flow on velocity estimates. 
+
+\subsection*{1. Range Flow Constraint}
+
+Assuming a static environment, the total derivative of the range measurement $r(\theta, t)$ at angle $\theta$ and time $t$ is zero:
+
+\[
+\frac{d r(\theta, t)}{dt} = \frac{\partial r}{\partial \theta} \frac{d\theta}{dt} + \frac{\partial r}{\partial t} = 0
+\]
+
+\subsection*{2. Velocity Twist of the Sensor}
+
+We represent the robot’s planar motion as a twist vector:
+
+\[
+\mathbf{v} = 
+\begin{bmatrix}
+v_x \\
+v_y \\
+\omega
+\end{bmatrix}
+\]
+
+Each point $(x_i, y_i)$ from the laser scan moves according to:
+
+\[
+\dot{x}_i = v_x - \omega y_i, \quad \dot{y}_i = v_y + \omega x_i
+\]
+
+\subsection*{3. Range Derivative from Motion}
+
+Let $r_i = \sqrt{x_i^2 + y_i^2}$ be the range. The predicted temporal change in range is:
+
+\[
+\dot{r}_i = \frac{x_i \dot{x}_i + y_i \dot{y}_i}{r_i}
+\]
+
+Substituting $\dot{x}_i$ and $\dot{y}_i$:
+
+\[
+\dot{r}_i = \frac{x_i (v_x - \omega y_i) + y_i (v_y + \omega x_i)}{r_i}
+\]
+
+\[
+\dot{r}_i = \frac{v_x x_i + v_y y_i + \omega (x_i y_i - y_i x_i)}{r_i} = \frac{v_x x_i + v_y y_i}{r_i}
+\]
+
+(The cross-term cancels out.)
+
+\subsection*{4. Least-Squares Estimation}
+
+Given measured temporal derivatives $\dot{r}_i^{\text{meas}}$, the goal is to find $\mathbf{v}$ that minimizes:
+
+\[
+E(\mathbf{v}) = \sum_i \left( \dot{r}_i^{\text{meas}} - \dot{r}_i^{\text{pred}} \right)^2
+\]
+
+This results in a linear system of the form:
+
+\[
+A \mathbf{v} = b
+\]
+
+which is solved using robust linear least-squares methods.
+
+\subsection*{Problems and issues}
+In our experiments with RF2O-based LiDAR odometry, we encountered several critical issues. Firstly, the robot's orientation appeared inconsistent over time, with the estimated $x$ and $y$ positions occasionally swapping, leading to significant localization errors. Secondly, the system continued to update the pose incrementally even when the robot was completely stationary, indicating motion when none occurred. Lastly, during actual movement, the estimated pose exhibited significant drift from the ground truth trajectory, compromising the accuracy of the robot's localization.
+
+The root causes of these problems can be traced to inherent limitations of RF2O. The orientation inconsistencies are due to the absence of an absolute reference frame—RF2O cannot distinguish between rotated coordinate frames without external input, leading to ambiguity when the robot turns. The false motion during stationarity arises from sensor noise and small variations in consecutive scans, which RF2O interprets as real movement. The drift during motion is a result of accumulating small scan alignment errors, especially in low-feature environments, due to the purely incremental nature of RF2O's pose estimation. To further asses the issue we decided to validate LiDAR odometery using an overhead camera.
 \section*{Odometry Validation}
 \quad The performance evaluation of the LiDAR odometry is carried out using an overhead camera setup. To ensure that our odometry is accurate enough for use in SLAM, the camera tracks the robot’s movement and provides a ground-truth odometry reference. Then, the data from the camera are compared to the LiDAR's.
 
