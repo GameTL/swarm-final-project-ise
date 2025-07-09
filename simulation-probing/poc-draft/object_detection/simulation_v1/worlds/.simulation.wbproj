@@ -1,0 +1,18 @@
+Webots Project File version R2023b
+perspectives: 000000ff00000000fd000000020000000100000268000002f1fc0200000001fb0000001400540065007800740045006400690074006f00720100000017000002f10000008700ffffff0000000300000780000000d9fc0100000001fb0000001a0043006f006e0073006f006c00650041006c006c0041006c006c0100000000000007800000006900ffffff00000516000002f100000001000000020000000100000008fc00000000
+simulationViewPerspectives: 000000ff0000000100000002000002060000032b0100000002010000000100
+sceneTreePerspectives: 000000ff00000001000000030000001f000000c0000000fa0100000002010000000200
+maximizedDockId: -1
+centralWidgetVisible: 1
+orthographicViewHeight: 1
+textFiles: 0 "controllers/cv_test/cv_test.py"
+consoles: Console:All:All
+renderingDevicePerspectives: TurtleBot3Burger_1:camera;1;1;0.272378;0.119769
+renderingDevicePerspectives: TurtleBot3Burger_1:display;0;1;0;0
+renderingDevicePerspectives: TurtleBot3Burger_1:range-finder;1;1;0;0
+renderingDevicePerspectives: TurtleBot3Burger_2:camera;1;1;0.404092;0.126984
+renderingDevicePerspectives: TurtleBot3Burger_2:display;0;1;0.16061;0
+renderingDevicePerspectives: TurtleBot3Burger_2:range-finder;1;1;0.418159;0.00577201
+renderingDevicePerspectives: TurtleBot3Burger_3:camera;1;1;0.0907928;0.111111
+renderingDevicePerspectives: TurtleBot3Burger_3:display;0;1;0;0
+renderingDevicePerspectives: TurtleBot3Burger_3:range-finder;1;1;0.23913;0.004329

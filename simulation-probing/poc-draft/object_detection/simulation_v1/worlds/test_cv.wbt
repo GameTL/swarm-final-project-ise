@@ -1,0 +1,59 @@
+#VRML_SIM R2023b utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/robots/robotis/turtlebot/protos/TurtleBot3Burger.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/devices/robotis/protos/RobotisLds01.proto"
+
+WorldInfo {
+}
+Viewpoint {
+  orientation 0.22953942761926935 -0.31354883715443943 -0.9214112968090402 4.940405974181465
+  position -1.285056340420922 -3.571555253918087 1.8157294509224795
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+  floorSize 3 3
+}
+Solid {
+  translation -0.238539 0.202916 0.15
+  rotation 0 0 1 0.523599
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1 1 0
+        metalness 0
+      }
+      geometry Box {
+        size 0.3 0.3 0.3
+      }
+    }
+  ]
+}
+TurtleBot3Burger {
+  hidden position_0_0 46.70378176937912
+  hidden position_0_1 23.35787558566352
+  hidden position_0_2 47.139697982986604
+  hidden position2_0_2 0.3221120855055993
+  hidden position3_0_2 -2.8524711517129786
+  hidden rotation_10 0 -1 0 5.132496688057574
+  hidden rotation_11 0.10186051563238677 -1.8043209571455873e-06 -0.994798690867579 3.141589715290711
+  hidden rotation_12 -0.1452576123515705 -0.9889014718678403 -0.031210655096300343 3.4580295117301487
+  translation -0.197004 -0.821466 0.00528131
+  rotation -0.007777711138460962 -0.007156211047489006 0.9999441463666309 0.442825
+  controller "cv_test"
+  extensionSlot [
+    Display {
+      translation 0.06 0 -0.05
+    }
+    Camera {
+      translation 0.06 0 -0.05
+    }
+    RobotisLds01 {
+    }
+  ]
+}
