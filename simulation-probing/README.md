@@ -1,8 +1,12 @@
 # This is for publication of Swarm-RAL
 to test and chekcing the timings of each state machine and record them 
+
+# Running Python?
+We use UV package manager. Install `pipx install uv` pipx so it's isolated.
+1. run `uv sync` this create an venv and install all of the packages required
+all dependancies are in the pyproject.toml
+2. add the path to the interpreter i.e. `.../swarm-final-project-ise/simulation-probing/.venv/bin/python`
 # Using Webots
-
-
 ## Installing Webots
 
 You can install Webots from the [Cyberbotics](https://cyberbotics.com) website

@@ -4,6 +4,8 @@ import json
 import asyncio
 import numpy as np
 import random
+import yaml
+import os
 from rich.pretty import pprint
 from controller import Robot, Camera, Motor, Display, Supervisor
 from swarmtools import FormationMaster
@@ -22,10 +24,36 @@ Uncomment line 252 in driver.py to enable live plotting of the robot's path + wa
 """
 
 from datetime import datetime
+
+def increment_test_counter():
+    """Read, increment, and save the test run counter."""
+    counter_file = "test_counter.yaml"
+    
+    # Read current counter value
+    if os.path.exists(counter_file):
+        with open(counter_file, 'r') as f:
+            data = yaml.safe_load(f)
+            current_count = data.get('test_runs', 0)
+    else:
+        current_count = 0
+    
+    # Increment counter
+    new_count = current_count + 1
+    
+    # Save updated counter
+    with open(counter_file, 'w') as f:
+        yaml.dump({'test_runs': new_count}, f)
+    
+    print(f"[TEST_COUNTER] Test run #{new_count}")
+    return new_count
+
 class DataCollector:
-    def __init__(self, robot_name):
+    def __init__(self, robot_name, test_run_number):
         self.data : dict[str, datetime] = dict()
         self.robot_name = robot_name
+        self.test_run_number = test_run_number
+        
+        # Save JSON files in root directory like before
         self.data_file = f"{robot_name}.json"
     
     def collect_data(self, key: str, value: datetime):
@@ -33,17 +61,28 @@ class DataCollector:
         
     
     def save_data(self):
+        # Convert datetime objects to strings for JSON serialization
+        serializable_data = {}
+        for key, value in self.data.items():
+            if isinstance(value, datetime):
+                serializable_data[key] = value.isoformat()
+            else:
+                serializable_data[key] = str(value)
+        
+        # Add test run number to the data
+        serializable_data['test_run'] = self.test_run_number
+        
         with open(self.data_file, "w") as f:
-            json.dump(self.data, f)
+            json.dump(serializable_data, f, indent=2)
 
 class SwarmMember:
-    def __init__(self, mode=0, verbose=False):
+    def __init__(self, test_run_number, mode=0, verbose=False):
         # Instantiate the robot & big objects
         
         
         self.robot = Robot()
         # For Data Collection
-        self.data_collector = DataCollector(self.robot.getName())
+        self.data_collector = DataCollector(self.robot.getName(), test_run_number)
         self.timestep = int(self.robot.getBasicTimeStep())
         self.verbose = verbose
         self.object_detector = ObjectDetector(self.robot)
@@ -271,8 +310,11 @@ def main():
         BOLD           = '\033[1m'
         ITALIC         = '\033[3m'
         UNDERLINE      = '\033[4m'
+    
+    # Increment test run counter
+    test_run_number = increment_test_counter()
         
-    member = SwarmMember()
+    member = SwarmMember(test_run_number)
     localisation_service = threading.Thread(target=member.driver.run_odometry_service)
 
     if member.driver.check_encoder_not_null_and_init():
