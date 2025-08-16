@@ -32,6 +32,7 @@ import time
 import threading 
 import traceback
 import math
+import cv2
 import numpy as np
 from rich.pretty import pprint
 # from .submodules.dynamixel_class import DynamixelInterface
@@ -355,6 +356,22 @@ def movealongy315(target_y):
     time.sleep(0.25)
     print(bcolors.GREEN_OK + f"arrvied at y= {cam_odom.current_position['y']}" + bcolors.ENDC)
     time.sleep(1.5)
+
+def lights_check():
+    """ 
+    Check if the lights are working
+    """
+    
+def camera_check(camera_id="/dev/video0"):
+    """ 
+    Check if the camera is present
+    """
+    cap = cv2.VideoCapture(camera_id, cv2.CAP_V4L2)
+    if not cap.isOpened():
+        return False
+    ret, frame = cap.read()
+    cap.release()
+    return ret and frame is not None
     
 def decode_coords(goals):
     task = []
@@ -378,7 +395,7 @@ class Init(State):
     - Motor     : Stop, read the encoder check odom if it's ok, (Check if Thread exist, Start Threading)
     - CV        : Stop, check if camera is present, then close
     - Lidar     : Running, run the LiDAR node 
-    - Odometry  : Check Wheel Movement (Threading)
+    - Lights    : Check if the lights are working
     
     Attributes:
         counter (int): Counter to    track the number of executions of this state.
@@ -402,12 +419,51 @@ class Init(State):
         """
         print(bcolors.YELLOW_WARNING + f"Executing state Init" + bcolors.ENDC)
         print(f"Robot ID: {str(ROBOT_ID)}")
+
+        if lights_check() and camera_check():
+            print(bcolors.YELLOW_WARNING + f"Checking Camera and lights" + bcolors.ENDC)
+        else:
+            print(bcolors.RED_FAIL + f"ERROR: Camera or lights check failed." + bcolors.ENDC)
+            return "end" 
         
         DEMO_TIME = 1
         time.sleep(DEMO_TIME) # for showing and filming
         
         print("Assuming the theta = 0 globally")
         return "outcome1"
+    
+class Ready(State):
+    """
+    - Motor     : Stop, read the encoder check odom if it's ok, (Check if Thread exist, Start Threading)
+    - CV        : Stop, check if camera is present, then close
+    - Lidar     : Running, run the LiDAR node 
+    
+    Attributes:
+        counter (int): Counter to track the number of executions of this state.
+    """
+
+    def __init__(self) -> None:
+        """
+        Outcomes:
+            outcome1: Indicates the state should continue to the Bar state.
+            outcome2: Indicates the state should finish execution and return.
+        """
+        super().__init__(["outcome1", "end"])
+        self.counter = 0
+
+    def execute(self, blackboard: Blackboard) -> str:
+        """
+        Executes the logic for the Foo state.
+        Args: blackboard (Blackboard): The shared data structure for states.
+        Returns: str: The outcome of the execution, which can be "outcome1" or "outcome2".
+        Raises: Exception: May raise exceptions related to state execution.
+        """
+        print(bcolors.YELLOW_WARNING + f"Executing state Ready" + bcolors.ENDC)
+        if communicator.header == "START":
+            print(bcolors.GREEN_OK + "Received START signal. Proceeding..." + bcolors.ENDC)
+            return "outcome1"
+        
+        
 
 class MoveStartPos(State):
     """
