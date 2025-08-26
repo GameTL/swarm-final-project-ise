@@ -337,10 +337,10 @@ class Communicator:
 if __name__ == "__main__":
     communicator = Communicator()
 
-    # For testing purpose
-    communicator.current_coords = [1.78, -1.05]
-    communicator.object_coords = [0.75, -0.25]
-    communicator.obstacle_coords = [[-1, -1.4], [0.6, 0.3], [0.1, 1.67]]
+    # # For testing purpose
+    # communicator.current_coords = [1.78, -1.05]
+    # communicator.object_coords = [0.75, -0.25]
+    # communicator.obstacle_coords = [[-1, -1.4], [0.6, 0.3], [0.1, 1.67]]
 
     # Start listening thread
     server_thread = threading.Thread(target=communicator.comm_thread_spawner, daemon=True)
@@ -350,10 +350,12 @@ if __name__ == "__main__":
 
     while True:
         user_input = input("Press 'S' to claim taskmaster role: ").strip().upper()
-        if user_input == "S":
+        if user_input == "c":
             communicator.object_detected()
             communicator.cleanup() # To clear waypoints and orientation
             print()
+        elif user_input == "s":
+            communicator.broadcast("START_EXPERIMENT", "") # TODO: Should be object and obstacle positions
         elif user_input == "Q":
             break
         else:

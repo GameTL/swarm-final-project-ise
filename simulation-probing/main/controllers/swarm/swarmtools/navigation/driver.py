@@ -102,17 +102,16 @@ class Driver:
         self.gps.enable(self.timestep)
         # Lidar
         self.lidar = self.robot.getDevice("lidar_sensor")
-        self.lidar.enable(self.timestep)
         self.map = np.zeros((MAP_HEIGHT, MAP_WIDTH), dtype=np.float64)
         
         self.plot_data = []
-        
-
+        self.lidar.enable(self.timestep)
 
         
     def get_pretty_position(self):
-        # return f"[helper]({self.robot_name}) Robot X position:{self.robot_position['x']:6.3f}    Robot Y position: {self.robot_position['y']:6.3f}    Robot Theta position: {self.robot_position['theta']:6.3f}    Accelerometer: {self.accelerometer.getValues()}    Gyro: {self.gyro.getValues()}"
-        return f"[helper]({self.robot_name}) Robot X position:{self.robot_position['x']:6.3f}    Robot Y position: {self.robot_position['y']:6.3f}    Robot Theta position: {self.robot_position['theta']:6.3f} ||| X+IMU_THETA position:{self.robot_position['imu_x']:6.3f}    Y+IMU_THETA position: {self.robot_position['imu_y']:6.3f}    IMU Theta position: {self.robot_position['imu_theta']:6.3f}"
+        range_image =self.lidar.getRangeImage()
+        # pprint(range_image)
+        # return f"[helper]({self.robot_name}) Robot X position:{self.robot_position['x']:6.3f}    Robot Y position: {self.robot_position['y']:6.3f}    Robot Theta position: {self.robot_position['theta']:6.3f} ||| X+IMU_THETA position:{self.robot_position['imu_x']:6.3f}    Y+IMU_THETA position: {self.robot_position['imu_y']:6.3f}    IMU Theta position: {self.robot_position['imu_theta']:6.3f}"
 
     # motion
     def move_forward(self, coeff=1):
@@ -418,6 +417,8 @@ class Driver:
         # Print the polynomial equation for debugging
         # print(f"Polynomial: {' + '.join(f'{coef:.2f}*x^{i}' for i, coef in enumerate(self.coefficients))}")
         # print(f"Moving to target: ({self.current_x:.2f}, {target_y:.2f})")
+    # def random_movement(self):
+        
     
     def check_encoder_not_null_and_init(self):
         # Wait until valid encoder values are available

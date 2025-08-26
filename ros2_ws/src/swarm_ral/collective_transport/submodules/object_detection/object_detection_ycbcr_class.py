@@ -190,7 +190,12 @@ class CVMeasure:
                         relative_angle = ((object_center_x - self._frame_center_x) / self._frame_width) * self._horizontal_fov
                         angle360 = (relative_angle + 360) % 360
                         lidar_angle_rad = self.map_cam_to_lidar(angle360)
-                        distance = self.lidar_node.get_distance(lidar_angle_rad)
+                        try:
+                            distance = self.lidar_node.get_distance(lidar_angle_rad)
+                        except Exception as e:
+                            print(f"Error getting distance: {e}")
+                            distance = None
+                            
                         width = self.find_width( distance, x, x+w)
                         if width is not None:
                             width = np.round(width,2)

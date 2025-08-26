@@ -246,6 +246,8 @@ class SwarmMember:
 
             else:
                 self.data_collector.collect_data("random_movement", str(datetime.now()))
+                
+                # Driving Options
                 self.driver.move_along_polynomial() # option for driving 1
                 # self.driver.move_forward() # option for driving 2
                 self.communicator.send_position(
