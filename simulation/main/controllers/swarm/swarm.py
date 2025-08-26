@@ -21,11 +21,29 @@ NOTES:
 Uncomment line 252 in driver.py to enable live plotting of the robot's path + waypoints, disable live plotting will allow for FASTER SIMULATION
 """
 
+from datetime import datetime
+class DataCollector:
+    def __init__(self, robot_name):
+        self.data : dict[str, datetime] = dict()
+        self.robot_name = robot_name
+        self.data_file = f"{robot_name}.json"
+    
+    def collect_data(self, key: str, value: datetime):
+        self.data[key] = value
+        
+    
+    def save_data(self):
+        with open(self.data_file, "w") as f:
+            json.dump(self.data, f)
+
 class SwarmMember:
     def __init__(self, mode=0, verbose=False):
         # Instantiate the robot & big objects
-
+        
+        
         self.robot = Robot()
+        # For Data Collection
+        self.data_collector = DataCollector(self.robot.getName())
         self.timestep = int(self.robot.getBasicTimeStep())
         self.verbose = verbose
         self.object_detector = ObjectDetector(self.robot)
@@ -62,6 +80,7 @@ class SwarmMember:
 
     def path_finding(self):
         print(f"[path_finding]({self.robot.getName()}) calculating...")
+        self.data_collector.collect_data("path_finding", str(datetime.now()))
         paths_json = self.formation_object()
 
         self.communicator.broadcast_message("[path_following]", paths_json)
@@ -88,6 +107,7 @@ class SwarmMember:
                 print(f"[{self.status}]({self.robot.getName()}) CHANGED")
 
             if self.object_detector.detect() and not self.detected_flag:
+                self.data_collector.collect_data("object_detected_start", str(datetime.now()))
                 # * As a member that found the object becomes the master.
                 print(
                     f"[object_detected]({self.robot.getName()}) found cylinder @ {cylinder_position}"
@@ -98,9 +118,11 @@ class SwarmMember:
 
             # print(self.robot.getName(),f'{status=}')
             if self.status == "idle":
+                self.data_collector.collect_data("idle", str(datetime.now()))
                 self.driver.stop()
 
             elif self.status == "consensus" and not self.detected_flag:
+                self.data_collector.collect_data("consensus", str(datetime.now()))
                 self.detected_flag = True  # detect once and top
                 self.task_master = self.robot_name
                 self.communicator.task_master = self.robot_name
@@ -109,12 +131,14 @@ class SwarmMember:
                 self.communicator.broadcast_message("[task]", cylinder_position)
 
             elif self.status == "path_finding" and self.task_master == self.robot_name:
+                self.data_collector.collect_data("path_finding", str(datetime.now()))
                 # Used only by the TaskMaster
                 self.path_finding()
                 self.status = "path_following"
                 # self.status = "idle"
 
             elif self.status == "path_following":
+                self.data_collector.collect_data("path_following", str(datetime.now()))
                 list_waypoint =  list(self.communicator.path.values())
                 
                 # Sampling
@@ -148,15 +172,18 @@ class SwarmMember:
             elif self.status == "task":
                 if self.detected_flag:
                     print(f"[task_conflict]({self.robot.getName()})")
+                    self.data_collector.collect_data("task_conflict", str(datetime.now()))
                     self.communicator.broadcast_message("[task_conflict]", self.priority_queue)
                 else:
                     print(f"[task_successful]({self.robot.getName()})")
                     self.task_master = self.communicator.task_master
+                    self.data_collector.collect_data("task_successful", str(datetime.now()))
                     self.communicator.broadcast_message("[task_successful]", self.task_master)
 
                 self.status = "idle"
 
             elif self.status == "reassign" and not self.reassign_flag:
+                self.data_collector.collect_data("reassign", str(datetime.now()))
                 task_master = self.priority_queue.pop(0)
                 if task_master == self.robot_name:
                     self.path_finding()
@@ -179,6 +206,7 @@ class SwarmMember:
                 self.reassign_flag = True
 
             else:
+                self.data_collector.collect_data("random_movement", str(datetime.now()))
                 self.driver.move_along_polynomial() # option for driving 1
                 # self.driver.move_forward() # option for driving 2
                 self.communicator.send_position(
@@ -225,6 +253,8 @@ class SwarmMember:
             #     f"[path_finding]({self.robot.getName()}) LISTENING for {cylinder_position}"
             # )
             return None
+        
+
 
 def main():
     import threading
@@ -253,6 +283,7 @@ def main():
             tb_str = traceback.format_exc()
             print(bcolors.RED_FAIL + tb_str + bcolors.ENDC)
             member.driver.alive = False
+            member.data_collector.save_data()
             quit()
         member.driver.alive = False
 
