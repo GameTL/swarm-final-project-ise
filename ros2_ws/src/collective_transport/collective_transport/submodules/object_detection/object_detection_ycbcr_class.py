@@ -158,8 +158,12 @@ class CVMeasure:
                     lower_yellow = np.array([100, 140, 50])  # Adjust as needed
                     upper_yellow = np.array([255, 255, 100])  # Adjust as needed
                     
+                    # lower_blue = np.array([0, 100, 140])  # Adjust as needed
+                    # upper_blue = np.array([255, 255, 255])  # Adjust as needed
+                    
                     # Threshold the HSV image to get only yellow colors
                     mask = cv2.inRange(ycrcb, lower_yellow, upper_yellow)
+                    # mask = cv2.inRange(ycrcb, lower_blue, upper_blue)
                     
                     # Find contours
                     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)

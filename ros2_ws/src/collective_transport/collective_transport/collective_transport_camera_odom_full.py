@@ -614,18 +614,29 @@ class SeekObject(State):
         Returns: str: The outcome of the execution, which can be "outcome1" 
         Raises: Exception: May raise exceptions related to state execution.
         """
+        def creep():
+            # move for t time
+            twist_msg.angular.z = -0.6
+            ros_manager.publish_cmd_vel(twist_msg)
+            time.sleep(0.15) 
+            
+            # move for t time
+            twist_msg.angular.z = 0.0
+            ros_manager.publish_cmd_vel(twist_msg)
+            time.sleep(0.5)
+            
         # if not hasattr(self, "cv_class"):/
         # self.cv_class = CVMeasure(cv_window=False)
         self.cv_class = CVMeasure(cv_window=True)
         print(bcolors.YELLOW_WARNING + f"Executing state SeekObject" + bcolors.ENDC)
-        
+        twist_msg = Twist()
         # TODO Sub to the object detection
         # TODO Pub twist msg to keep rotating. 
         # print(f"{self.cv_class.cylinder_detection=}")
-        
+            
+
         while 1:
-            rob_pose = [cam_odom.current_position["x"], cam_odom.current_position["y"], cam_odom.current_position["theta"]]
-        #     # print(f"{self.cv_class.cylinder_detection=}")
+            # Check Condition
             if communicator.header == "OBJECT_DETECTED":
                 ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
             if communicator.header == "PATH":  # received the path from master
@@ -633,6 +644,11 @@ class SeekObject(State):
                 print(bcolors.YELLOW_WARNING + f"RECEIVED PATH HEADER" + bcolors.ENDC)
                 return "outcome1"  # IdleSlave
             
+            # Creep
+            # creep() # --> STOPPED do CV CHECKING
+            
+            # Check
+            rob_pose = [cam_odom.current_position["x"], cam_odom.current_position["y"], cam_odom.current_position["theta"]]
             detection_info = self.cv_class.cylinder_detection
             
             # --- Simplified Validation ---
@@ -642,63 +658,55 @@ class SeekObject(State):
                 # Check if all of the first three elements are finite numbers
                 if all(math.isfinite(val) for val in detection_info[:3]):
                     is_valid_detection = True
-                    communicator.object_detected()
+                    print(f"{detection_info=}")
+                    print(f"Found an object stopping.. Validating detection data...")
+                    
+                    # Since we've validated, no need for the extra checks here,
+                    # but you might want to log the valid data explicitly if needed.
+                    print(f"Valid detection data received: {detection_info[:3]}")
+                    # break # Exit the loop as valid data is found
+                    
             # --- End Simplified Validation ---
-
-            if is_valid_detection:
-                ros_manager.publish_cmd_vel(stop_msg)
-                time.sleep(1)
-                print(f"{detection_info=}")
-                print(f"Found an object stopping.. Validating detection data...")
-                
-                # Since we've validated, no need for the extra checks here,
-                # but you might want to log the valid data explicitly if needed.
-                print(f"Valid detection data received: {detection_info[:3]}")
-                
-                break # Exit the loop as valid data is found
-
-            else:
-                # If validation failed (either not a list, too short, or contained non-finite values in the first 3)
-                print(f"Invalid or incomplete detection data: {detection_info}. Sending rotating twist msg.")
-                    twist_msg = Twist()
-                    if int(ROBOT_ID) % 1: 
-                        twist_msg.angular.z = -0.6
-                    else:
-                        twist_msg.angular.z = 0.6
-                        
-                    ros_manager.publish_cmd_vel(twist_msg)
-                    communicator.broadcast("","")
-                time.sleep(0.1)  # around 10hz
+        ### END EWHILE
+        
+        detection_info = self.cv_class.cylinder_detection # do smth
         if isinstance(detection_info, list) and len(detection_info) >= 3:
             # Check if all of the first three elements are finite numbers
-            twist_msg = Twist()
-            ros_manager.publish_cmd_vel(twist_msg)
-            if all(math.isfinite(val) for val in detection_info[:3]):
-                print(bcolors.BLUE_OK + f"Found a Detection at {detection_info=}" + bcolors.ENDC) 
-        
-                blackboard["object_info"] = detection_info
-                object_d     = detection_info[0]
-                object_w     = detection_info[1]
-                object_theta = detection_info[2]
-                
-                # communicator.object_coords = [0.0, 0.0] # assume
-                # communicator.obstacle_coords = [[-1, -1.4], [0.6, 0.3], [0.1, 1.67]] #
-                
-                object_pose = [ # robot pose  + the distance xy of the object relative to robot pose
-                    rob_pose[0] + (object_d)*math.cos(math.radians(rob_pose[2] + object_theta)) * 0.8,
-                    rob_pose[1] + (object_d)*math.sin(math.radians(rob_pose[2] + object_theta)) * 0.8
-                ]
-                # Real Results
-                communicator.object_coords = object_pose
-                # Testing Results
-                # if ROBOT_ID == "1":
-                    # communicator.object_coords = [0.5,0.5]
-            print(bcolors.BLUE_OK + f"Object Calculated: \n\trobot_pose {rob_pose}\n\tobject_pose {communicator.object_coords }" + bcolors.ENDC)
-            communicator.obstacle_coords = [] # assume
-            communicator.object_detected()
-            break
+            list_of_detections = []
+            while len(list_of_detections ) < 5:
+                if all(math.isfinite(val) for val in detection_info[:3]):
+                    list_of_detections.append(detection_info)
+                    time.sleep(0.5)
+                    # Sort the list of detections based on the element at index 1 (descending)
+            sorted_detections = sorted(list_of_detections, key=lambda detection: detection[1], reverse=True)
+            print(sorted_detections)
+            selected = sorted_detections[0]
+            print(f'{selected=}')
+                    
+            yasmin.YASMIN_LOG_INFO(bcolors.BLUE_OK + f"Found a Detection zat {detection_info=}" + bcolors.ENDC)
+    # twist_msg = Twist()
+            time.sleep(1)
+            blackboard["object_info"] = detection_info
+            object_d     = detection_info[0]
+            object_w     = detection_info[1]
+            object_theta = detection_info[2]
             
-                    # return "end" #FoundObjectHost
+            rob_pose = [cam_odom.current_position["x"], cam_odom.current_position["y"], cam_odom.current_position["theta"]]
+            # communicator.object_coords = [0.0, 0.0] # assume
+            # communicator.obstacle_coords = [[-1, -1.4], [0.6, 0.3], [0.1, 1.67]] # w
+            
+            object_pose = [ # robot pose  + the distance xy of the object relative to robot pose
+                rob_pose[0] + (object_d+object_w/2)*math.cos(math.radians(rob_pose[2] + object_theta)),
+                rob_pose[1] + (object_d+object_w/2)*math.sin(math.radians(rob_pose[2] + object_theta))
+            ]
+            # object_pose = [ # robot pose  + the distance xy of the object relative to robot pose
+            #     rob_pose[0] + (object_d)*math.cos(math.radians(rob_pose[2] + object_theta)) * 0.8,
+            #     rob_pose[1] + (object_d)*math.sin(math.radians(rob_pose[2] + object_theta)) * 0.8
+            # ]
+            communicator.object_coords = object_pose
+            yasmin.YASMIN_LOG_INFO(bcolors.BLUE_OK + f"Object Calculated: \n\trobot_pose {rob_pose}\n\tobject_pose {object_pose}" + bcolors.ENDC)
+            communicator.obstacle_coords = [] # assume
+                
         return "outcome1" #FoundObjectHost
         
 
