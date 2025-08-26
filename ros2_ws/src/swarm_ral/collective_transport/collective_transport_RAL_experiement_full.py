@@ -69,12 +69,9 @@ THRESHOLD_Y_POSITION = 0.005 # 3 cm
 THRESHOLD_THETA_POSITION = 1 # 3 cm
 MAX_WAIT = 10.0  # seconds to wait for peer acknowledgment
 
-communicator = Communicator(identifier=ROBOT_ID, odom_obj=cam_odom, suppress_output=False)
-# Start listening thread
-server_thread = threading.Thread(target=communicator.comm_thread_spawner, daemon=True)
-server_thread.start()
+communicator = Communicator(identifier="1", suppress_output=False)
 
-communicator.start_periodic_broadcast(interval_sec=1)
+# communicator.start_periodic_broadcast(interval_sec=1)
 # Create a class to manage shared ROS subscribers and publishers
 class ROSManager(Node):
     def __init__(self, node_name='state_machine_node'):
@@ -177,8 +174,12 @@ class Ready(State):
         Returns: str: The outcome of the execution, which can be "outcome1" or "outcome2".
         Raises: Exception: May raise exceptions related to state execution.
         """
+        # DATA COLLECTION: Ready State Start
+        communicator.data_collector.collect_data("ready_state_start", str(datetime.now()))
         print(bcolors.YELLOW_WARNING + f"Executing state Ready" + bcolors.ENDC)
         while True:
+            if communicator.header != '':
+                print(f"{communicator.header=}")
             if communicator.header == "START_EXPERIMENT":
                 print(bcolors.GREEN_OK + "Received START_EXPERIMENT signal. Proceeding..." + bcolors.ENDC)
                 return "outcome1"
@@ -196,6 +197,8 @@ class SeekObject(State):
         Returns: str: The outcome of the execution, which can be "outcome1" or "outcome2".
         Raises: Exception: May raise exceptions related to state execution.
         """
+        # DATA COLLECTION: Object Detection Start
+        communicator.data_collector.collect_data("object_detection_start", str(datetime.now()))
         # if not hasattr(self, "cv_class"):/
         self.cv_class = CVMeasure(cv_window=False)
         # self.cv_class = CVMeasure(cv_window=True)
@@ -217,7 +220,7 @@ class SeekObject(State):
             # --- Simplified Validation ---
             is_valid_detection = False
             if isinstance(detection_info, list) and len(detection_info) >= 3:
-                self.ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
+                # STOP MSG
                 # Check if all of the first three elements are finite numbers
                 if all(math.isfinite(val) for val in detection_info[:3]):
                     is_valid_detection = True
@@ -237,7 +240,7 @@ class SeekObject(State):
         if isinstance(detection_info, list) and len(detection_info) >= 3:
             # Check if all of the first three elements are finite numbers
             twist_msg = Twist()
-            self.ros_manager.publish_cmd_vel(twist_msg)
+            # STOP MSG
             if all(math.isfinite(val) for val in detection_info[:3]):
                 print(bcolors.BLUE_OK + f"Found a Detection at {detection_info=}" + bcolors.ENDC) 
                 
@@ -301,20 +304,20 @@ class PathFollowing(State):
         Returns: str: The outcome of the execution, which can be "outcome1" or "outcome2".
         Raises: Exception: May raise exceptions related to state execution.
         """
+        # DATA COLLECTION: Path Following Start
+        communicator.data_collector.collect_data("path_following", str(datetime.now()))
         print(bcolors.YELLOW_WARNING + f"Executing state PathFollowing" + bcolors.ENDC)
         pprint(communicator.command)
         pprint(communicator.orientation)
 
         
-        ros_manager.publish_cmd_vel(stop_msg) # STOP MSGk
-        ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
-        ros_manager.publish_cmd_vel(stop_msg) # STOP MSG
+        # STOP MSG
         time.sleep(1)
         return "outcome1"
 """
 New stuff here
 """
-class AtObject(State):
+class EndingExperiment(State):
     """
     Both robots have reached the object and acknowledge gripping it.
     """
@@ -322,118 +325,26 @@ class AtObject(State):
         super().__init__(["outcome1", "end"])
 
     def execute(self, blackboard: Blackboard) -> str:
-        print(bcolors.YELLOW_WARNING + "Executing AtObject state: acknowledging object grip" + bcolors.ENDC)
+        print(bcolors.YELLOW_WARNING + "Executing EndingExperiment state: Ending Experiment" + bcolors.ENDC)
         # broadcast that this robot has gripped the object
-        communicator.broadcast("AT_OBJECT", communicator.object_coords)
+        communicator.broadcast("END_EXPERIMENT", communicator.object_coords)
         # wait for peer to acknowledge grip
         start = time.time()
         while time.time() - start < MAX_WAIT:
-            if getattr(communicator, "header", None) == "AT_OBJECT":
+            if getattr(communicator, "header", None) == "END_EXPERIMENT":
                 break
             time.sleep(0.1)
         else:
-            self.get_logger().warn("Peer did not acknowledge in time")
             return "end"            
-        print(bcolors.GREEN_OK + "Both robots have acknowledged object grip" + bcolors.ENDC)
+        print(bcolors.GREEN_OK + "Both robots have acknowledged ending experiment" + bcolors.ENDC)
+        print(bcolors.GREEN_OK + "Clean shutdown completed." + bcolors.ENDC)
+        print(bcolors.GREEN_OK + "Saving data..." + bcolors.ENDC)
+        print(bcolors.GREEN_OK + f"{communicator.data_collector.data} | test_run: {communicator.data_collector.test_run_number}" + bcolors.ENDC)
+        communicator.data_collector.save_data()
         return "outcome1"
-
-
-class DiagonalTransport(State):
-    """
-    Executes collective diagonal transport using jacobian-based PI control.
-    """
-
-    def __init__(self) -> None:
-        super().__init__(["outcome1", "end"])
-        # === Diagonal collective-transport setup ===
-        self.r       = 0.05
-        self.L       = 0.2
-        phi1         = np.deg2rad([45, 135, -135, -45])
-        phi2         = phi1 + np.pi
-        x1           = np.array([ self.L, -self.L, -self.L,  self.L])
-        y1           = np.array([ self.L,  self.L, -self.L, -self.L])
-        x2, y2       = -x1, -y1
-
-        # build Jacobians
-        def build_jacobian(phi, x, y):
-            A = np.zeros((4,3))
-            for i in range(4):
-                A[i] = [
-                    np.cos(phi[i]),
-                    np.sin(phi[i]),
-                    x[i]*np.sin(phi[i]) - y[i]*np.cos(phi[i])
-                ]
-            return A
-
-        A1 = build_jacobian(phi1, x1, y1)
-        A2 = build_jacobian(phi2, x2, y2)
-        self.J1 = np.linalg.pinv(A1)
-        self.J2 = np.linalg.pinv(A2)
-
-        # PI controller gains
-        K           = 1.0    # TODO: measure this
-        self.Kp     = 8.0/K
-        Ti          = 0.25
-        self.Ki     = self.Kp / Ti
-
-        # references
-        self.phi_ref = -np.pi/4   # -45°
-        self.v_diag  = 0.35
-        self.dt      = 0.01
-        self.e_int   = 0.0
-
-
-    def execute(self, blackboard: Blackboard) -> str:
-        print(bcolors.YELLOW_WARNING + "Executing DiagonalTransport state (pure diagonal)" + bcolors.ENDC)
-
-        # --- PI yaw controller  ---
-        theta = np.deg2rad(cam_odom.current_position["theta"])
-        e = (self.phi_ref - theta + np.pi) % (2 * np.pi) - np.pi
-        self.e_int += e * self.dt
-        U = self.Kp * e + self.Ki * self.e_int
-        wz = U
-
-        # Desired chassis velocities (global –45°), no rotation
-        vx = self.v_diag * np.cos(self.phi_ref)
-        vy = self.v_diag * np.sin(self.phi_ref)
-
-        # Build and publish a Twist → driver will spin only the two 315° wheels
-        twist = Twist()
-        twist.linear.x, twist.linear.y = globaltorobottf(vx, vy, cam_odom.current_position["theta"])
-        twist.angular.z = 0.0
-        ros_manager.publish_cmd_vel(twist)
-
-        return "outcome1"
-    
-# class DiagonalTransport(State):          Uses the move along functions
-#     """
-#     Executes collective transports in global x and y.
-#     """
-#     def __init__(self) -> None:
-#         super().__init__(["outcome1", "end"])
-
-#     def execute(self, blackboard: Blackboard) -> str:
-#         print(bcolors.YELLOW_WARNING + "Executing DiagonalTransportAxes state (axis-based diagonal)" + bcolors.ENDC)
-#         # Retrieve global object coordinates
-#         target_x, target_y = communicator.object_coords[0], communicator.object_coords[1]
-#         # First move along global X using the 315° wheel
-#         movealongx315(target_x)
-#         # Then move along global Y using the 315° wheel
-#         movealongy315(target_y)
-#         return "outcome1"
-
-
-
 
               
 def main(args=None):
-    global cam_odom
-    
-
-    print("yasmin_frfr")
-
-    
-
     
     
     # Set ROS 2 loggers
@@ -447,7 +358,7 @@ def main(args=None):
     sm.add_state("Ready", Ready(), transitions={"outcome1": "SeekObject","end": "outcome4"})
     
     sm.add_state("SeekObject", SeekObject(), transitions={"outcome1": "PathFollowing","loop": "SeekObject","end": "outcome4"})
-    # tell arrvied via comms  AtObject
+    # tell arrvied via comms  EndingExperiment
     # click in place 
     # move 45 degrees towards the center 
     
@@ -455,10 +366,10 @@ def main(args=None):
     # sm.add_state("FoundObject", FoundObject(), transitions={"outcome1": "BAR","end": "outcome4"}) #Slave
     # sm.add_state("PathPlanning", PathPlanning(), transitions={"outcome1": "BAR","end": "outcome4"}) #Slave
     
-    sm.add_state("PathFollowing", PathFollowing(), transitions={"outcome1": "AtObject","end": "outcome4"}) #Slave
+    sm.add_state("PathFollowing", PathFollowing(), transitions={"outcome1": "EndingExperiment","end": "outcome4"}) #Slave
     
-    sm.add_state("AtObject", AtObject(), transitions={"outcome1": "DiagonalTransport","end": "outcome4"})
-    sm.add_state("DiagonalTransport", DiagonalTransport(), transitions={"outcome1": "outcome4", "end":"outcome4"})
+    sm.add_state("EndingExperiment", EndingExperiment(), transitions={"outcome1": "outcome4","end": "outcome4"})
+    # sm.add_state("DiagonalTransport", DiagonalTransport(), transitions={"outcome1": "outcome4", "end":"outcome4"})
 
     
     # Start listening thread
@@ -468,20 +379,42 @@ def main(args=None):
     try:
         print("State Machine starting")
         outcome = sm()
-        print(outcome)
+        print(f"State Machine finished with outcome: {outcome}")
+        
+        if outcome == "outcome4":
+            print(bcolors.GREEN_OK + "Experiment completed successfully. Cleaning up..." + bcolors.ENDC)
+            # Stop all motion
+            ros_manager.publish_cmd_vel(stop_msg)
+            time.sleep(0.5)  # Give time for the stop command to be processed
+            
+            # Clean up ROS and other resources
+            if rclpy.ok():
+                rclpy.shutdown()
+            
+            print(bcolors.GREEN_OK + "Clean shutdown completed." + bcolors.ENDC)
+            print(bcolors.GREEN_OK + "Saving data..." + bcolors.ENDC)
+            print(bcolors.GREEN_OK + f"{communicator.data_collector.data} | test_run: {communicator.data_collector.test_run_number}" + bcolors.ENDC)
+            communicator.data_collector.save_data()
+            os._exit(0)  # Force clean exit
+            
     except KeyboardInterrupt:
+        print(bcolors.YELLOW_WARNING + "\nProcess interrupted by user. Cleaning up..." + bcolors.ENDC)
         time.sleep(1)
-        ros_manager.publish_cmd_vel(stop_msg)
-        ros_manager.publish_cmd_vel(stop_msg)
+        # Stop all motion
         ros_manager.publish_cmd_vel(stop_msg)
         time.sleep(1)
         if sm.is_running():
             sm.cancel_state()
-    server_thread.join()
+    
+    # Wait for server thread to complete
+    server_thread.join(timeout=2.0)  # Add timeout to prevent hanging
 
     # Shutdown ROS 2 if it's running
     if rclpy.ok():
         rclpy.shutdown()
+        
+    print(bcolors.RED_FAIL + "Exiting due to error or interruption" + bcolors.ENDC)
+    os._exit(1)  # Exit with error code
 
 if __name__ == '__main__':
     main()

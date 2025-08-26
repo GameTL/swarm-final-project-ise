@@ -4,11 +4,13 @@ import time
 import socket
 import threading
 import os
+import yaml
+from datetime import datetime
 from collections import defaultdict
 from .formation import FormationMaster
 from .translator import Translator
 
-IDENTIFIER = "1"
+IDENTIFIER = "3"
 HOST_FP = f"{os.path.dirname(os.path.realpath(__file__))}/hosts.json" # from the same location this file find host.json
 MAX_CONNECTIONS = 5
 TIMEOUT = 5
@@ -26,9 +28,68 @@ class bcolors:
     BOLD           = '\033[1m'
     ITALIC         = '\033[3m'
     UNDERLINE      = '\033[4m'
+
+def increment_test_counter():
+    """Read, increment, and save the test run counter."""
+    counter_file = "test_counter.yaml"
+    
+    # Read current counter value
+    if os.path.exists(counter_file):
+        with open(counter_file, 'r') as f:
+            data = yaml.safe_load(f)
+            current_count = data.get('test_runs', 0)
+    else:
+        current_count = 0
+    
+    # Increment counter
+    new_count = current_count + 1
+    
+    # Save updated counter
+    with open(counter_file, 'w') as f:
+        yaml.dump({'test_runs': new_count}, f)
+    
+    print(f"[TEST_COUNTER] Test run #{new_count}")
+    return new_count
+
+
+class DataCollector:
+    def __init__(self, robot_name, test_run_number):
+        self.data : dict[str, datetime] = dict()
+        self.robot_name = robot_name
+        self.test_run_number = test_run_number
+        
+        # Save JSON files in root directory like before
+        self.data_file = f"TurtleBot3Burger_{test_run_number}.json"
+    
+    def reset_data(self):
+        self.data = dict()
+        
+    def collect_data(self, key: str, value: datetime):
+        self.data[key] = value
+        
+    
+    def save_data(self):
+        # Convert datetime objects to strings for JSON serialization
+        serializable_data = {}
+        for key, value in self.data.items():
+            if isinstance(value, datetime):
+                serializable_data[key] = value.isoformat()
+            else:
+                serializable_data[key] = str(value)
+        
+        # Add test run number to the data
+        serializable_data['test_run'] = self.test_run_number
+        
+        with open(self.data_file, "w") as f:
+            json.dump(serializable_data, f, indent=2)
+
+
+
+
 class Communicator:
     def __init__(self, host_fp=HOST_FP, identifier=IDENTIFIER, max_connections=MAX_CONNECTIONS, suppress_output=False,suppress_debug_coords=True, odom_obj=None):
         # Initialize default attributes
+        self.data_collector = DataCollector(identifier, increment_test_counter())
         self.host_fp = host_fp
         self.identifier = identifier
         self.max_connections = max_connections
@@ -39,9 +100,9 @@ class Communicator:
 
         # For object detection and path planning
         try:
-            self.current_coords = [ self.odom_obj.current_position["x"],self.odom_obj.current_position["y"] ]
+            self.current_coords = [self.odom_obj.current_position["x"],self.odom_obj.current_position["y"] ]
         except:
-            self.current_coords = [ 0.69,  0.69]
+            self.current_coords = [0.69,  0.69]
             
         self.coords_dict = {}
         self.obstacle_coords = [] # Should know from lidar
@@ -102,6 +163,8 @@ class Communicator:
                 print(bcolors.YELLOW_WARNING + f"RECEIVING {header,sender, content}" + bcolors.ENDC)
             if header == "OBJECT_DETECTED":
                 print("[INFO] Object detected, stopping.") # TODO Replace with actual functionality
+                # DATA COLLECTION: Consensus Start
+                self.data_collector.collect_data("consensus", str(datetime.now()))
                 self.consensus(sender)  # Trigger consensus function
             # elif header == "CONSENSUS_REACHED":
             #     print(f"[INFO] Consensus reached, taskmaster is {content}")
@@ -113,6 +176,8 @@ class Communicator:
                 if len(self.coords_dict) == len(self.priority_queue):
                     # print(f"({self.identifier}) {self.taskmaster}")
                     if self.identifier == self.taskmaster:
+                        # DATA COLLECTION: Path Planning Start
+                        self.data_collector.collect_data("path_finding", str(datetime.now()))
                         self.path_planning(
                             current_coords=self.coords_dict,
                             object_coords=self.object_coords,

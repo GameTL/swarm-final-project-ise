@@ -6,14 +6,14 @@ import rclpy
 import threading
 import csv
 import os
+from typing import Union
+
 try:
-    from .utils.lidar_reader import LidarReader
-except:
-    pass
-try:
-    from utils.lidar_reader import LidarReader
-except:
-    pass
+    # Try importing as a package first
+    from .lidar_reader import LidarReader
+except ImportError:
+    # If that fails, try direct import
+    from lidar_reader import LidarReader
 
 window_title = "Yellow Cylinder Detection"
 
@@ -246,12 +246,15 @@ class CVMeasure:
             print("Unable to open camera")
 
 if __name__ == "__main__":
-    cv_class = CVMeasure(cv_window=True)
+    cv_class = CVMeasure(cv_window=False)
     
     try:
-        cv_class.detect_yellow_cylinder()
+        distance = cv_class.lidar_node.get_distance(0)
+        print(f"LiDAR distance: {distance}")
+        # cv_class.detect_yellow_cylinder()
+        
     except KeyboardInterrupt:
         print("\nProcess interrupted by user.")
     finally:
         rclpy.shutdown()
-        
+        print("\nShutdown complete.")

@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
 import numpy as np
-
+from typing import Union
 
 class LidarReader(Node):
     def __init__(self):
@@ -20,7 +20,7 @@ class LidarReader(Node):
     def all_distances(self):
         return np.array(self.latest_scan.ranges)
 
-    def get_distance(self, rad):
+    def get_distance(self, rad) -> Union[float, None]:
         if self.latest_scan is None:
             return None
         

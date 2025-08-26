@@ -32,7 +32,7 @@ def generate_launch_description():
         
         # SLLIDAR S3 nodes
         # Node(
-        #     #  ros2 launch sllidar_ros2 sllidar_s3_launch.py 'serial_port:=/dev/ttyUSB1'
+        #     #  ros2 launch sllidar_ros2 sllidar_s3_launch.py 'serial_port:=/dev/ttyUSB0'
         #     package='sllidar_ros2',
         #     executable='sllidar_s3_launch',
         #     name='sllidar_launch',
@@ -74,12 +74,12 @@ def generate_launch_description():
         #     output='screen' # make this node visable on terminal
         # ),
         # Dyanmixel controller node
-        Node(
-            package='x_drive_controller',
-            executable='x_drive_controller',
-            name='x_drive_controller',
-            output='screen' # make this node visable on terminal
-        ),
+        # Node(
+        #     package='x_drive_controller',
+        #     executable='x_drive_controller',
+        #     name='x_drive_controller',
+        #     output='screen' # make this node visable on terminal
+        # ),
 
         #* RPLIDAR LAUNCH PART
         DeclareLaunchArgument(
