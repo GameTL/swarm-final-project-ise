@@ -147,34 +147,72 @@ class SwarmMember:
 
             if self.object_detector.detect() and not self.detected_flag:
                 self.data_collector.collect_data("object_detected_start", str(datetime.now()))
-                # * As a member that found the object becomes the master.
+                # * As a member that found the object, initiate consensus
                 print(
                     f"[object_detected]({self.robot.getName()}) found cylinder @ {cylinder_position}"
                 )
-                # self.status = "path_finding"  
-                self.status = "consensus"  
                 self.driver.stop()
+                
+                # Use the new consensus mechanism from communicator
+                self.detected_flag = True
+                self.communicator.object_detected(cylinder_position)
+                self.task_master = self.communicator.task_master
+                self.status = "consensus_wait"
 
-            # print(self.robot.getName(),f'{status=}')
+            # Handle status from listener
             if self.status == "idle":
                 self.data_collector.collect_data("idle", str(datetime.now()))
                 self.driver.stop()
 
-            elif self.status == "consensus" and not self.detected_flag:
+            elif self.status == "consensus_received":
+                # Another robot detected the object and triggered consensus
+                self.data_collector.collect_data("consensus_received", str(datetime.now()))
+                self.detected_flag = True  # Mark as detected to stop random movement
+                self.task_master = self.communicator.task_master
+                self.driver.stop()
+                
+                if self.communicator.is_taskmaster():
+                    print(f"[consensus_received]({self.robot.getName()}) I am the taskmaster after conflict resolution")
+                    self.status = "path_finding"
+                else:
+                    print(f"[consensus_received]({self.robot.getName()}) Taskmaster is {self.task_master}, waiting for path...")
+                    self.status = "idle"
+
+            elif self.status == "consensus_wait":
+                # We initiated consensus, check if we're the taskmaster
                 self.data_collector.collect_data("consensus", str(datetime.now()))
-                self.detected_flag = True  # detect once and top
-                self.task_master = self.robot_name
-                self.communicator.task_master = self.robot_name
+                self.task_master = self.communicator.task_master
+                
+                if self.communicator.is_taskmaster():
+                    print(f"[consensus_wait]({self.robot.getName()}) I am the taskmaster, proceeding to path finding...")
+                    self.status = "path_finding"
+                else:
+                    print(f"[consensus_wait]({self.robot.getName()}) Lost consensus, taskmaster is {self.task_master}")
+                    self.status = "idle"
 
-                print(f"[consensus]({self.robot.getName()}) waiting consensus...")
-                self.communicator.broadcast_message("[task]", cylinder_position)
+            elif self.status == "consensus" and not self.detected_flag:
+                # Legacy support - should use consensus_wait instead
+                self.data_collector.collect_data("consensus", str(datetime.now()))
+                self.detected_flag = True
+                self.communicator.object_detected(cylinder_position)
+                self.task_master = self.communicator.task_master
+                
+                if self.communicator.is_taskmaster():
+                    self.status = "path_finding"
+                else:
+                    self.status = "idle"
 
-            elif self.status == "path_finding" and self.task_master == self.robot_name:
+            elif self.status == "path_finding":
+                # Only the taskmaster should do path finding
+                if not self.communicator.is_taskmaster():
+                    print(f"[path_finding]({self.robot.getName()}) Not taskmaster, skipping...")
+                    self.status = "idle"
+                    continue
+                    
                 self.data_collector.collect_data("path_finding", str(datetime.now()))
                 # Used only by the TaskMaster
                 self.path_finding()
                 self.status = "path_following"
-                # self.status = "idle"
 
             elif self.status == "path_following":
                 self.data_collector.collect_data("path_following", str(datetime.now()))
@@ -209,40 +247,53 @@ class SwarmMember:
                 # break
 
             elif self.status == "task":
+                # This robot received a task notification from another robot
                 if self.detected_flag:
-                    print(f"[task_conflict]({self.robot.getName()})")
+                    # We also detected the object - conflict!
+                    print(f"[task_conflict]({self.robot.getName()}) Both robots detected, using consensus...")
                     self.data_collector.collect_data("task_conflict", str(datetime.now()))
-                    self.communicator.broadcast_message("[task_conflict]", self.priority_queue)
-                else:
-                    print(f"[task_successful]({self.robot.getName()})")
+                    
+                    # Use consensus mechanism to resolve conflict
+                    self.communicator.consensus(self.robot_name)  # Add our claim
                     self.task_master = self.communicator.task_master
+                    
+                    if self.communicator.is_taskmaster():
+                        print(f"[task_conflict]({self.robot.getName()}) I won the consensus, proceeding to path finding...")
+                        self.status = "path_finding"
+                    else:
+                        print(f"[task_conflict]({self.robot.getName()}) Lost consensus, waiting for path from {self.task_master}")
+                        self.status = "idle"
+                else:
+                    # We didn't detect, accept the other robot as taskmaster
+                    print(f"[task_successful]({self.robot.getName()}) Accepted {self.communicator.task_master} as taskmaster")
+                    self.task_master = self.communicator.task_master
+                    self.detected_flag = True  # Mark that we're now aware of detection
                     self.data_collector.collect_data("task_successful", str(datetime.now()))
                     self.communicator.broadcast_message("[task_successful]", self.task_master)
-
-                self.status = "idle"
+                    self.status = "idle"
 
             elif self.status == "reassign" and not self.reassign_flag:
+                # Conflict was detected, consensus mechanism will determine the taskmaster
                 self.data_collector.collect_data("reassign", str(datetime.now()))
-                task_master = self.priority_queue.pop(0)
-                if task_master == self.robot_name:
+                self.reassign_flag = True
+                
+                # The consensus has already been run, just check who is the taskmaster
+                self.task_master = self.communicator.task_master
+                
+                if self.communicator.is_taskmaster():
+                    print(f"[reassign]({self.robot.getName()}) I am the new taskmaster after reassign")
                     self.path_finding()
-                    self.status = "path_finding"
+                    self.status = "path_following"
                     self.path = self.communicator.path
 
-                    if self.path != "":
-                        # self.driver.move_forward()
+                    if self.path != "" and self.path is not None:
                         self.driver.simple_follow_path(self.path)
-                        # self.driver.anti_clockwise_spin()
                         quit()
-                        # self.driver.stop()
                     self.status = "idle"
                 else:
-                    self.task_master = task_master
-                    self.communicator.task_master = task_master
+                    print(f"[reassign]({self.robot.getName()}) Taskmaster is {self.task_master}, waiting for path")
                     self.communicator.broadcast_message("[task_successful]", self.task_master)
                     self.status = "idle"
-                self.priority_queue.append(task_master)
-                self.reassign_flag = True
 
             else:
                 self.data_collector.collect_data("random_movement", str(datetime.now()))
