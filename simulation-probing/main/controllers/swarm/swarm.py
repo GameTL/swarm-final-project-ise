@@ -6,8 +6,37 @@ import numpy as np
 import random
 import yaml
 import os
+import inspect
 from rich.pretty import pprint
 from controller import Robot, Camera, Motor, Display, Supervisor
+
+# Override built-in print globally to show calling function name
+# This will help identify which function is printing None
+_original_print = __builtins__['print']
+
+def print(*args, **kwargs):
+    """Override print() to show calling function name"""
+    try:
+        frame = inspect.currentframe().f_back
+        func_name = frame.f_code.co_name
+        class_name = None
+        if 'self' in frame.f_locals:
+            class_name = frame.f_locals['self'].__class__.__name__
+            prefix = f"[{class_name}.{func_name}]"
+        else:
+            prefix = f"[{func_name}]"
+        
+        # Filter out None values to avoid printing them
+        filtered_args = [arg for arg in args if arg is not None]
+        if filtered_args or args:  # Only print if there are non-None args or if explicitly passed
+            _original_print(f"{prefix}:", *filtered_args if filtered_args else args, **kwargs)
+    except:
+        # Fallback to original print if inspection fails
+        _original_print(*args, **kwargs)
+
+# Override in builtins so it affects all modules
+__builtins__['print'] = print
+
 from swarmtools import FormationMaster
 from swarmtools import ObjectDetector
 from swarmtools import Communicator
@@ -44,7 +73,7 @@ def increment_test_counter():
     with open(counter_file, 'w') as f:
         yaml.dump({'test_runs': new_count}, f)
     
-    print(f"[TEST_COUNTER] Test run #{new_count}")
+    print(f"[TEST_COUNTER](system): Test run #{new_count}")
     return new_count
 
 class DataCollector:
@@ -115,10 +144,10 @@ class SwarmMember:
 
 
     def print_position(self):
-        print(f"[helper]({self.robot.getName()}) Robot X position: {self.driver.robot_position['x']:6.3f}    Robot Y position: {self.driver.robot_position['y']:6.3f}    Robot Theta position: {self.driver.robot_position['theta']:6.3f}")
+        print(f"[{self.robot.getName()}](helper): Robot X position: {self.driver.robot_position['x']:6.3f}    Robot Y position: {self.driver.robot_position['y']:6.3f}    Robot Theta position: {self.driver.robot_position['theta']:6.3f}")
 
     def path_finding(self):
-        print(f"[path_finding]({self.robot.getName()}) calculating...")
+        print(f"[{self.robot.getName()}](path_finding): calculating...")
         self.data_collector.collect_data("path_finding", str(datetime.now()))
         paths_json = self.formation_object()
 
@@ -127,7 +156,7 @@ class SwarmMember:
         if self.path == None:
             self.path = self.communicator.path
         if self.verbose:
-            print(f"[{self.status}]{self.robot_name}: {self.path}")  # big print
+            print(f"[{self.robot_name}]({self.status}): {self.path}")  # big print
         
         paths = ast.literal_eval(paths_json)
         if self.robot_name in paths.keys():
@@ -136,20 +165,20 @@ class SwarmMember:
 
     def random_movement_find(self):
         
-        print(f"{self.priority_queue} from {self.robot_name}")
+        print(f"[{self.robot_name}](random_movement): Priority queue: {self.priority_queue}")
         while self.robot.step(self.timestep) != -1:
             # Check for incoming messages
             status = self.communicator.listen_to_message()
             if status != None:
                 self.status = status
             if self.status_prev != self.status or self.verbose:
-                print(f"[{self.status}]({self.robot.getName()}) CHANGED")
+                print(f"[{self.robot.getName()}]({self.status}): CHANGED")
 
             if self.object_detector.detect() and not self.detected_flag:
                 self.data_collector.collect_data("object_detected_start", str(datetime.now()))
                 # * As a member that found the object, initiate consensus
                 print(
-                    f"[object_detected]({self.robot.getName()}) found cylinder @ {cylinder_position}"
+                    f"[{self.robot.getName()}](object_detected): found cylinder @ {cylinder_position}"
                 )
                 self.driver.stop()
                 
@@ -172,10 +201,10 @@ class SwarmMember:
                 self.driver.stop()
                 
                 if self.communicator.is_taskmaster():
-                    print(f"[consensus_received]({self.robot.getName()}) I am the taskmaster after conflict resolution")
+                    print(f"[{self.robot.getName()}](consensus_received): I am the taskmaster after conflict resolution")
                     self.status = "path_finding"
                 else:
-                    print(f"[consensus_received]({self.robot.getName()}) Taskmaster is {self.task_master}, waiting for path...")
+                    print(f"[{self.robot.getName()}](consensus_received): Taskmaster is {self.task_master}, waiting for path...")
                     self.status = "idle"
 
             elif self.status == "consensus_wait":
@@ -184,10 +213,10 @@ class SwarmMember:
                 self.task_master = self.communicator.task_master
                 
                 if self.communicator.is_taskmaster():
-                    print(f"[consensus_wait]({self.robot.getName()}) I am the taskmaster, proceeding to path finding...")
+                    print(f"[{self.robot.getName()}](consensus_wait): I am the taskmaster, proceeding to path finding...")
                     self.status = "path_finding"
                 else:
-                    print(f"[consensus_wait]({self.robot.getName()}) Lost consensus, taskmaster is {self.task_master}")
+                    print(f"[{self.robot.getName()}](consensus_wait): Lost consensus, taskmaster is {self.task_master}")
                     self.status = "idle"
 
             elif self.status == "consensus" and not self.detected_flag:
@@ -205,7 +234,7 @@ class SwarmMember:
             elif self.status == "path_finding":
                 # Only the taskmaster should do path finding
                 if not self.communicator.is_taskmaster():
-                    print(f"[path_finding]({self.robot.getName()}) Not taskmaster, skipping...")
+                    print(f"[{self.robot.getName()}](path_finding): Not taskmaster, skipping...")
                     self.status = "idle"
                     continue
                     
@@ -222,7 +251,7 @@ class SwarmMember:
                 self.driver.sorted_waypoints = list(self.communicator.path.values())[::45]
                 # self.driver.sorted_waypoints = []
                 self.driver.sorted_waypoints.append(list_waypoint[-1])
-                print(f"[path_printing_reduced]({self.robot_name}) {self.driver.sorted_waypoints}")
+                print(f"[{self.robot_name}](path_following): Reduced waypoints: {self.driver.sorted_waypoints}")
                 # if self.robot_name != "TurtleBot3Burger_1":
                 #     quit()
 
@@ -250,7 +279,7 @@ class SwarmMember:
                 # This robot received a task notification from another robot
                 if self.detected_flag:
                     # We also detected the object - conflict!
-                    print(f"[task_conflict]({self.robot.getName()}) Both robots detected, using consensus...")
+                    print(f"[{self.robot.getName()}](task_conflict): Both robots detected, using consensus...")
                     self.data_collector.collect_data("task_conflict", str(datetime.now()))
                     
                     # Use consensus mechanism to resolve conflict
@@ -258,14 +287,14 @@ class SwarmMember:
                     self.task_master = self.communicator.task_master
                     
                     if self.communicator.is_taskmaster():
-                        print(f"[task_conflict]({self.robot.getName()}) I won the consensus, proceeding to path finding...")
+                        print(f"[{self.robot.getName()}](task_conflict): I won the consensus, proceeding to path finding...")
                         self.status = "path_finding"
                     else:
-                        print(f"[task_conflict]({self.robot.getName()}) Lost consensus, waiting for path from {self.task_master}")
+                        print(f"[{self.robot.getName()}](task_conflict): Lost consensus, waiting for path from {self.task_master}")
                         self.status = "idle"
                 else:
                     # We didn't detect, accept the other robot as taskmaster
-                    print(f"[task_successful]({self.robot.getName()}) Accepted {self.communicator.task_master} as taskmaster")
+                    print(f"[{self.robot.getName()}](task_successful): Accepted {self.communicator.task_master} as taskmaster")
                     self.task_master = self.communicator.task_master
                     self.detected_flag = True  # Mark that we're now aware of detection
                     self.data_collector.collect_data("task_successful", str(datetime.now()))
@@ -281,7 +310,7 @@ class SwarmMember:
                 self.task_master = self.communicator.task_master
                 
                 if self.communicator.is_taskmaster():
-                    print(f"[reassign]({self.robot.getName()}) I am the new taskmaster after reassign")
+                    print(f"[{self.robot.getName()}](reassign): I am the new taskmaster after reassign")
                     self.path_finding()
                     self.status = "path_following"
                     self.path = self.communicator.path
@@ -291,7 +320,7 @@ class SwarmMember:
                         quit()
                     self.status = "idle"
                 else:
-                    print(f"[reassign]({self.robot.getName()}) Taskmaster is {self.task_master}, waiting for path")
+                    print(f"[{self.robot.getName()}](reassign): Taskmaster is {self.task_master}, waiting for path")
                     self.communicator.broadcast_message("[task_successful]", self.task_master)
                     self.status = "idle"
 

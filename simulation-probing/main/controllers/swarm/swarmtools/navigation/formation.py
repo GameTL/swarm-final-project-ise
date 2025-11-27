@@ -23,9 +23,9 @@ class FormationMaster:
         self.fineness = fineness
         self.debug_level = debug_level
         if self.debug_level != 0:
-            print(f"(helper)[DEBUG] Initializing with Debug Level {self.debug_level}")
+            print(f"[{self.robot.getName()}](helper): Initializing with Debug Level {self.debug_level}")
         else:
-            print(f"(helper)[DEBUG] Not initializing Formation debugger")
+            print(f"[{self.robot.getName()}](helper): Not initializing Formation debugger")
         self.go_around = False
         self.previous_movement = ""
 
@@ -72,7 +72,7 @@ class FormationMaster:
         return round(math.sqrt((current[0] - end[0]) ** 2 + (current[1] - end[1]) ** 2), self.fineness)
 
     def match_coords(self):
-        print("# ===== Matching coordinates ===== #")
+        print(f"[{self.robot.getName()}](formation): ===== Matching coordinates =====")
         distances = {}
         for member in self.member_list:
             # Compute distance from each robot to targets
@@ -98,16 +98,16 @@ class FormationMaster:
         for member, order in self.matches.items():
             self.matches[member] = self.target_coords[order]
         
-        print(f"Matches: {self.matches}")
+        print(f"[{self.robot.getName()}](formation): Matches: {self.matches}")
 
     def plan_paths(self):
-        print("# ===== Calculating paths ===== #")
+        print(f"[{self.robot.getName()}](formation): ===== Calculating paths =====")
         
         for (robot_id, target) in self.matches.items():
             start = self.current_coords[robot_id][0:2]
             end = target
 
-            print(f"[path_planning]({self.robot.getName()}) Assigning {robot_id} {start} -> {end}")
+            print(f"[{self.robot.getName()}](path_planning): Assigning {robot_id} {start} -> {end}")
             path = self.path_planning_algorithm(start=start, end=end)
             
             self.paths[robot_id] = path
@@ -164,9 +164,9 @@ class FormationMaster:
         
     def obstacle_avoidance(self, current_coords):
         if self.previous_movement == "ERROR":
-            print("(helper)[ERROR] An error occurred while resolving obstacle avoidance")
+            print(f"[{self.robot.getName()}](helper): ERROR - An error occurred while resolving obstacle avoidance")
         if self.previous_movement == "00" and self.debug_level == 2:
-            print("(helper)[DEBUG] Waiting")
+            print(f"[{self.robot.getName()}](helper): DEBUG - Waiting")
         
         if self.previous_movement[1] == "x":
             if self.previous_movement[0] == "+":
@@ -204,7 +204,7 @@ class FormationMaster:
                 self.movement_options.append(selection)
         
         if self.debug_level == 1:
-            print(f"(helper)[DEBUG] Edge case: {self.movement_options=}")
+            print(f"[{self.robot.getName()}](helper): DEBUG - Edge case: {self.movement_options=}")
 
     def path_planning_algorithm(self, start: tuple, end: tuple):
         # print(f'{start=} {end=}')
@@ -243,18 +243,18 @@ class FormationMaster:
                 )  
 
             if self.debug_level == 2:
-                print(f"(helper)[DEBUG] Movement options before pruning: {self.movement_options}")
+                print(f"[{self.robot.getName()}](helper): DEBUG - Movement options before pruning: {self.movement_options}")
 
             for movement in self.movement_options:
                 # Remove movement options that move towards an obstacle
                 if movement in self.obstacles:
                     if self.debug_level == 1:
-                        print(f"(helper)[DEBUG] Obstacle found at: {movement}")
-                        print(f"(helper)[DEBUG] Current position: {current_coords}")
-                        print(f"(helper)[DEBUG] Before: {self.movement_options=}")
+                        print(f"[{self.robot.getName()}](helper): DEBUG - Obstacle found at: {movement}")
+                        print(f"[{self.robot.getName()}](helper): DEBUG - Current position: {current_coords}")
+                        print(f"[{self.robot.getName()}](helper): DEBUG - Before: {self.movement_options=}")
                     self.movement_options.remove(movement)
                     if self.debug_level == 1:
-                        print(f"(helper)[DEBUG] Removed: {self.movement_options=}")
+                        print(f"[{self.robot.getName()}](helper): DEBUG - Removed: {self.movement_options=}")
                     
                     if len(self.movement_options) == 0:
                         # EDGE CASE: at correct x/y and finds obstacle -> continue same direction
@@ -267,12 +267,12 @@ class FormationMaster:
                 if step in self.conflict_map:
                     if movement in self.conflict_map[step]:
                         if self.debug_level == 2:
-                            print(f"(helper)[DEBUG] Pruning conflicting step: {step}")
+                            print(f"[{self.robot.getName()}](helper): DEBUG - Pruning conflicting step: {step}")
                         self.movement_options.remove(movement)
 
             if self.debug_level == 2:
-                print(f"(helper)[DEBUG] Movement option(s) after pruning: {self.movement_options}")
-                print(f"(helper)[DEBUG] Correct x; {self.correct_x}, Correct y; {self.correct_y}")
+                print(f"[{self.robot.getName()}](helper): DEBUG - Movement option(s) after pruning: {self.movement_options}")
+                print(f"[{self.robot.getName()}](helper): DEBUG - Correct x; {self.correct_x}, Correct y; {self.correct_y}")
             
             if len(self.movement_options) == 0:
                 # Stay in place if no movement options
@@ -289,11 +289,11 @@ class FormationMaster:
                 selected=path[step]
             )
             if self.previous_movement == "ERROR":
-                print("(helper)[ERROR] An unexpected error occurred")
+                print(f"[{self.robot.getName()}](helper): ERROR - An unexpected error occurred")
 
             current_coords = path[step]
             if self.debug_level == 2:
-                print(f"(helper)[DEBUG] Current coordinates: {current_coords}")
+                print(f"[{self.robot.getName()}](helper): DEBUG - Current coordinates: {current_coords}")
             
             if step in self.conflict_map:
                 # Key exists
@@ -303,13 +303,13 @@ class FormationMaster:
                 self.conflict_map[step] = [current_coords]
             
             if self.debug_level == 3:
-                print(f"(helper)[DEBUG] Conflict map: {self.conflict_map}")
+                print(f"[{self.robot.getName()}](helper): DEBUG - Conflict map: {self.conflict_map}")
 
             step += 1
             
             if self.correct_x and self.correct_y:
                 if self.debug_level == 1:
-                    print("(helper)[DEBUG] Path found")
+                    print(f"[{self.robot.getName()}](helper): DEBUG - Path found")
                 return path
 
 

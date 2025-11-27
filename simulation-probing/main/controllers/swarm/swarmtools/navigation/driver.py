@@ -111,7 +111,7 @@ class Driver:
     def get_pretty_position(self):
         range_image =self.lidar.getRangeImage()
         # pprint(range_image)
-        # return f"[helper]({self.robot_name}) Robot X position:{self.robot_position['x']:6.3f}    Robot Y position: {self.robot_position['y']:6.3f}    Robot Theta position: {self.robot_position['theta']:6.3f} ||| X+IMU_THETA position:{self.robot_position['imu_x']:6.3f}    Y+IMU_THETA position: {self.robot_position['imu_y']:6.3f}    IMU Theta position: {self.robot_position['imu_theta']:6.3f}"
+        return f"[{self.robot_name}](helper): Robot X position:{self.robot_position['x']:6.3f}    Robot Y position: {self.robot_position['y']:6.3f}    Robot Theta position: {self.robot_position['theta']:6.3f} ||| X+IMU_THETA position:{self.robot_position['imu_x']:6.3f}    Y+IMU_THETA position: {self.robot_position['imu_y']:6.3f}    IMU Theta position: {self.robot_position['imu_theta']:6.3f}"
 
     # motion
     def move_forward(self, coeff=1):
@@ -236,7 +236,7 @@ class Driver:
         self.ax.set_xlim(-2.5, 2.5)
         self.ax.set_ylim(-2.5, 2.5)
         #$ Plot waypoints as red dots
-        print(self.sorted_waypoints)
+        print(f"[{self.robot_name}](pid_path_follow): Waypoints: {self.sorted_waypoints}")
         for waypoint in self.sorted_waypoints:
             self.ax.plot(waypoint[0], waypoint[1], 'ro', markersize=2)  # Red color for waypoints
         plt.ion()  #$ Turn on interactive mode for live updates
@@ -264,7 +264,7 @@ class Driver:
                 # All waypoints have been reached; stop the robot
                 self.left_motor.setVelocity(0.0)
                 self.right_motor.setVelocity(0.0)
-                print("All waypoints reached. Stopping the robot.")
+                print(f"[{self.robot_name}](pid_path_follow): All waypoints reached. Stopping the robot.")
                 self.alive = False
                 self.stop()
                 quit()
@@ -275,7 +275,7 @@ class Driver:
             
             # Check if waypoint is reached
             if distance < self.waypoint_threshold:
-                print(f"Waypoint ({target_vector[0]}, {target_vector[1]}) reached.")
+                print(f"[{self.robot_name}](pid_path_follow): Waypoint ({target_vector[0]}, {target_vector[1]}) reached.")
                 self.sorted_waypoints.pop(0)  # Remove the reached waypoint
                 continue
             
@@ -285,7 +285,8 @@ class Driver:
             # Set motor velocities
             self.left_motor.setVelocity(v_left)
             self.right_motor.setVelocity(v_right)
-            print(self.get_pretty_position())
+            # Uncomment to see position updates
+            # print(self.get_pretty_position())
             #$ Place these updates in the main loop where needed:
             self.x_positions.append(position_state[0])
             self.y_positions.append(position_state[1])
@@ -306,9 +307,9 @@ class Driver:
         DISTANCE_THRESHOLD = 0.01  # meters
 
         # Get the list of waypoints from the path
-        print(f'{path=}')
+        print(f'[{self.robot_name}](simple_follow_path): path={path}')
         work_path = list(path.values())
-        print("Original path:", work_path)
+        print(f"[{self.robot_name}](simple_follow_path): Original path: {work_path}")
 
         # Function to sample waypoints
         def sample_waypoints(waypoints, sample_rate):
@@ -325,7 +326,7 @@ class Driver:
         # Adjust the sample rate as needed
         sample_rate = 10  # Keep every 5th waypoint
         work_path = sample_waypoints(work_path, sample_rate)
-        print("Sampled path:", work_path)
+        print(f"[{self.robot_name}](simple_follow_path): Sampled path: {work_path}")
 
         # Initialize state variables
         state = "ROTATING_TO_WAYPOINT"
@@ -364,14 +365,14 @@ class Driver:
                     self.move_forward()
                 else:
                     self.stop()
-                    print(f"[path_following]({self.robot.getName()}) Reached waypoint: ({target_x}, {target_y})")
+                    print(f"[{self.robot.getName()}](path_following): Reached waypoint: ({target_x}, {target_y})")
                     # Check if there are more waypoints
                     if work_path:
                         target_x, target_y = work_path.pop(0)
                         state = "ROTATING_TO_WAYPOINT"  # Start over for next waypoint
                     else:
-                        print(f"[path_following]({self.robot.getName()}) Robot X position:{self.robot_position['x']:6.3f}    Robot Y position: {self.robot_position['y']:6.3f}    Robot Theta position: {self.robot_position['theta']:6.3f}")
-                        print("Path following complete.")
+                        print(f"[{self.robot.getName()}](path_following): Robot X position:{self.robot_position['x']:6.3f}    Robot Y position: {self.robot_position['y']:6.3f}    Robot Theta position: {self.robot_position['theta']:6.3f}")
+                        print(f"[{self.robot.getName()}](path_following): Path following complete.")
                         break  # Exit the loop when done
 
             # Include any additional behaviors or idle actions here
@@ -422,7 +423,7 @@ class Driver:
     
     def check_encoder_not_null_and_init(self):
         # Wait until valid encoder values are available
-        print(f"[localisation]({self.robot.getName()}) Waiting for encoder != nan")
+        print(f"[{self.robot.getName()}](localisation): Waiting for encoder != nan")
         while math.isnan(self.prev_left_encoder) or math.isnan(self.prev_right_encoder) or math.isnan(self.imu_prev_w_z) or math.isnan(self.imu_prev_a_x) or math.isnan(self.imu_prev_a_y) :
             self.robot.step(self.timestep)  # Step the simulation until we get valid readings
             self.prev_left_encoder = self.left_encoder.getValue()
@@ -432,7 +433,7 @@ class Driver:
             self.imu_prev_a_y = np.float64(self.accelerometer.getValues()[1])
 
         print(
-            f"[localisation]({self.robot.getName()}) Valid Initial Left Encoder: {self.prev_left_encoder}, Valid Initial Right Encoder: {self.prev_right_encoder}"
+            f"[{self.robot.getName()}](localisation): Valid Initial Left Encoder: {self.prev_left_encoder}, Valid Initial Right Encoder: {self.prev_right_encoder}"
         )
         # when encoder is live then trigger the set
         self.robot_position["x"], self.robot_position["y"], current_z = (
@@ -441,7 +442,7 @@ class Driver:
         self.robot_position["imu_x"], self.robot_position["imu_y"], current_z = (
             self.gps.getValues()
         ) 
-        print(f"[localisaton]({self.robot.getName()}) INIT WITH GPS AT: Robot X position: {self.robot_position['x']:6.3f}    Robot Y position: {self.robot_position['y']:6.3f}    Robot Theta position: {self.robot_position['theta']:6.3f}")
+        print(f"[{self.robot.getName()}](localisation): INIT WITH GPS AT: Robot X position: {self.robot_position['x']:6.3f}    Robot Y position: {self.robot_position['y']:6.3f}    Robot Theta position: {self.robot_position['theta']:6.3f}")
         # pprint(_object=self.robot_position)
         return True
     
@@ -547,7 +548,7 @@ class Driver:
                 
 
     def print_map(self):
-        print("SLAM Map:")
+        print(f"[{self.robot_name}](slam): SLAM Map:")
         for i in range(MAP_HEIGHT):  # Loop over rows (Y-axis)
             for j in range(MAP_WIDTH):  # Loop over columns (X-axis)
                 if self.map[i][j] == 1:

@@ -70,23 +70,23 @@ d        listen for ['[probe]', '[object_detected]', '[task]', '[task_conflict]'
                 self.robot_entries[robot_id] = content
             elif title == "[object_detected]":
                 # Another robot detected the object - trigger consensus
-                print(f"{bcolors.YELLOW_WARNING}[object_detected]({self.name}) Received OBJECT_DETECTED from {robot_id}{bcolors.ENDC}")
+                print(f"{bcolors.YELLOW_WARNING}[{self.name}](object_detected): Received OBJECT_DETECTED from {robot_id}{bcolors.ENDC}")
                 self.object_coordinates = content
                 self.consensus(robot_id)  # Trigger consensus with the sender as claimant
                 return "consensus_received"
             elif title == "[task]":
                 self.task_master = robot_id
                 self.object_coordinates = content
-                print(f"[task]({self.robot.getName()}) Object Detected from: {robot_id}@{content}; checking conflict...")
+                print(f"[{self.robot.getName()}](task): Object Detected from: {robot_id}@{content}; checking conflict...")
                 return "task"
             elif title == "[task_conflict]":
                 # Handle conflict - re-run consensus with new claimant
-                print(f"{bcolors.RED_FAIL}[task_conflict]({self.name}) Conflict detected, claimant: {robot_id}{bcolors.ENDC}")
+                print(f"{bcolors.RED_FAIL}[{self.name}](task_conflict): Conflict detected, claimant: {robot_id}{bcolors.ENDC}")
                 self.consensus(robot_id)
                 return "reassign"
             elif title == "[consensus_ack]":
                 # Another robot acknowledged consensus
-                print(f"{bcolors.GREEN_OK}[consensus_ack]({self.name}) {robot_id} acknowledged taskmaster: {content}{bcolors.ENDC}")
+                print(f"{bcolors.GREEN_OK}[{self.name}](consensus_ack): {robot_id} acknowledged taskmaster: {content}{bcolors.ENDC}")
                 if not self.consensus_reached:
                     self.task_master = content
                     self.consensus_reached = True
@@ -106,7 +106,7 @@ d        listen for ['[probe]', '[object_detected]', '[task]', '[task_conflict]'
                     return "idle"
             else:
                 if self.verbose:
-                    print(f"[unknown_message]({self.name}) {title}")
+                    print(f"[{self.name}](unknown_message): {title}")
             
         return None 
     
@@ -114,7 +114,7 @@ d        listen for ['[probe]', '[object_detected]', '[task]', '[task_conflict]'
         # Send the message
         message = json.dumps([title, self.name, self.message_id, content])
         if self.verbose:
-            print(f"[broadcast_message]({self.robot.getName()}) {message}")
+            print(f"[{self.robot.getName()}](broadcast_message): {message}")
         self.emitter.send(message)
         self.message_id += 1
 
@@ -125,7 +125,7 @@ d        listen for ['[probe]', '[object_detected]', '[task]', '[task_conflict]'
         self.time_tracker = 0
 
     def print_received_message(self, msg):
-        print(f"[helper]({self.name}) {msg}")
+        print(f"[{self.name}](helper): {msg}")
 
     def consensus(self, new_claimant: str) -> str:
         """
@@ -141,13 +141,13 @@ d        listen for ['[probe]', '[object_detected]', '[task]', '[task_conflict]'
             The determined taskmaster robot name
         """
         if new_claimant == self.name:
-            print(f"{bcolors.CYAN_OK}[consensus]({self.name}) Claiming taskmaster.{bcolors.ENDC}")
+            print(f"{bcolors.CYAN_OK}[{self.name}](consensus): Claiming taskmaster.{bcolors.ENDC}")
 
         self.taskmaster_claims.append(new_claimant)
 
         # Get unique claims
         unique_claims = set(self.taskmaster_claims)
-        print(f"{bcolors.YELLOW_WARNING}[consensus]({self.name}) Current claims: {self.taskmaster_claims}, Unique: {unique_claims}{bcolors.ENDC}")
+        print(f"{bcolors.YELLOW_WARNING}[{self.name}](consensus): Current claims: {self.taskmaster_claims}, Unique: {unique_claims}{bcolors.ENDC}")
 
         if len(unique_claims) == 1:
             # Everyone agrees on the same taskmaster
@@ -175,7 +175,7 @@ d        listen for ['[probe]', '[object_detected]', '[task]', '[task_conflict]'
             self.priority_queue.append(self.task_master)
 
         self.consensus_reached = True
-        print(f"{bcolors.GREEN_OK}[consensus]({self.name}) Consensus reached: {self.task_master} is the taskmaster.{bcolors.ENDC}")
+        print(f"{bcolors.GREEN_OK}[{self.name}](consensus): Consensus reached: {self.task_master} is the taskmaster.{bcolors.ENDC}")
         
         # Broadcast acknowledgment
         self.broadcast_message("[consensus_ack]", self.task_master)
@@ -198,7 +198,7 @@ d        listen for ['[probe]', '[object_detected]', '[task]', '[task_conflict]'
         if object_coords:
             self.object_coordinates = object_coords
             
-        print(f"{bcolors.BLUE_OK}[object_detected]({self.name}) Object detected at {self.object_coordinates}, initiating consensus...{bcolors.ENDC}")
+        print(f"{bcolors.BLUE_OK}[{self.name}](object_detected): Object detected at {self.object_coordinates}, initiating consensus...{bcolors.ENDC}")
         
         # First, claim taskmaster for self
         self.consensus(self.name)
